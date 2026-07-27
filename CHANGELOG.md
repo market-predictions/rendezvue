@@ -13,6 +13,18 @@ All notable project changes are recorded here. The project follows a lightweight
 - Replace the local avatar renderer with an approved generation service.
 - Add persistent backend services and moderation operations.
 
+## [0.2.0-alpha.2] - 2026-07-28
+
+### Added
+
+- Published and marker-verified the Netherlands-first MBO/HBO/WO pilot at `https://solidprivacy-rendezvue.static.hf.space/`.
+- Recorded deployment commit `30192de007e2de85bd95ef6a3a4ff57155dd4d82` and workflow run `30311060515`.
+
+### Changed
+
+- Moved WP-016 from implementation to owner-review status.
+- Updated roadmap, work claims, work packages and handover to reflect successful hosted deployment.
+
 ## [0.2.0-alpha.1] - 2026-07-28
 
 ### Changed
