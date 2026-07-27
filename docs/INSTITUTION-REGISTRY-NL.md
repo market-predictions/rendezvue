@@ -92,7 +92,7 @@ Every domain record shall include:
 
 ## Prototype fixture warning
 
-The current browser prototype includes 39 illustrative records and plausible domains. These records are designed to test the interface only and must not be used to admit real users.
+The current browser prototype includes 39 illustrative records and plausible domains. These records are pilot fixtures designed to test the interface only and must not be used to admit real users.
 
 ## Acceptance criteria for WP-020
 
