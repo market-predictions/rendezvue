@@ -52,7 +52,7 @@ Work packages are the operational units of the roadmap. Status values are `plann
 
 ## WP-015 — Hosted Hugging Face prototype
 
-**Status:** active  
+**Status:** review  
 **Objective:** provide a working public mobile-browser prototype without requiring reviewers to install local development tools.
 
 ### Scope
@@ -67,30 +67,30 @@ Work packages are the operational units of the roadmap. Status values are `plann
 
 ### Implemented evidence
 
-- GitHub Actions configuration and Hugging Face credentials were accepted;
-- the Docker attempt returned HTTP 402 because new Docker Spaces require a paid plan;
-- free Static Space creation succeeded;
-- source synchronization succeeded but the hosted page remained HTTP 404 for 20 minutes;
-- `.static.hf.space` URL discovery and regression tests are implemented;
-- GitHub now generates and validates the complete deployable artifact;
-- direct `hf upload` replaces Hugging Face-side building and source mirroring;
-- Docker remains available for later backend phases but is no longer the pilot host.
+- credentials and free Static Space creation were accepted;
+- the paid Docker path and unreliable remote-build path were removed;
+- GitHub generates and validates the complete deployable artifact;
+- direct `hf upload` replaces remote building and source mirroring;
+- deployment succeeded for commit `edec6c59bdc2b46acf6652d1c03671006e86f250`;
+- workflow run `30305071548` verified the Rendezvue marker;
+- public URL: `https://solidprivacy-rendezvue.static.hf.space/`;
+- Docker remains available for later backend phases but is not the pilot host.
 
-### Current action
+### Remaining review
 
-- validate the prebuilt artifact pipeline in CI;
-- merge the direct-upload correction;
-- inspect the automatically reported deployment result in issue #2;
-- test camera and PWA behavior through the verified direct URL.
+- open the direct URL on desktop and mobile;
+- complete the four-second camera flow;
+- test Android Chrome, Samsung Internet and iPhone Safari where available;
+- record any browser-specific defects.
 
 ### Completion gate
 
-- deployment succeeds without a paid Hugging Face plan;
-- direct public URL serves the current Rendezvue build marker;
-- camera flow is tested through the direct HTTPS URL;
-- public URL opens on representative Android and iPhone browsers;
-- running Space matches GitHub `main`;
-- work claims and handover record the verified URL and workflow run.
+- deployment succeeds without a paid Hugging Face plan — **passed**;
+- direct public URL serves the current Rendezvue marker — **passed**;
+- running Space matches GitHub `main` — **passed at recorded commit**;
+- camera flow works through the direct HTTPS URL — pending field test;
+- public URL opens on representative Android and iPhone browsers — pending field test;
+- work claims and handover record the evidence — passed.
 
 ## WP-020 — Moroccan institution registry
 
