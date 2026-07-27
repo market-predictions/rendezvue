@@ -4,17 +4,21 @@ This register prevents prototype behavior from being overstated.
 
 | Claim ID | Claim | Status | Evidence | Limitation |
 |---|---|---|---|---|
-| WC-001 | GitHub is documented as the sole source of truth. | Demonstrated | README, ADR-0001, deployment workflow | Repository branch protection is not yet configured. |
-| WC-002 | GitHub can generate a complete free Hugging Face Static Space artifact. | Demonstrated | `build:static`, `build:hf`, artifact validation and deployment metadata template | This proves the generated artifact, not production application safety. |
-| WC-003 | The prototype validates whether an entered institutional email domain matches a selected fixture institution. | Demonstrated | Domain unit tests and onboarding UI | This does not send email or prove mailbox control. Fixture list is incomplete and not authoritative. |
-| WC-004 | The prototype records a four-second live camera clip in compatible browsers. | Demonstrated in code | `camera.js`, browser smoke test | Hosted device/browser field testing remains pending. It does not verify blink/head turn or resist replay attacks. |
-| WC-005 | Source video is not uploaded or persisted by the prototype. | Demonstrated by architecture | In-memory Blob handling, no network API | Browser/runtime behavior still requires privacy review; production architecture does not yet exist. |
-| WC-006 | The prototype generates a stylized visual from a selected camera frame. | Demonstrated | Local canvas posterization | This is not the production AI avatar model and is not a validated look-alike transformation. |
-| WC-007 | The prototype demonstrates privacy controls, discovery, contextual likes, matching and chat. | Demonstrated | Browser interaction flow | State is local and synthetic; no persistent or multi-user backend exists. |
-| WC-008 | The prototype is installable as a PWA on supporting browsers. | Implemented | Manifest, icons and service worker | Installation and web push require device-specific field testing; push is not implemented. |
-| WC-009 | The Docker target builds and serves the prototype on port 7860. | Demonstrated in CI | Successful Docker build, Dockerfile, Nginx configuration and health endpoint | New Docker Spaces require a paid Hugging Face plan and are not used for this free pilot. |
-| WC-010 | The product is safe for live users. | Not claimed | N/A | Age assurance, real verification, moderation operations, security review and legal assessment are incomplete. |
-| WC-011 | The deployment workflow can create a Static Space, upload the prebuilt artifact and verify the served page. | Demonstrated | Workflow run `30305071548`, commit `edec6c59bdc2b46acf6652d1c03671006e86f250`, verified deployment marker | Mobile camera and PWA field tests remain. |
-| WC-012 | A public Rendezvue Hugging Face pilot is currently live. | Demonstrated | `https://solidprivacy-rendezvue.static.hf.space/`, workflow run `30305071548` | Prototype only; not suitable for registration of real users. |
-| WC-013 | The original Docker Space path is unavailable on the configured free Hugging Face account. | Demonstrated | Workflow run #3 returned HTTP 402 at Space creation | This is a hosting-plan constraint, not an application or token failure. |
-| WC-014 | Source synchronization reached the free Static Space but did not produce a reachable page within 20 minutes. | Demonstrated | Workflow run #5 created and synchronized the Space, then received HTTP 404 during verification | Direct upload of a prebuilt artifact resolved this failure mode. |
+| WC-001 | GitHub is the sole source of truth. | Demonstrated | README, ADR-0001, workflows | Branch protection is not yet configured. |
+| WC-002 | GitHub generates a complete free Static Space artifact. | Demonstrated | `build:static`, `build:hf`, CI validation | This proves deployability, not production safety. |
+| WC-003 | The hosted PWA is publicly reachable. | Demonstrated | `https://solidprivacy-rendezvue.static.hf.space/`, deployment workflow | The currently public version remains a non-production prototype. |
+| WC-004 | The pivot prototype covers MBO, HBO and WO. | Implemented, pending hosted verification | 39 typed fixtures and domain tests | The institutions and domains are synthetic pilot fixtures, not an authoritative registry. |
+| WC-005 | Dutch is the default and English is available through a top-level switch. | Implemented, pending hosted verification | `lang=nl`, manifest language, i18n tests, UI switch | Full copy review by native target users remains pending. |
+| WC-006 | The prototype checks whether an entered domain matches the selected fixture institution. | Demonstrated | Domain tests and onboarding | It sends no email and proves neither mailbox control nor current enrolment. |
+| WC-007 | The product remains strictly 18+ across MBO, HBO and WO. | Implemented in prototype logic | Age tests and onboarding copy | Production age assurance is absent. |
+| WC-008 | The prototype records a four-second live camera clip in compatible browsers. | Demonstrated in code | `camera.js` and hosted flow | It does not classify liveness or resist replay attacks. |
+| WC-009 | Source video is not uploaded or persisted by the prototype. | Demonstrated by architecture | Browser-memory Blob handling and no API | Production processing and deletion evidence do not exist. |
+| WC-010 | The local avatar renderer is more illustrated and less pixelized than the prior renderer. | Implemented, pending user review | Smoothing, edge extraction, warm grading and illustrated frame | It is not a production AI avatar and resemblance quality is unvalidated. |
+| WC-011 | Faith is represented through self-selected descriptive categories rather than a piety score. | Implemented, pending hosted verification | Faith model, tests and UI | Legal basis and target-user validation remain incomplete. |
+| WC-012 | Faith-practice visibility is private by default. | Demonstrated in unit test | `createInitialState()` and domain test | Other faith fields are still collected locally during the prototype flow. |
+| WC-013 | The prototype does not infer religion from identity or behavior. | Implemented by design | No inference model or classification code | Production controls and audits remain to be designed. |
+| WC-014 | The prototype demonstrates discovery, contextual likes, matching and chat with Dutch synthetic profiles. | Implemented, pending hosted verification | UI flow and demo data | No persistent or multi-user backend exists. |
+| WC-015 | The PWA is installable on supporting browsers. | Implemented | Manifest, service worker and icons | Device-specific installation and push testing remain. |
+| WC-016 | The retained Docker target builds. | Demonstrated in CI | Docker build | Docker is not used for the free Hugging Face pilot. |
+| WC-017 | The product is safe or lawful for live users. | Not claimed | N/A | Age assurance, authoritative verification, moderation, security, DPIA and legal review are incomplete. |
+| WC-018 | Belgium is supported. | Not claimed | N/A | Belgium is deferred until Dutch validation. |
