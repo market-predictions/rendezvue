@@ -1,0 +1,33 @@
+name: Feature work package
+about: Propose a scoped product or engineering change
+labels: [enhancement]
+body:
+  - type: input
+    id: workpackage
+    attributes:
+      label: Work package
+      placeholder: WP-020
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Required outcome
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+    validations:
+      required: true
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy, safety and abuse considerations
