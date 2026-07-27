@@ -1,31 +1,34 @@
 # Project handover
 
 **Updated:** 2026-07-28  
-**Milestone:** Netherlands Muslim-student pivot implementation; CI and hosted verification pending
+**Milestone:** Netherlands Muslim-student pilot deployed; owner review required
 
 ## Current state
 
-The approved browser-native HTML5/PWA prototype is publicly hosted at:
+The Netherlands-first browser prototype is publicly hosted at:
 
 `https://solidprivacy-rendezvue.static.hf.space/`
 
-Work is active on `agent/netherlands-muslim-student-pivot`. The milestone converts the product from Morocco to the Netherlands and expands eligibility to adults aged 18+ in MBO, HBO and WO.
+The deployed build was verified from GitHub commit `30192de007e2de85bd95ef6a3a4ff57155dd4d82` by workflow run `30311060515`.
 
-## Implemented on the milestone branch
+The product now targets Muslim students and students with a Muslim background aged 18 or older in Dutch MBO, HBO and WO. Dutch is the default language and English is available from the persistent NL/EN switch.
 
-- Dutch default document, manifest and interface;
-- persistent NL/EN language switch at the top;
+## Implemented and hosted
+
+- Dutch-first onboarding and interface;
+- persistent NL/EN language switch;
+- MBO, HBO and WO as peer education categories;
 - 15 MBO, 12 HBO and 12 WO pilot fixtures;
-- explicit MBO/HBO/WO selection before institution selection;
-- separate 18+ gate, including an MBO-specific reminder;
-- Dutch synthetic profiles across all three education sectors;
+- independent strict 18+ gate, including an MBO-specific reminder;
+- Dutch synthetic discovery profiles across all three education sectors;
 - faith background, daily practice and faith-compatibility preference;
 - optional lifestyle tags;
-- no numeric piety score;
+- no numeric piety score or inferred religious identity;
 - faith-practice visibility off by default;
-- illustrated local avatar rendering using smoothing, edge extraction and warm grading;
-- updated unit tests, static validation and PWA cache;
-- revised requirements, roadmap, work packages and work claims.
+- illustrated local avatar rendering using smoothing, edge extraction, warm grading and portrait framing;
+- complete profile, discovery, contextual-like, match, chat and safety demonstration;
+- validated static artifacts, Python deployment checks and retained Docker build;
+- automatic verified deployment to the free Hugging Face Static Space.
 
 ## Important limitations
 
@@ -33,26 +36,27 @@ Work is active on `agent/netherlands-muslim-student-pivot`. The milestone conver
 - domain matching does not send email or prove student status;
 - age assurance is only a prototype date gate;
 - camera capture does not verify liveness;
-- avatar output is a local visual approximation, not a production generative model;
-- faith data is local synthetic prototype state; production legal basis and DPIA are unresolved;
+- avatar output is a local illustration approximation, not a production generative model;
+- faith data is sensitive personal data; production legal basis, DPIA, consent/withdrawal and anti-discrimination controls remain unresolved;
 - there are no persistent accounts, messages or moderator operations;
 - the product must not admit real users.
 
 ## Architecture
 
-GitHub remains authoritative. CI builds and validates the application, creates `.hf-deploy/`, and uploads the finished artifact to the free Hugging Face Static Space. Hugging Face serves files only.
+GitHub remains authoritative. CI builds and validates the application, creates `.hf-deploy/`, uploads the finished artifact and verifies the public marker. Hugging Face serves generated static files only.
 
-Production services must remain external and server-authoritative for authentication, matching, messaging, moderation, retention and sensitive-data controls.
+Production services must remain external and server-authoritative for authentication, age assurance, matching, messaging, moderation, retention and sensitive-data controls.
 
-## Current work gate
+## Current review gate
 
-1. complete remaining governance documents;
-2. open a focused pull request;
-3. pass JavaScript tests, localization tests, static artifact validation, Python URL tests and Docker build;
-4. merge after CI success;
-5. verify the automatic Hugging Face deployment;
-6. record the new hosted commit and workflow evidence;
-7. request owner review of Dutch copy, faith profile and avatar treatment.
+The implementation and hosted deployment gates are complete. Owner review is required for:
+
+1. Dutch positioning and tone;
+2. MBO/HBO/WO representation;
+3. faith-profile terminology and optionality;
+4. visibility defaults for institution and faith practice;
+5. illustrated avatar usefulness, privacy and resemblance;
+6. complete mobile-browser camera flow.
 
 ## Immediate next work after approval
 
@@ -60,7 +64,8 @@ Production services must remain external and server-authoritative for authentica
 - WP-025: target-user validation and legal basis for faith data;
 - production age-assurance selection with explicit under-18 MBO handling;
 - moderated avatar/privacy user testing;
-- production avatar technical proof.
+- production avatar technical proof;
+- selection of the first Dutch launch city or institution cluster.
 
 ## Significant decisions still needed
 
@@ -68,7 +73,7 @@ Production services must remain external and server-authoritative for authentica
 - exact faith-field optionality and production consent design;
 - public institution visibility default;
 - age-assurance provider or method;
-- production avatar service/architecture;
+- production avatar service and architecture;
 - database, object storage and data location;
 - moderation staffing and service levels;
 - whether Belgium follows after Dutch evidence.
