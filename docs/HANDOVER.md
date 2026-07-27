@@ -1,88 +1,85 @@
 # Project handover
 
-**Updated:** 2026-07-27  
-**Milestone:** Hosted interaction prototype live; mobile field review pending
+**Updated:** 2026-07-28  
+**Milestone:** Netherlands Muslim-student pivot implementation; CI and hosted verification pending
 
 ## Current state
 
-Milestone 0.1 is approved and merged. The browser-native HTML5/PWA prototype is publicly available at:
+The approved browser-native HTML5/PWA prototype is publicly hosted at:
 
 `https://solidprivacy-rendezvue.static.hf.space/`
 
-GitHub Actions built and validated the complete `.hf-deploy/` artifact, uploaded it directly to the free Hugging Face Static Space and verified the embedded Rendezvue marker.
+Work is active on `agent/netherlands-muslim-student-pivot`. The milestone converts the product from Morocco to the Netherlands and expands eligibility to adults aged 18+ in MBO, HBO and WO.
 
-Deployment evidence:
+## Implemented on the milestone branch
 
-- source commit: `edec6c59bdc2b46acf6652d1c03671006e86f250`;
-- workflow run: `30305071548`;
-- deployment issue: #2.
+- Dutch default document, manifest and interface;
+- persistent NL/EN language switch at the top;
+- 15 MBO, 12 HBO and 12 WO pilot fixtures;
+- explicit MBO/HBO/WO selection before institution selection;
+- separate 18+ gate, including an MBO-specific reminder;
+- Dutch synthetic profiles across all three education sectors;
+- faith background, daily practice and faith-compatibility preference;
+- optional lifestyle tags;
+- no numeric piety score;
+- faith-practice visibility off by default;
+- illustrated local avatar rendering using smoothing, edge extraction and warm grading;
+- updated unit tests, static validation and PWA cache;
+- revised requirements, roadmap, work packages and work claims.
 
-## What works
+## Important limitations
 
-- public HTTPS-hosted mobile interface;
-- onboarding and prototype-status copy;
-- institution selection and local email-domain validation;
-- browser camera permission and four-second in-memory capture in the implementation;
-- best-frame extraction and local stylization;
-- profile/privacy setup;
-- discovery, contextual likes and deterministic matching;
-- local chat and safety controls;
-- PWA manifest, service worker and icon;
-- deterministic builds to `dist/` and `.hf-deploy/`;
-- CI validation of application, deployment artifact, URL resolver and Docker fallback;
-- authenticated Static Space creation and direct artifact upload;
-- public-page marker verification;
-- deployment result reporting to issue #2.
+- institution and email-domain data are pilot fixtures, not DUO/RIO-backed production records;
+- domain matching does not send email or prove student status;
+- age assurance is only a prototype date gate;
+- camera capture does not verify liveness;
+- avatar output is a local visual approximation, not a production generative model;
+- faith data is local synthetic prototype state; production legal basis and DPIA are unresolved;
+- there are no persistent accounts, messages or moderator operations;
+- the product must not admit real users.
 
-## What is intentionally mocked or absent
+## Architecture
 
-- real email and SMS delivery;
-- production age assurance;
-- automated/replay-resistant liveness;
-- production avatar AI;
-- persistent accounts, matching and messaging;
-- moderator back office;
-- web push;
-- French and Arabic translations;
-- approval for real-user admission.
+GitHub remains authoritative. CI builds and validates the application, creates `.hf-deploy/`, and uploads the finished artifact to the free Hugging Face Static Space. Hugging Face serves files only.
 
-## Architecture rationale
+Production services must remain external and server-authoritative for authentication, matching, messaging, moderation, retention and sensitive-data controls.
 
-The prototype is browser-only, so a free Static Space is the correct pilot host. GitHub remains authoritative, performs the build and uploads the generated artifact. Hugging Face serves the files only. Docker remains CI-validated for later backend-capable or alternative-hosting phases.
+## Current work gate
 
-## Current review gate
+1. complete remaining governance documents;
+2. open a focused pull request;
+3. pass JavaScript tests, localization tests, static artifact validation, Python URL tests and Docker build;
+4. merge after CI success;
+5. verify the automatic Hugging Face deployment;
+6. record the new hosted commit and workflow evidence;
+7. request owner review of Dutch copy, faith profile and avatar treatment.
 
-The hosted deployment itself is complete. WP-015 remains in review until the direct URL is tested on representative browsers, especially:
+## Immediate next work after approval
 
-1. desktop browser basic flow;
-2. Android Chrome camera permission and recording;
-3. Samsung Internet where available;
-4. iPhone Safari camera permission and recording;
-5. PWA installation behavior where supported.
-
-## Immediate next work
-
-1. conduct the direct-URL field test;
-2. log browser-specific defects;
-3. close WP-015 and issue #2 after camera/PWA evidence is recorded;
-4. begin WP-020, the sourced Moroccan institution registry;
-5. create the moderated avatar/privacy user-test protocol.
+- WP-020: authoritative Dutch institution registry using DUO/RIO plus separately verified student mailbox domains;
+- WP-025: target-user validation and legal basis for faith data;
+- production age-assurance selection with explicit under-18 MBO handling;
+- moderated avatar/privacy user testing;
+- production avatar technical proof.
 
 ## Significant decisions still needed
 
-- closed-pilot city and first institutions;
-- public visibility default for institution name;
-- age-assurance approach;
-- long-term frontend framework;
-- production avatar-generation approach;
-- external database and object-storage provider/location;
-- legal basis and retention window for live facial capture.
+- first Dutch launch city or institution cluster;
+- exact faith-field optionality and production consent design;
+- public institution visibility default;
+- age-assurance provider or method;
+- production avatar service/architecture;
+- database, object storage and data location;
+- moderation staffing and service levels;
+- whether Belgium follows after Dutch evidence.
 
 ## Known risks
 
-- mobile camera APIs and MediaRecorder codecs differ by browser;
-- embedded and direct Hugging Face pages can have different camera policies;
-- the local posterization preview may not predict acceptance of a production avatar;
-- an institutional domain is only a probability signal;
-- the app cannot admit live users before safety, legal and security gates;
-- a Static Space cannot host persistent backend services.
+- pilot domains may be inaccurate and must not be used for real verification;
+- religious beliefs are sensitive personal data;
+- faith filters can cause exclusion, harassment or over-segmentation if poorly designed;
+- MBO increases the importance of robust age assurance;
+- mobile MediaRecorder support differs by browser;
+- illustrated local processing may perform unevenly across skin tones, hijab/headwear, glasses and lighting;
+- a focused community product still requires sufficient local profile density;
+- Static Space hosting cannot provide persistent application services.

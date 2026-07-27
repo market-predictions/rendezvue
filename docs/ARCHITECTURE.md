@@ -6,106 +6,126 @@
 GitHub branch / pull request
         |
         v
-CI validation, browser build and retained Docker build
+CI: tests + browser build + deployment artifact + Docker build
         |
         v
 GitHub main (authoritative)
         |
         v
-GitHub Actions generates .hf-deploy/
-        |
-        v
-Hugging Face CLI uploads prebuilt files
+GitHub Actions uploads .hf-deploy/
         |
         v
 Hugging Face Static Space (web-facing, disposable, free)
 ```
 
-The current repository is a static browser prototype. GitHub Actions builds and validates the complete deployment artifact before uploading it. Hugging Face only serves the already-built files and does not run Node, an application process or a Docker runtime.
+The browser prototype is built and validated in GitHub Actions. Hugging Face serves prebuilt files and performs no application build or server execution.
 
-The Dockerfile and Nginx target remain validated for future backend-capable or alternative hosting scenarios, but new Docker Spaces require a paid Hugging Face plan and are not part of the current pilot path.
-
-Production services will be introduced behind explicit interfaces rather than storing data in the Space or browser as authoritative state.
+Docker/Nginx remain CI-validated for later backend-capable or alternative hosting, but are not the free pilot path.
 
 ## 2. Current modules
 
 ```text
 apps/web/
-  index.html             application shell and hosted deployment marker
-  styles.css             design system and responsive layout
+  index.html             Dutch-default application shell
+  styles.css             responsive visual system
   app.js                 screen composition and event orchestration
-  src/domain.js          institution and profile rules
+  src/domain.js          MBO/HBO/WO and profile rules
+  src/i18n.js            Dutch and English copy
   src/camera.js          camera capture and frame extraction
-  src/avatar.js          local non-production stylization
-  src/demo-data.js       synthetic profiles and messages
-  manifest.webmanifest   PWA metadata
+  src/avatar.js          local illustrated non-production renderer
+  src/demo-data.js       Dutch synthetic profiles and messages
+  manifest.webmanifest   Dutch-default PWA metadata
   service-worker.js      application-shell cache
 
 scripts/
-  build-static.mjs       deterministic apps/web -> dist build
-  build-hf-deploy.mjs    dist + Space metadata -> .hf-deploy artifact
-  huggingface_space.py   Static Space creation and public-page verification
-
-infrastructure/huggingface/
-  README.static.md       metadata and notice placed in the deployed Space
+  build-static.mjs       apps/web -> dist
+  build-hf-deploy.mjs    dist + Space metadata -> .hf-deploy
+  validate-static.mjs    source and artifact contract checks
+  huggingface_space.py   Space creation and hosted verification
 ```
 
-The generated `.hf-deploy/` directory is ignored by Git. It is reproducibly created from versioned source and uploaded from GitHub Actions.
+## 3. Prototype state model
 
-## 3. Production target boundaries
+The current prototype uses browser memory plus a persisted language preference. It does not create persistent identities.
+
+- source capture and canvas data are browser-local;
+- Blob URLs are revoked when the flow ends or the page closes;
+- matches and messages are synthetic session state;
+- no student, faith or camera data is uploaded;
+- faith-practice visibility starts disabled;
+- language switching preserves current form state where implemented.
+
+## 4. Dutch institution boundary
+
+The typed institution fixture contains MBO, HBO and WO records. Production data must be separated into:
+
+1. authoritative institution identity from DUO/RIO;
+2. independently verified student mailbox domains;
+3. aliases, campuses and exceptions;
+4. dated verification evidence.
+
+Public web domains must not automatically become accepted student domains.
+
+## 5. Faith-data boundary
+
+Faith background, practice, compatibility preference and lifestyle tags are separate fields. They must never be reduced to a single score.
+
+Production architecture must provide:
+
+- separable user choice and legal-basis evidence;
+- field-level visibility controls;
+- deletion and withdrawal;
+- purpose limitation to profile and matching;
+- no advertising segmentation;
+- no inferred religion;
+- access and audit controls for sensitive data;
+- moderation safeguards against sectarian or anti-Muslim harassment.
+
+The current prototype stores these fields only in local memory.
+
+## 6. Production target
 
 ```text
 PWA / later native shell
         |
         v
-API gateway / backend-for-frontend
-  |       |        |         |          |
- auth  profile  discovery  messaging  moderation
-  |       |        |         |          |
-PostgreSQL      event/queue layer      audit store
+Backend-for-frontend / API gateway
+  |        |         |          |            |
+ auth   profile   discovery   messaging   moderation
+  |        |         |          |            |
+PostgreSQL       durable queues       audit/evidence store
         |
 Object storage for avatars and temporary source media
         |
-External email, SMS, age assurance and avatar services
+Email, SMS, age assurance, liveness and avatar services
 ```
-
-The Static Space can continue to host public frontend assets, but production backend services must use infrastructure designed for authentication, persistent data, background jobs and abuse controls.
 
 ### Invariants
 
-- persistent data never depends on Hugging Face local disk or static assets;
+- persistent state never depends on Hugging Face;
 - source capture and public avatar are separate data classes;
-- background jobs are durable server jobs;
-- clients receive only the minimum data needed for the current screen;
-- verification labels are derived from evidence records, not editable profile fields;
-- block and moderation enforcement is server authoritative;
-- native shells remain thin clients;
-- GitHub remains the only source repository whose changes are supported;
-- Hugging Face never builds from unvalidated application source during the pilot;
-- deployed files are generated from the accepted GitHub commit.
+- verification labels derive from evidence, not editable profile fields;
+- age assurance remains independent of student verification;
+- block and moderation enforcement is server-authoritative;
+- faith data is never used for ads or inferred classification;
+- deployed files are generated from accepted GitHub source;
+- native shells remain thin clients.
 
-## 4. Prototype state model
+## 7. Deferred framework decision
 
-The prototype uses browser memory plus limited non-sensitive session state. It does not create persistent identities. Captured video Blob URLs and source canvas data are revoked or discarded when the flow ends or the page reloads.
+A component framework is likely appropriate for production, but the interaction model should be validated first. Selection criteria include:
 
-The hosted Static Space executes the same browser code as local development. Camera capture remains device-side and has no upload endpoint.
-
-## 5. Deferred framework decision
-
-A component framework is likely appropriate for production, but choosing it now would optimize an implementation before the interaction model has been validated. The current modules are kept small and pure where possible so they can be ported to React, Preact, Vue, Svelte or a WebView shell.
-
-Framework selection criteria for Phase 2:
-
-- accessibility tooling;
-- RTL and localization maturity;
+- accessibility and localization tooling;
 - state-machine support;
 - camera/WebRTC integration;
-- code sharing with a native shell strategy;
+- code sharing with native shells;
 - bundle size on mid-range Android;
-- team familiarity and maintainability;
 - test ecosystem;
-- static frontend and later cloud deployment simplicity.
+- maintainability;
+- static frontend and cloud-backend compatibility.
 
-## 6. Security boundary
+## 8. Security boundary
 
-The browser is untrusted. Production verification, matching, messaging authorization, rate limiting, abuse enforcement and retention evidence must be server-side. The prototype deliberately contains no production security claims.
+The browser is untrusted. Production authentication, age assurance, student verification, authorization, matching, moderation, rate limiting, retention and audit evidence must be server-side.
+
+The prototype deliberately makes no production-security or legal-readiness claim.
