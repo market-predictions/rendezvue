@@ -10,8 +10,28 @@ All notable project changes are recorded here. The project follows a lightweight
 - Validate the faith profile with target users and establish the production Article 9 condition.
 - Select a privacy-preserving age-assurance method.
 - Add automated blink and head-turn liveness analysis.
-- Replace the local avatar renderer with an approved generation service.
+- Evaluate a production identity-preserving avatar generation service after the browser sketch concept is validated.
 - Add persistent backend services and moderation operations.
+
+## [0.2.0-alpha.3] - 2026-07-28
+
+### Changed
+
+- Replaced the softened near-photo avatar treatment with a stronger monochrome ink-sketch abstraction.
+- Removed photographic color, skin texture and continuous selfie shading from the public avatar output.
+- Preserved broad visual cues through face/hair silhouette, contour lines, flat shadow masses and expression-level detail.
+- Replaced the synthetic fallback with a matching line-art portrait.
+
+### Added
+
+- Added adaptive local contrast and Sobel contour extraction for browser-side sketch rendering.
+- Added CI guards that prevent the previous near-photo overlay treatment from returning unnoticed.
+
+### Privacy
+
+- Increased intentional visual distance between the live selfie and public avatar while retaining a useful first impression.
+- Continued to keep source capture browser-local in the prototype.
+- The sketch remains recognisable and is not claimed to provide anonymity against determined recognition.
 
 ## [0.2.0-alpha.2] - 2026-07-28
 
