@@ -12,6 +12,17 @@ All notable project changes are recorded here. The project follows a lightweight
 - Replace the local avatar stylization preview with an approved generation service.
 - Add persistent backend services for accounts, matches, messages and moderation.
 
+## [0.1.0-alpha.7] - 2026-07-27
+
+### Added
+
+- Published the verified hosted prototype at `https://solidprivacy-rendezvue.static.hf.space/`.
+- Recorded deployment commit `edec6c59bdc2b46acf6652d1c03671006e86f250` and workflow run `30305071548`.
+
+### Changed
+
+- Moved WP-015 from implementation to hosted browser field review.
+
 ## [0.1.0-alpha.6] - 2026-07-27
 
 ### Changed
