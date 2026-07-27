@@ -1,0 +1,35 @@
+name: Sync pilot to Hugging Face
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: huggingface-pilot
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    if: ${{ vars.HF_SPACE_ID != '' }}
+    runs-on: ubuntu-latest
+    environment: huggingface-pilot
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate source before synchronization
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run check
+      - name: Mirror GitHub source to the Docker Space
+        uses: huggingface/hub-sync@v0.1.0
+        with:
+          github_repo_id: ${{ github.repository }}
+          huggingface_repo_id: ${{ vars.HF_SPACE_ID }}
+          hf_token: ${{ secrets.HF_TOKEN }}
+          repo_type: space
+          space_sdk: docker
