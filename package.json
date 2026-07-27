@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "python3 -m http.server 4173 --directory apps/web",
+    "build:static": "node scripts/build-static.mjs",
     "test": "node --test apps/web/tests/*.test.mjs",
     "validate": "node scripts/validate-static.mjs",
-    "check": "npm run validate && npm test"
+    "check": "npm run build:static && npm run validate && npm test"
   },
   "engines": {
     "node": ">=20"
