@@ -4,7 +4,7 @@
 
 Publish the HTML5/PWA prototype as a public, free Hugging Face **Static Space** while keeping GitHub as the sole source of truth.
 
-No development tools are required on the reviewer’s computer. Every accepted change to `main` is validated, built, uploaded and publicly verified by GitHub Actions.
+No development tools are required on the reviewer’s computer. Every accepted change to `main` is validated, built, uploaded and publicly verified by GitHub Actions. The deployment is strictly one-way from GitHub to Hugging Face.
 
 ## Hosting decision
 
