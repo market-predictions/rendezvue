@@ -59,6 +59,13 @@ const deployment = JSON.parse(await readFile(resolve(root, 'dist/deployment.json
 if (deployment.market !== 'netherlands') throw new Error('Deployment metadata must identify the Netherlands market.');
 if (!deployment.education?.includes('mbo') || !deployment.languages?.includes('nl')) throw new Error('Deployment metadata is missing education or language scope.');
 
+const spaceMetadataSource = await readFile(resolve(root, 'infrastructure/huggingface/README.static.md'), 'utf8');
+const allowedSpaceColors = new Set(['red', 'yellow', 'green', 'blue', 'indigo', 'purple', 'pink', 'gray']);
+for (const key of ['colorFrom', 'colorTo']) {
+  const value = spaceMetadataSource.match(new RegExp(`^${key}:\\s*(\\S+)`, 'm'))?.[1];
+  if (!value || !allowedSpaceColors.has(value)) throw new Error(`${key} must use a supported Hugging Face Space color.`);
+}
+
 const deployReadme = await readFile(resolve(root, '.hf-deploy/README.md'), 'utf8');
 for (const marker of ['sdk: static', 'app_file: index.html', 'GitHub is the sole source of truth', 'MBO', 'HBO', 'WO']) {
   if (!deployReadme.includes(marker)) throw new Error(`Hugging Face deployment metadata is missing: ${marker}`);
