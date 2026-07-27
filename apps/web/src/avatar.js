@@ -241,3 +241,11 @@ function createSyntheticSource() {
 export function createFallbackAvatarVariants() {
   return generateAvatarVariants(createSyntheticSource());
 }
+
+export function stylizeFrame(sourceCanvas) {
+  return generateAvatarVariants(sourceCanvas)[0].dataUrl;
+}
+
+export function createFallbackAvatar() {
+  return createFallbackAvatarVariants()[0].dataUrl;
+}
