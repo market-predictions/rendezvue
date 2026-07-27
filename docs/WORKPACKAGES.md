@@ -52,35 +52,41 @@ Work packages are the operational units of the roadmap. Status values are `plann
 
 ## WP-015 — Hosted Hugging Face prototype
 
-**Status:** blocked  
+**Status:** active  
 **Objective:** provide a working public mobile-browser prototype without requiring reviewers to install local development tools.
 
 ### Scope
 
-- create or confirm a public Hugging Face Docker Space;
+- create or confirm a public, free Hugging Face Static Space;
+- build the browser application reproducibly into `dist/`;
 - mirror accepted GitHub `main` source one way;
-- wait for Space build and runtime readiness;
-- verify `/healthz`;
+- wait for the hosted static build;
+- verify the direct public page and Rendezvue deployment marker;
 - publish the verified URL in GitHub Actions;
 - document activation and troubleshooting;
 - record deployment evidence.
 
 ### Implemented evidence
 
-- automated deployment workflow;
-- Space-management and health-check helper;
-- CI syntax validation;
-- web-only activation guide;
-- updated roadmap, handover, changelog and work claims.
+- GitHub Actions configuration and Hugging Face credentials were accepted by the first hosted run;
+- the first Docker Space attempt returned HTTP 402 because new Docker Spaces require a paid plan;
+- free Static Space creation and synchronization are implemented as the corrective path;
+- deterministic static build and deployment marker are implemented;
+- deployment helper, CI validation and web-only guide are updated;
+- Docker remains available for later backend phases but is no longer the pilot host.
 
-### External blocker
+### Current action
 
-- repository owner must configure secret `HF_TOKEN` and variable `HF_SPACE_ID` in GitHub Actions settings.
+- merge the Static Space correction;
+- allow the resulting `main` deployment to run automatically;
+- inspect and correct any static build or browser-hosting issue.
 
 ### Completion gate
 
-- deployment succeeds;
-- public URL opens on Android and iPhone browsers;
+- deployment succeeds without a paid Hugging Face plan;
+- direct public URL serves the current Rendezvue build marker;
+- camera flow is tested through the direct HTTPS URL;
+- public URL opens on representative Android and iPhone browsers;
 - running Space matches GitHub `main`;
 - work claims and handover record the verified URL and workflow run.
 
