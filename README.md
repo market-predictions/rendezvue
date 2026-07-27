@@ -3,8 +3,11 @@ title: Rendezvue Pilot
 emoji: 💞
 colorFrom: pink
 colorTo: purple
-sdk: docker
-app_port: 7860
+sdk: static
+app_build_command: npm run build:static
+app_file: dist/index.html
+fullWidth: true
+header: mini
 pinned: false
 license: other
 ---
@@ -29,8 +32,9 @@ The repository contains an installable, mobile-first HTML5 prototype demonstrati
 - profile configuration and institution-visibility controls;
 - discovery, contextual likes, matching and a local chat demonstration;
 - reporting, blocking and profile pausing UX;
-- PWA installation assets and a Docker deployment target;
-- automated Hugging Face Space creation, synchronization and health verification after one-time credentials are configured.
+- PWA installation assets;
+- a free Hugging Face Static Space deployment target;
+- automated Space creation, synchronization and public-page verification after one-time credentials are configured.
 
 The prototype is **not production verification**. Email delivery, age assurance, automated liveness detection, persistent accounts, moderation operations and generative avatar infrastructure remain mocked or explicitly marked as pending.
 
@@ -43,14 +47,13 @@ npm run dev
 
 Open `http://localhost:4173`.
 
-## Run with Docker
+## Build the hosted static application
 
 ```bash
-docker build -t rendezvue-pilot .
-docker run --rm -p 7860:7860 rendezvue-pilot
+npm run build:static
 ```
 
-Open `http://localhost:7860`.
+The deployable output is written to `dist/`. The Docker configuration remains in the repository for later backend-capable phases, but the browser-only pilot no longer requires paid Hugging Face compute.
 
 ## Project governance
 
@@ -72,7 +75,7 @@ One-time GitHub Actions configuration is required:
 - repository variable `HF_SPACE_ID` in `owner/space-name` format;
 - repository secret `HF_TOKEN` containing a fine-grained Hugging Face write token.
 
-The workflow then creates or confirms the public Docker Space, mirrors GitHub `main`, waits for the runtime, checks `/healthz` and publishes the verified pilot URL in the GitHub Actions summary.
+The workflow creates or confirms a public **Static Space**, mirrors GitHub `main`, waits for the public page, verifies the Rendezvue deployment marker and publishes the pilot URL in the GitHub Actions summary.
 
 The Space does not need to be created manually. See [Hugging Face pilot deployment](docs/HUGGINGFACE-PILOT.md).
 

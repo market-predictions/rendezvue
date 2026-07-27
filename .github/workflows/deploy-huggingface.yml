@@ -10,7 +10,7 @@ on:
         required: false
         type: string
       verify_timeout:
-        description: Maximum seconds to wait for the Space
+        description: Maximum seconds to wait for the static build
         required: false
         default: "1200"
         type: string
@@ -69,13 +69,15 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate application source
+      - name: Validate and build static application
         uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run check
+      - name: Remove generated output before source synchronization
+        run: rm -rf dist
 
       - name: Install Hugging Face deployment client
         uses: actions/setup-python@v6
@@ -83,19 +85,19 @@ jobs:
           python-version: "3.12"
       - run: python -m pip install --disable-pip-version-check "huggingface_hub>=0.32,<2"
 
-      - name: Create or confirm Docker Space
+      - name: Create or confirm free Static Space
         run: python scripts/huggingface_space.py ensure
 
-      - name: Mirror GitHub source to the Space
+      - name: Mirror GitHub source to the Static Space
         uses: huggingface/hub-sync@v0.1.0
         with:
           github_repo_id: ${{ github.repository }}
           huggingface_repo_id: ${{ env.HF_SPACE_ID }}
           hf_token: ${{ secrets.HF_TOKEN }}
           repo_type: space
-          space_sdk: docker
+          space_sdk: static
 
-      - name: Wait for runtime and verify health
+      - name: Wait for static build and verify public page
         id: verify
         run: python scripts/huggingface_space.py verify --timeout "${{ needs.configuration.outputs.timeout }}"
 
@@ -106,9 +108,11 @@ jobs:
           {
             echo "## Rendezvue Hugging Face pilot"
             echo
-            echo "Deployment and health verification succeeded."
+            echo "Free Static Space deployment and public-page verification succeeded."
             echo
             echo "**Pilot URL:** $SPACE_URL"
+            echo
+            echo "Open the direct hf.space URL for camera and PWA testing."
             echo
             echo "GitHub remains the source of truth; future pushes to main redeploy automatically."
           } >> "$GITHUB_STEP_SUMMARY"

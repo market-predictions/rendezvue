@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create and verify the Rendezvue Hugging Face Docker Space.
+"""Create and verify the free Rendezvue Hugging Face Static Space.
 
 The script is intended for GitHub Actions. It never prints the access token.
 """
@@ -17,6 +17,7 @@ import urllib.request
 from huggingface_hub import HfApi
 
 SPACE_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*$")
+DEPLOYMENT_MARKER = 'name="rendezvue-deployment" content="static-pilot"'
 
 
 def require_environment() -> tuple[str, str]:
@@ -42,11 +43,11 @@ def ensure_space(api: HfApi, repo_id: str) -> None:
     url = api.create_repo(
         repo_id=repo_id,
         repo_type="space",
-        space_sdk="docker",
+        space_sdk="static",
         exist_ok=True,
         private=False,
     )
-    print(f"Hugging Face Space is available at {url}.")
+    print(f"Free Hugging Face Static Space is available at {url}.")
 
 
 def space_info(api: HfApi, repo_id: str):
@@ -56,32 +57,56 @@ def space_info(api: HfApi, repo_id: str):
         return api.space_info(repo_id)
 
 
-def wait_for_health(url: str, timeout: int) -> None:
-    deadline = time.monotonic() + timeout
-    last_error = "no response"
-    while time.monotonic() < deadline:
-        try:
-            with urllib.request.urlopen(f"{url}/healthz", timeout=15) as response:
-                body = response.read(256).decode("utf-8", errors="replace").strip()
-                if 200 <= response.status < 300:
-                    print(f"Health check passed: HTTP {response.status} {body!r}")
-                    return
-                last_error = f"HTTP {response.status}: {body}"
-        except (urllib.error.URLError, TimeoutError) as error:
-            last_error = str(error)
-        time.sleep(10)
-    raise SystemExit(f"Space did not pass /healthz within {timeout}s: {last_error}")
-
-
-def verify_space(api: HfApi, repo_id: str, timeout: int) -> None:
-    print(f"Waiting up to {timeout}s for {repo_id} to finish building and start.")
-    api.wait_for_space(repo_id=repo_id, timeout=timeout)
+def resolve_public_url(api: HfApi, repo_id: str) -> str | None:
     info = space_info(api, repo_id)
     subdomain = getattr(info, "subdomain", None)
     if not subdomain:
-        raise SystemExit("Hugging Face did not return a Space subdomain.")
-    url = f"https://{subdomain}.hf.space"
-    wait_for_health(url, min(timeout, 300))
+        return None
+    return f"https://{subdomain}.hf.space"
+
+
+def wait_for_static_page(api: HfApi, repo_id: str, timeout: int) -> str:
+    deadline = time.monotonic() + timeout
+    last_error = "public URL not available yet"
+    url: str | None = None
+
+    while time.monotonic() < deadline:
+        try:
+            url = resolve_public_url(api, repo_id) or url
+            if not url:
+                last_error = "Hugging Face has not assigned a Space subdomain yet"
+            else:
+                request = urllib.request.Request(
+                    url,
+                    headers={"User-Agent": "Rendezvue-GitHub-Deployment/1.0"},
+                )
+                with urllib.request.urlopen(request, timeout=20) as response:
+                    body = response.read(131072).decode("utf-8", errors="replace")
+                    if 200 <= response.status < 300 and DEPLOYMENT_MARKER in body:
+                        print(f"Static pilot verification passed: HTTP {response.status}")
+                        return url
+                    last_error = (
+                        f"HTTP {response.status}; Rendezvue deployment marker not present"
+                    )
+        except urllib.error.HTTPError as error:
+            last_error = f"HTTP {error.code}: {error.reason}"
+        except (urllib.error.URLError, TimeoutError) as error:
+            last_error = str(error)
+        except Exception as error:  # Keep polling while the Hub build metadata settles.
+            last_error = f"{type(error).__name__}: {error}"
+
+        print(f"Static Space not ready: {last_error}")
+        time.sleep(10)
+
+    raise SystemExit(
+        f"Static Space did not serve the Rendezvue pilot within {timeout}s: {last_error}"
+    )
+
+
+def verify_space(api: HfApi, repo_id: str, timeout: int) -> None:
+    print(f"Waiting up to {timeout}s for the static build of {repo_id}.")
+    url = wait_for_static_page(api, repo_id, timeout)
+    subdomain = url.removeprefix("https://").removesuffix(".hf.space")
     write_output("space_url", url)
     write_output("space_subdomain", subdomain)
     print(f"Verified pilot URL: {url}")

@@ -12,6 +12,24 @@ All notable project changes are recorded here. The project follows a lightweight
 - Replace the local avatar stylization preview with an approved generation service.
 - Add persistent backend services for accounts, matches, messages and moderation.
 
+## [0.1.0-alpha.3] - 2026-07-27
+
+### Fixed
+
+- Replaced the paid Docker Space creation path after Hugging Face returned HTTP 402 for a free account.
+- Changed hosted verification from a Docker `/healthz` endpoint to the direct static page and an embedded Rendezvue deployment marker.
+
+### Added
+
+- Added a deterministic `npm run build:static` output in `dist/`.
+- Added Static Space metadata using `app_build_command` and `app_file`.
+- Added validation of the generated static artifact and hosted deployment marker.
+
+### Changed
+
+- The pilot deployment now creates and synchronizes a free Hugging Face Static Space.
+- Docker remains a future backend-capable option but is no longer required for the browser-only prototype.
+
 ## [0.1.0-alpha.2] - 2026-07-27
 
 ### Added
