@@ -2,44 +2,98 @@
 
 ## 1. Familiar, not cloned
 
-Use successful dating-app conventions—large profile card, pass/like actions, mutual matching, bottom navigation—without reproducing another product's brand, exact layout or proprietary expression.
+Use successful dating-app conventions—large profile card, visible pass/like actions, mutual matching and bottom navigation—without copying another product's brand or exact expression.
 
-## 2. Privacy is visible
+## 2. Dutch first, English always available
 
-Privacy cannot live only in legal text. Every sensitive step explains:
+Dutch is the default. The NL/EN switch remains visible at the top and must preserve the user's current flow.
+
+Copy should feel warm, respectful and contemporary rather than bureaucratic, preachy or hookup-oriented.
+
+## 3. MBO, HBO and WO are peers
+
+Education level supports navigation and compatibility, not social ranking.
+
+- use MBO, HBO and WO labels neutrally;
+- never order profiles by perceived educational prestige;
+- explain MBO in English as vocational education;
+- keep the 18+ gate separate from education level.
+
+## 4. Faith is descriptive, not scored
+
+The interface helps users describe background, daily practice, compatibility preference and lifestyle.
+
+- no piety score;
+- no “good/bad Muslim” language;
+- self-description and preference are distinct;
+- “prefer not to say” and private options remain available;
+- practice visibility starts off;
+- optional lifestyle tags carry more practical meaning than abstract labels alone.
+
+## 5. Privacy is visible
+
+Every sensitive step explains:
 
 - what is collected;
 - why it is needed;
-- what becomes public;
+- what may become public;
+- what remains private;
 - what is deleted;
-- what the verification badge actually means.
+- what a verification badge actually proves.
 
-## 3. One decision per screen
+## 6. One primary decision per screen
 
-Onboarding screens have one dominant action and preserve progress. Avoid long registration forms.
+Onboarding is divided into student check, live selfie, avatar, general profile, faith/lifestyle and privacy. Progress is preserved when switching language.
 
-## 4. Attraction plus context
+## 7. Attraction plus context
 
-The avatar is the visual anchor, but each profile also provides prompts, interests, relationship intent and contextual likes to reduce empty matches.
+The avatar is the visual anchor, supported by:
 
-## 5. Calm premium character
+- relationship intention;
+- education/city context;
+- conversation prompts;
+- interests;
+- faith/practice description where shared;
+- lifestyle compatibility tags;
+- contextual likes.
 
-The visual system uses warm ivory, plum, rose and ink with restrained animation. It should feel contemporary, romantic and trustworthy—not childish, explicit or casino-like.
+## 8. Avatar style
 
-## 6. Safety without alarmism
+The desired avatar is:
 
-Block, report and privacy controls are easy to find without making the default experience feel dangerous.
+- recognisable;
+- illustrated rather than pixelated;
+- warm, romantic and polished;
+- adult and modest;
+- respectful of skin tone, hijab/head covering, hair, glasses and facial hair;
+- flattering without becoming deceptive.
 
-## 7. Mobile and bandwidth discipline
+Avoid anime exaggeration, childish cartoons, beauty transformations and coarse mosaic effects.
+
+## 9. Calm premium character
+
+Use warm ivory, plum and rose with restrained sage and gold accents. Faith-specific UI should be integrated rather than visually segregated.
+
+## 10. Safety without alarmism
+
+Block, report, privacy and pause controls are easy to find without making every screen feel threatening.
+
+## 11. Mobile and bandwidth discipline
 
 - one animated avatar at a time;
-- poster frames elsewhere;
+- poster images elsewhere;
 - no autoplay audio;
 - large thumb targets;
 - reduced-motion support;
-- data-saving behavior;
-- mid-range Android as a primary test target.
+- mid-range Android as a primary test target;
+- iPhone Safari and Samsung Internet field coverage.
 
-## 8. Honest prototypes
+## 12. Honest prototypes
 
-Prototype substitutions are visibly labeled. A local filter is not described as AI identity generation; an email-domain check is not described as mailbox verification; a camera recording is not described as liveness verification.
+Prototype substitutions remain explicit:
+
+- a domain match is not mailbox verification;
+- a camera recording is not liveness verification;
+- a local illustration renderer is not production AI avatar generation;
+- pilot institution data is not an authoritative registry;
+- local faith fields are not production legal readiness.
