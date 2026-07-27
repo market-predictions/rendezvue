@@ -2,169 +2,152 @@
 
 ## Objective
 
-Publish the current HTML5/PWA prototype as a public, free Hugging Face **Static Space** while keeping GitHub as the sole source of truth.
+Publish the HTML5/PWA prototype as a public, free Hugging Face **Static Space** while keeping GitHub as the sole source of truth.
 
-No development tools are required on the reviewer’s computer. After one-time account configuration, every accepted change to `main` is validated, synchronized, built and publicly verified automatically.
+No development tools are required on the reviewer’s computer. Every accepted change to `main` is validated, built, uploaded and publicly verified by GitHub Actions.
 
-## Why Static Space
+## Hosting decision
 
-The current prototype is entirely browser-side HTML, CSS and JavaScript. It does not require a Python process, application server or Docker runtime.
+The prototype is entirely browser-side HTML, CSS and JavaScript. It requires no Python server, Docker runtime or persistent Space filesystem.
 
-Hugging Face permits Static Spaces on free accounts. Creating new Docker or Gradio Spaces on compute requires a paid plan. The first hosted deployment exposed this distinction through HTTP 402 at the Docker Space creation step. The pilot was therefore changed to the least-privilege and lowest-cost hosting model that matches its actual architecture.
+The first Docker deployment returned HTTP 402 because new Docker and Gradio Spaces require paid compute. The first source-synchronized Static Space then remained unavailable because it depended on Hugging Face running the repository build. The pilot now uses the lowest-complexity route:
 
-Docker remains available in the repository for later phases that introduce backend services, but it is not used for the current public prototype.
+> GitHub builds the complete static application and uploads the finished files directly.
 
-## Authority model
+Docker remains available for later backend-capable phases but is not used for this pilot.
+
+## Authority and deployment model
 
 ```text
 GitHub main
-  -> GitHub Actions validation and static build
-  -> Hugging Face Static Space creation or confirmation
-  -> one-way source synchronization
-  -> Hugging Face static build command
-  -> public page and deployment-marker verification
-  -> public pilot URL
+  -> npm run build:hf
+  -> validate dist/ and .hf-deploy/
+  -> create or confirm free Static Space
+  -> hf upload .hf-deploy/ to Space root
+  -> verify direct public page and deployment marker
+  -> publish URL in Actions and issue #2
 ```
 
-Direct edits in the Hugging Face Space are unsupported and will be overwritten by the next synchronization.
+Direct edits in Hugging Face are unsupported and will be overwritten by the next deployment.
 
-## Static build contract
+## Prebuilt deployment contract
 
-The root `README.md` declares:
+`npm run build:hf` creates:
+
+```text
+.hf-deploy/
+  README.md              Space metadata: sdk static, app_file index.html
+  index.html             application entry point
+  app.js
+  styles.css
+  service-worker.js
+  manifest.webmanifest
+  src/
+  assets/
+  deployment.json
+  source.json
+```
+
+The deployed `README.md` contains:
 
 ```yaml
 sdk: static
-app_build_command: npm run build:static
-app_file: dist/index.html
+app_file: index.html
 ```
 
-The build command copies the browser application from `apps/web/` to `dist/`. The source remains framework-independent and deployable without server compute.
-
-## Static Space URL contract
-
-Hugging Face Static Spaces are normally served from a hostname shaped like:
-
-```text
-https://owner-space-name.static.hf.space/
-```
-
-Some API responses expose only the base subdomain and older/non-static Spaces use `https://owner-space-name.hf.space/`. The deployment verifier therefore tests, in order:
-
-1. the `.static.hf.space` root URL;
-2. the `.static.hf.space/index.html` URL;
-3. the ordinary `.hf.space` root URL;
-4. the ordinary `.hf.space/index.html` URL.
-
-The first URL returning the Rendezvue deployment marker becomes the published pilot URL.
+It deliberately contains no `app_build_command`. Hugging Face serves the uploaded files directly.
 
 ## What the workflow automates
 
 The workflow `.github/workflows/deploy-huggingface.yml`:
 
-1. resolves the target Space identifier;
-2. validates and builds the application with `npm run check`;
-3. creates the public Static Space when it does not exist;
-4. mirrors the GitHub source using the official Hugging Face synchronization action;
-5. waits for Hugging Face to run the static build;
-6. discovers and tests the direct Static Space URL candidates;
-7. confirms HTTP success and the Rendezvue deployment marker;
-8. publishes the verified pilot URL in the GitHub Actions summary.
+1. resolves `HF_SPACE_ID` and `HF_TOKEN`;
+2. installs dependencies;
+3. builds `dist/` and `.hf-deploy/`;
+4. validates source, PWA metadata and both generated artifacts;
+5. creates or confirms the free Static Space;
+6. uses the official `hf upload` CLI to replace the Space contents with `.hf-deploy/`;
+7. tests `.static.hf.space` and fallback URL forms;
+8. confirms HTTP success and the embedded Rendezvue deployment marker;
+9. publishes the verified URL in the Actions summary;
+10. posts success or failure evidence to issue #2.
 
-## One-time activation
+## One-time configuration
 
-The only required manual configuration is performed in web interfaces.
-
-### 1. Create a Hugging Face access token
-
-Create a fine-grained Hugging Face token with write permission for the intended account or organization. Do not paste this token into an issue, pull request, chat message or repository file.
-
-### 2. Configure GitHub Actions
-
-In the GitHub repository, open:
+In GitHub, open:
 
 `Settings -> Secrets and variables -> Actions`
 
-Create:
+Configure:
 
-- repository secret `HF_TOKEN` containing the Hugging Face token;
-- repository variable `HF_SPACE_ID` containing `owner/space-name`, for example `your-hf-name/rendezvue`.
+- secret `HF_TOKEN`: a fine-grained Hugging Face write token;
+- variable `HF_SPACE_ID`: `owner/space-name`, currently `solidprivacy/rendezvue`.
 
-The Space itself does not need to be created manually; the workflow creates it as a public Static Space if necessary.
+Do not publish the token in chat, issues, logs or source files.
 
-### 3. Start the first deployment
+## Manual deployment
 
-Open:
+A merge to `main` deploys automatically. To trigger manually:
 
 `Actions -> Deploy pilot to Hugging Face -> Run workflow`
 
-The optional `space_id` input can temporarily override the repository variable. Normally it should be left empty.
+Normally leave the optional Space override empty.
 
-A merge to `main` also triggers deployment automatically.
+## Public URL
 
-### 4. Open the verified URL
+Static Spaces are commonly served through:
 
-After the workflow succeeds, open its job summary. The summary contains the direct public Static Space URL, normally ending in `.static.hf.space`.
+```text
+https://owner-space-name.static.hf.space/
+```
 
-Use the direct URL rather than only the Hugging Face repository page when testing the camera, service worker and PWA behavior.
+The verifier also tests `/index.html` and the ordinary `.hf.space` form for compatibility. The first URL serving the deployment marker becomes the published pilot URL.
 
-Future pushes to `main` redeploy automatically.
+Use the direct URL for camera, service-worker and PWA testing rather than only the embedded Hugging Face page.
 
 ## Privacy boundary
 
-The hosted prototype remains a product-interaction demonstration only.
-
-It must not be opened to real users or real personal data because it does not yet provide:
+The hosted prototype remains an interaction demonstration. It must not admit real users or real personal data because it does not yet provide:
 
 - production age assurance;
 - real institutional mailbox verification;
 - replay-resistant liveness;
 - approved avatar generation;
-- persistent protected accounts;
+- protected persistent accounts;
 - production moderation operations;
 - completed privacy, security and legal assessments.
 
-Camera media remains browser-local in this prototype and has no upload endpoint.
+Camera media remains browser-local and has no upload endpoint.
 
 ## Troubleshooting
 
-### Workflow reports missing configuration
+### Missing configuration
 
-Confirm that both `HF_TOKEN` and `HF_SPACE_ID` exist under GitHub Actions settings. Secret values cannot be read back after saving; replace the secret if uncertain.
+Confirm that `HF_TOKEN` and `HF_SPACE_ID` exist under GitHub Actions settings.
 
-### Token lacks permission
+### HTTP 402 during Space creation
 
-Create a new fine-grained token with write access to the target namespace and replace `HF_TOKEN`.
+The workflow is attempting a Docker or Gradio Space. The current workflow must say **Create or confirm free Static Space**.
 
-### HTTP 402 while creating a Space
+### Upload fails
 
-Confirm that the workflow says **Create or confirm free Static Space** and that the synchronized README declares `sdk: static`. A Docker or Gradio creation attempt requires a paid plan and indicates that an older workflow revision is being run.
+Open the `Upload prebuilt static application` step. Authentication or authorization errors may require replacing the token. Other upload errors should be fixed in GitHub source or workflow configuration.
 
-### Static build fails
+### Static URL returns 404
 
-Open the failed workflow and the corresponding Hugging Face Space build logs. Confirm that `npm run build:static` completed and that `dist/index.html` was generated. Correct source files in GitHub only.
+Confirm the latest deployment uploaded `.hf-deploy/README.md` and `.hf-deploy/index.html` to the Space root. The verifier tests `.static.hf.space`, `/index.html`, and ordinary-host fallbacks.
 
-### Ordinary `.hf.space` URL returns 404
+### Camera is unavailable
 
-Static Spaces can use a `.static.hf.space` hostname. Do not interpret a 404 from the ordinary hostname as a failed synchronization. The current verifier tests both hostname forms and both `/` and `/index.html`.
-
-### Public-page verification times out
-
-Open the direct Static Space URL and inspect the Space build log. Verification requires:
-
-- an HTTP success response from one of the supported direct URL candidates;
-- the `rendezvue-deployment` marker in the served HTML.
-
-### Camera is unavailable inside the Hugging Face page
-
-Open the direct Static Space URL from the workflow summary. Camera access requires HTTPS and browser permission, and embedding policies can differ from the direct app URL.
+Open the direct HTTPS Static Space URL, grant browser camera permission and avoid an embedded frame where browser policies may differ.
 
 ## Completion evidence
 
-This work package is complete only when:
+WP-015 is complete when:
 
-- the deployment workflow succeeds;
+- deployment succeeds;
 - a public pilot URL is recorded;
-- the direct page serves the Rendezvue deployment marker;
+- the served page contains the Rendezvue deployment marker;
+- the running files correspond to current GitHub `main`;
 - camera capture is tested through the direct HTTPS URL;
-- the running Space corresponds to the current GitHub `main` source;
-- the result is recorded in `CHANGELOG.md`, `docs/WORK-CLAIMS.md` and `docs/HANDOVER.md`.
+- work claims, changelog, handover and issue #2 contain the evidence.
