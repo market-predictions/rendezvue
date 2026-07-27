@@ -1,17 +1,32 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ageOnDate, extractEmailDomain, institutionAcceptsEmail, isAdult, validateProfile } from '../src/domain.js';
+import {
+  EDUCATION_LEVELS,
+  INSTITUTIONS,
+  ageOnDate,
+  extractEmailDomain,
+  getInstitutionsByType,
+  institutionAcceptsEmail,
+  isAdult,
+  validateFaithProfile,
+  validateProfile
+} from '../src/domain.js';
+
+test('Dutch pilot fixtures cover MBO, HBO and WO', () => {
+  assert.deepEqual(new Set(INSTITUTIONS.map((institution) => institution.type)), new Set(EDUCATION_LEVELS));
+  for (const level of EDUCATION_LEVELS) assert.ok(getInstitutionsByType(level).length >= 10, `${level} should have at least ten pilot fixtures`);
+});
 
 test('extractEmailDomain normalizes valid email addresses', () => {
-  assert.equal(extractEmailDomain(' Student@ETU.UM5.AC.MA '), 'etu.um5.ac.ma');
+  assert.equal(extractEmailDomain(' Student@STUDENT.HU.NL '), 'student.hu.nl');
   assert.equal(extractEmailDomain('invalid'), null);
 });
 
 test('institution email accepts configured domains and subdomains', () => {
-  assert.equal(institutionAcceptsEmail('um5', 'student@um5.ac.ma'), true);
-  assert.equal(institutionAcceptsEmail('um5', 'student@faculty.etu.um5.ac.ma'), true);
-  assert.equal(institutionAcceptsEmail('um5', 'student@gmail.com'), false);
-  assert.equal(institutionAcceptsEmail('unknown', 'student@um5.ac.ma'), false);
+  assert.equal(institutionAcceptsEmail('hu', 'student@student.hu.nl'), true);
+  assert.equal(institutionAcceptsEmail('rocva', 'student@portal.student.rocva.nl'), true);
+  assert.equal(institutionAcceptsEmail('hu', 'student@gmail.com'), false);
+  assert.equal(institutionAcceptsEmail('unknown', 'student@student.hu.nl'), false);
 });
 
 test('adult calculation handles birthdays precisely', () => {
@@ -22,8 +37,14 @@ test('adult calculation handles birthdays precisely', () => {
   assert.equal(isAdult('2008-07-28', reference), false);
 });
 
-test('profile validation enforces the minimum conversation context', () => {
-  const valid = { nickname: 'Amal', intent: 'A serious relationship', interests: ['Books', 'Music', 'Travel'], promptOne: 'Mint tea and a long walk.', promptTwo: 'You communicate clearly.' };
+test('profile validation enforces conversation context using stable keys', () => {
+  const valid = { nickname: 'Amal', intent: 'serious', interests: ['books', 'music', 'travel'], promptOne: 'Chai and a long walk.', promptTwo: 'You communicate clearly.' };
   assert.deepEqual(validateProfile(valid), []);
-  assert.ok(validateProfile({ ...valid, interests: ['Books'] }).length > 0);
+  assert.ok(validateProfile({ ...valid, interests: ['books'] }).includes('interests'));
+});
+
+test('faith profile uses self-description rather than a numeric religiosity score', () => {
+  const valid = { faithIdentity: 'muslim', faithPractice: 'moderate', faithImportance: 'important', faithTags: ['family', 'noAlcohol'] };
+  assert.deepEqual(validateFaithProfile(valid), []);
+  assert.ok(validateFaithProfile({ ...valid, faithPractice: '10/10' }).includes('faithPractice'));
 });
