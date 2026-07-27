@@ -14,7 +14,7 @@ Work packages are the operational units of the roadmap. Status values are `plann
 - contribution and security policies;
 - CI;
 - Docker image;
-- Hugging Face synchronization workflow.
+- Hugging Face deployment workflow.
 
 ### Acceptance evidence
 
@@ -59,27 +59,29 @@ Work packages are the operational units of the roadmap. Status values are `plann
 
 - create or confirm a public, free Hugging Face Static Space;
 - build the browser application reproducibly into `dist/`;
-- mirror accepted GitHub `main` source one way;
-- wait for the hosted static build;
+- package a complete `.hf-deploy/` artifact with Space metadata;
+- upload the prebuilt artifact from GitHub Actions;
 - verify the direct public page and Rendezvue deployment marker;
-- publish the verified URL in GitHub Actions;
-- document activation and troubleshooting;
-- record deployment evidence.
+- publish the verified URL in GitHub Actions and issue #2;
+- document activation, evidence and troubleshooting.
 
 ### Implemented evidence
 
-- GitHub Actions configuration and Hugging Face credentials were accepted by the first hosted run;
-- the first Docker Space attempt returned HTTP 402 because new Docker Spaces require a paid plan;
-- free Static Space creation and synchronization are implemented as the corrective path;
-- deterministic static build and deployment marker are implemented;
-- deployment helper, CI validation and web-only guide are updated;
+- GitHub Actions configuration and Hugging Face credentials were accepted;
+- the Docker attempt returned HTTP 402 because new Docker Spaces require a paid plan;
+- free Static Space creation succeeded;
+- source synchronization succeeded but the hosted page remained HTTP 404 for 20 minutes;
+- `.static.hf.space` URL discovery and regression tests are implemented;
+- GitHub now generates and validates the complete deployable artifact;
+- direct `hf upload` replaces Hugging Face-side building and source mirroring;
 - Docker remains available for later backend phases but is no longer the pilot host.
 
 ### Current action
 
-- merge the Static Space correction;
-- allow the resulting `main` deployment to run automatically;
-- inspect and correct any static build or browser-hosting issue.
+- validate the prebuilt artifact pipeline in CI;
+- merge the direct-upload correction;
+- inspect the automatically reported deployment result in issue #2;
+- test camera and PWA behavior through the verified direct URL.
 
 ### Completion gate
 
