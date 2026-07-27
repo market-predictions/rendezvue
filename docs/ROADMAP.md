@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 0.2  
+**Version:** 0.3  
 **Updated:** 2026-07-27
 
 ## Operating doctrine
@@ -28,7 +28,7 @@ Deliverables:
 
 **Gate:** repository checks pass and every implemented claim is traceable.
 
-**Status:** in progress; first implementation completed on the foundation branch.
+**Status:** complete. Milestone 0.1 was approved, CI passed and PR #1 was squash-merged to `main`.
 
 ## Phase 1 — Interaction prototype
 
@@ -58,7 +58,25 @@ Research questions:
 
 **Gate:** moderated user testing shows that the core proposition is understood and the avatar is useful enough to choose whether to engage.
 
-**Status:** functional technical prototype implemented; external user testing not started.
+**Status:** functional technical prototype complete; hosted access and external user testing not yet completed.
+
+### Phase 1A — Hosted prototype deployment
+
+**Goal:** make the approved prototype reviewable on real mobile browsers without requiring local development tools.
+
+Deliverables:
+
+- automatic creation or confirmation of a public Hugging Face Docker Space;
+- one-way synchronization from GitHub `main`;
+- runtime/build polling;
+- `/healthz` verification;
+- verified public URL in the GitHub Actions summary;
+- web-only activation and troubleshooting guide;
+- deployment evidence in changelog, work claims and handover.
+
+**Gate:** the workflow succeeds, the public URL opens on representative phones and the running source matches GitHub `main`.
+
+**Status:** source implementation complete; externally blocked by one-time `HF_TOKEN` and `HF_SPACE_ID` configuration.
 
 ## Phase 2 — High-risk technical proofs
 
