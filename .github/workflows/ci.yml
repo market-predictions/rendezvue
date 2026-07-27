@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   validate:
@@ -23,21 +22,15 @@ jobs:
         id: app_checks
         continue-on-error: true
         run: npm run check > check.log 2>&1
-      - name: Report check failure on pull request
-        if: steps.app_checks.outcome == 'failure' && github.event_name == 'pull_request'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          {
-            echo "### CI application check failed"
-            echo
-            echo '```text'
-            tail -n 80 check.log
-            echo '```'
-          } > ci-comment.md
-          gh pr comment "$PR_NUMBER" --body-file ci-comment.md
-      - name: Fail after publishing check evidence
+      - name: Upload check evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-check-log
+          path: check.log
+          if-no-files-found: error
+          retention-days: 7
+      - name: Fail after preserving check evidence
         if: steps.app_checks.outcome == 'failure'
         run: |
           tail -n 80 check.log
