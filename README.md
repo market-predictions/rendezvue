@@ -29,7 +29,8 @@ The repository contains an installable, mobile-first HTML5 prototype demonstrati
 - profile configuration and institution-visibility controls;
 - discovery, contextual likes, matching and a local chat demonstration;
 - reporting, blocking and profile pausing UX;
-- PWA installation assets and a Docker deployment target.
+- PWA installation assets and a Docker deployment target;
+- automated Hugging Face Space creation, synchronization and health verification after one-time credentials are configured.
 
 The prototype is **not production verification**. Email delivery, age assurance, automated liveness detection, persistent accounts, moderation operations and generative avatar infrastructure remain mocked or explicitly marked as pending.
 
@@ -61,16 +62,19 @@ Open `http://localhost:7860`.
 - [Handover](docs/HANDOVER.md)
 - [Changelog](CHANGELOG.md)
 - [UX principles](docs/UX-PRINCIPLES.md)
+- [Hugging Face pilot guide](docs/HUGGINGFACE-PILOT.md)
 - [Architecture decisions](docs/decisions/)
 
-## Hugging Face synchronization
+## Hugging Face hosted pilot
 
-Configure these GitHub repository settings before enabling pilot deployment:
+One-time GitHub Actions configuration is required:
 
-- repository variable `HF_SPACE_ID`, for example `owner/rendezvue`;
-- repository secret `HF_TOKEN`, scoped to write only to that Space.
+- repository variable `HF_SPACE_ID` in `owner/space-name` format;
+- repository secret `HF_TOKEN` containing a fine-grained Hugging Face write token.
 
-After configuration, pushes to `main` synchronize the repository to the Docker Space through `.github/workflows/deploy-huggingface.yml`.
+The workflow then creates or confirms the public Docker Space, mirrors GitHub `main`, waits for the runtime, checks `/healthz` and publishes the verified pilot URL in the GitHub Actions summary.
+
+The Space does not need to be created manually. See [Hugging Face pilot deployment](docs/HUGGINGFACE-PILOT.md).
 
 ## Security and privacy
 

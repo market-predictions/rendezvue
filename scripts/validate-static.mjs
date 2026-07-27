@@ -7,7 +7,9 @@ const required = [
   'apps/web/index.html', 'apps/web/app.js', 'apps/web/styles.css',
   'apps/web/manifest.webmanifest', 'apps/web/service-worker.js',
   'apps/web/assets/icons/icon.svg', 'docs/REQUIREMENTS.md',
-  'docs/ROADMAP.md', 'docs/WORKPACKAGES.md', 'docs/WORK-CLAIMS.md', 'docs/HANDOVER.md'
+  'docs/ROADMAP.md', 'docs/WORKPACKAGES.md', 'docs/WORK-CLAIMS.md',
+  'docs/HANDOVER.md', 'docs/HUGGINGFACE-PILOT.md',
+  'scripts/huggingface_space.py', '.github/workflows/deploy-huggingface.yml'
 ];
 
 for (const path of required) await access(resolve(root, path));
@@ -26,6 +28,11 @@ for (const marker of ['manifest.webmanifest', 'styles.css', 'app.js', 'viewport'
 const requirements = await readFile(resolve(root, 'docs/REQUIREMENTS.md'), 'utf8');
 for (const marker of ['GitHub shall be the sole authoritative source', 'Hugging Face', 'Prototype acceptance criteria']) {
   if (!requirements.includes(marker)) throw new Error(`Requirements are missing governance marker: ${marker}`);
+}
+
+const deploymentGuide = await readFile(resolve(root, 'docs/HUGGINGFACE-PILOT.md'), 'utf8');
+for (const marker of ['HF_TOKEN', 'HF_SPACE_ID', '/healthz', 'one-way']) {
+  if (!deploymentGuide.includes(marker)) throw new Error(`Hugging Face guide is missing marker: ${marker}`);
 }
 
 console.log(`Static validation passed (${required.length} required artifacts).`);

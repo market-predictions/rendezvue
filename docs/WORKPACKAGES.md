@@ -4,7 +4,7 @@ Work packages are the operational units of the roadmap. Status values are `plann
 
 ## WP-000 — Repository foundation
 
-**Status:** review  
+**Status:** complete  
 **Objective:** make GitHub authoritative and establish reproducible governance and deployment structure.
 
 ### Scope
@@ -19,17 +19,14 @@ Work packages are the operational units of the roadmap. Status values are `plann
 ### Acceptance evidence
 
 - `npm run check` passes;
-- Docker image builds and health endpoint responds;
-- deployment workflow is syntactically present and gated by `HF_SPACE_ID`;
-- documentation states Hugging Face is not authoritative.
-
-### Remaining decision
-
-- exact Hugging Face Space identifier and deployment credential setup.
+- CI builds the Docker image;
+- deployment workflow is present and documented;
+- documentation states Hugging Face is not authoritative;
+- milestone 0.1 was approved and squash-merged.
 
 ## WP-010 — Mobile PWA interaction prototype
 
-**Status:** review  
+**Status:** complete  
 **Objective:** implement the complete local product loop without implying production verification.
 
 ### Scope
@@ -49,8 +46,43 @@ Work packages are the operational units of the roadmap. Status values are `plann
 
 - automated institution-domain tests;
 - static-file and manifest validation;
-- manual browser smoke test;
-- no captured media persisted by the prototype.
+- browser smoke test;
+- no captured media persisted by the prototype;
+- product and architecture milestone approved by the owner.
+
+## WP-015 — Hosted Hugging Face prototype
+
+**Status:** blocked  
+**Objective:** provide a working public mobile-browser prototype without requiring reviewers to install local development tools.
+
+### Scope
+
+- create or confirm a public Hugging Face Docker Space;
+- mirror accepted GitHub `main` source one way;
+- wait for Space build and runtime readiness;
+- verify `/healthz`;
+- publish the verified URL in GitHub Actions;
+- document activation and troubleshooting;
+- record deployment evidence.
+
+### Implemented evidence
+
+- automated deployment workflow;
+- Space-management and health-check helper;
+- CI syntax validation;
+- web-only activation guide;
+- updated roadmap, handover, changelog and work claims.
+
+### External blocker
+
+- repository owner must configure secret `HF_TOKEN` and variable `HF_SPACE_ID` in GitHub Actions settings.
+
+### Completion gate
+
+- deployment succeeds;
+- public URL opens on Android and iPhone browsers;
+- running Space matches GitHub `main`;
+- work claims and handover record the verified URL and workflow run.
 
 ## WP-020 — Moroccan institution registry
 

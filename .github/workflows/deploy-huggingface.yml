@@ -1,9 +1,19 @@
-name: Sync pilot to Hugging Face
+name: Deploy pilot to Hugging Face
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      space_id:
+        description: Optional owner/space-name override
+        required: false
+        type: string
+      verify_timeout:
+        description: Maximum seconds to wait for the Space
+        required: false
+        default: "1200"
+        type: string
 
 permissions:
   contents: read
@@ -13,23 +23,92 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  configuration:
+    runs-on: ubuntu-latest
+    outputs:
+      configured: ${{ steps.target.outputs.configured }}
+      space_id: ${{ steps.target.outputs.space_id }}
+      timeout: ${{ steps.target.outputs.timeout }}
+    steps:
+      - name: Resolve deployment configuration
+        id: target
+        env:
+          INPUT_SPACE_ID: ${{ inputs.space_id }}
+          REPOSITORY_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          INPUT_TIMEOUT: ${{ inputs.verify_timeout }}
+          EVENT_NAME: ${{ github.event_name }}
+        shell: bash
+        run: |
+          SPACE_ID="${INPUT_SPACE_ID:-$REPOSITORY_SPACE_ID}"
+          TIMEOUT="${INPUT_TIMEOUT:-1200}"
+          if [[ -n "$SPACE_ID" && -n "$HF_TOKEN" ]]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+            echo "space_id=$SPACE_ID" >> "$GITHUB_OUTPUT"
+            echo "timeout=$TIMEOUT" >> "$GITHUB_OUTPUT"
+            echo "Hugging Face deployment is configured for $SPACE_ID."
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "space_id=$SPACE_ID" >> "$GITHUB_OUTPUT"
+            echo "timeout=$TIMEOUT" >> "$GITHUB_OUTPUT"
+            echo "::notice::Set repository variable HF_SPACE_ID and secret HF_TOKEN to activate the hosted pilot."
+            if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+              echo "A manually requested deployment must have both values configured." >&2
+              exit 1
+            fi
+          fi
+
   sync:
-    if: ${{ vars.HF_SPACE_ID != '' }}
+    needs: configuration
+    if: ${{ needs.configuration.outputs.configured == 'true' }}
     runs-on: ubuntu-latest
     environment: huggingface-pilot
+    env:
+      HF_SPACE_ID: ${{ needs.configuration.outputs.space_id }}
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
     steps:
       - uses: actions/checkout@v6
-      - name: Validate source before synchronization
+
+      - name: Validate application source
         uses: actions/setup-node@v6
         with:
           node-version: 22
+          cache: npm
       - run: npm ci
       - run: npm run check
-      - name: Mirror GitHub source to the Docker Space
+
+      - name: Install Hugging Face deployment client
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check "huggingface_hub>=0.32,<2"
+
+      - name: Create or confirm Docker Space
+        run: python scripts/huggingface_space.py ensure
+
+      - name: Mirror GitHub source to the Space
         uses: huggingface/hub-sync@v0.1.0
         with:
           github_repo_id: ${{ github.repository }}
-          huggingface_repo_id: ${{ vars.HF_SPACE_ID }}
+          huggingface_repo_id: ${{ env.HF_SPACE_ID }}
           hf_token: ${{ secrets.HF_TOKEN }}
           repo_type: space
           space_sdk: docker
+
+      - name: Wait for runtime and verify health
+        id: verify
+        run: python scripts/huggingface_space.py verify --timeout "${{ needs.configuration.outputs.timeout }}"
+
+      - name: Publish deployment summary
+        env:
+          SPACE_URL: ${{ steps.verify.outputs.space_url }}
+        run: |
+          {
+            echo "## Rendezvue Hugging Face pilot"
+            echo
+            echo "Deployment and health verification succeeded."
+            echo
+            echo "**Pilot URL:** $SPACE_URL"
+            echo
+            echo "GitHub remains the source of truth; future pushes to main redeploy automatically."
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -12,6 +12,20 @@ All notable project changes are recorded here. The project follows a lightweight
 - Replace the local avatar stylization preview with an approved generation service.
 - Add persistent backend services for accounts, matches, messages and moderation.
 
+## [0.1.0-alpha.2] - 2026-07-27
+
+### Added
+
+- Added automatic creation or confirmation of the public Hugging Face Docker Space.
+- Added runtime polling, `/healthz` verification and publication of the verified pilot URL in the GitHub Actions summary.
+- Added a web-interface-only activation guide requiring no local Git, Node.js or Docker installation.
+- Added CI syntax validation for the Hugging Face deployment helper.
+
+### Changed
+
+- Upgraded the deployment workflow from a silent gated mirror to an explicit configuration, deployment and verification pipeline.
+- Marked the foundation and interaction prototype milestone as approved and merged.
+
 ## [0.1.0-alpha.1] - 2026-07-27
 
 ### Added
