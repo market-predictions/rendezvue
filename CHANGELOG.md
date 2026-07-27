@@ -12,6 +12,17 @@ All notable project changes are recorded here. The project follows a lightweight
 - Replace the local avatar stylization preview with an approved generation service.
 - Add persistent backend services for accounts, matches, messages and moderation.
 
+## [0.1.0-alpha.5] - 2026-07-27
+
+### Added
+
+- Added automatic success and failure status comments to deployment issue #2.
+- Added the verified pilot URL, commit SHA and workflow link to successful deployment evidence.
+
+### Changed
+
+- Granted the deployment workflow narrowly scoped issue-write permission for operational reporting.
+
 ## [0.1.0-alpha.4] - 2026-07-27
 
 ### Fixed
