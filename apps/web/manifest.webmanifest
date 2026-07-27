@@ -1,7 +1,8 @@
 {
-  "name": "Rendezvue Pilot",
+  "name": "Rendezvue Nederlandse Pilot",
   "short_name": "Rendezvue",
-  "description": "Privacy-first student dating pilot for Morocco.",
+  "description": "Privacy-first dating pilot voor moslimstudenten in MBO, HBO en WO in Nederland.",
+  "lang": "nl",
   "id": "/",
   "start_url": "/",
   "scope": "/",
@@ -10,12 +11,5 @@
   "theme_color": "#6d3158",
   "orientation": "portrait-primary",
   "categories": ["social", "lifestyle"],
-  "icons": [
-    {
-      "src": "/assets/icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+  "icons": [{ "src": "/assets/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
 }
