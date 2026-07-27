@@ -40,6 +40,23 @@ app_file: dist/index.html
 
 The build command copies the browser application from `apps/web/` to `dist/`. The source remains framework-independent and deployable without server compute.
 
+## Static Space URL contract
+
+Hugging Face Static Spaces are normally served from a hostname shaped like:
+
+```text
+https://owner-space-name.static.hf.space/
+```
+
+Some API responses expose only the base subdomain and older/non-static Spaces use `https://owner-space-name.hf.space/`. The deployment verifier therefore tests, in order:
+
+1. the `.static.hf.space` root URL;
+2. the `.static.hf.space/index.html` URL;
+3. the ordinary `.hf.space` root URL;
+4. the ordinary `.hf.space/index.html` URL.
+
+The first URL returning the Rendezvue deployment marker becomes the published pilot URL.
+
 ## What the workflow automates
 
 The workflow `.github/workflows/deploy-huggingface.yml`:
@@ -49,7 +66,7 @@ The workflow `.github/workflows/deploy-huggingface.yml`:
 3. creates the public Static Space when it does not exist;
 4. mirrors the GitHub source using the official Hugging Face synchronization action;
 5. waits for Hugging Face to run the static build;
-6. opens the direct `https://...hf.space` URL;
+6. discovers and tests the direct Static Space URL candidates;
 7. confirms HTTP success and the Rendezvue deployment marker;
 8. publishes the verified pilot URL in the GitHub Actions summary.
 
@@ -86,7 +103,7 @@ A merge to `main` also triggers deployment automatically.
 
 ### 4. Open the verified URL
 
-After the workflow succeeds, open its job summary. The summary contains the direct public `https://...hf.space` pilot URL.
+After the workflow succeeds, open its job summary. The summary contains the direct public Static Space URL, normally ending in `.static.hf.space`.
 
 Use the direct URL rather than only the Hugging Face repository page when testing the camera, service worker and PWA behavior.
 
@@ -126,16 +143,20 @@ Confirm that the workflow says **Create or confirm free Static Space** and that 
 
 Open the failed workflow and the corresponding Hugging Face Space build logs. Confirm that `npm run build:static` completed and that `dist/index.html` was generated. Correct source files in GitHub only.
 
+### Ordinary `.hf.space` URL returns 404
+
+Static Spaces can use a `.static.hf.space` hostname. Do not interpret a 404 from the ordinary hostname as a failed synchronization. The current verifier tests both hostname forms and both `/` and `/index.html`.
+
 ### Public-page verification times out
 
-Open the direct Space URL and inspect the Space build log. Verification requires:
+Open the direct Static Space URL and inspect the Space build log. Verification requires:
 
-- an HTTP success response from the direct `hf.space` URL;
+- an HTTP success response from one of the supported direct URL candidates;
 - the `rendezvue-deployment` marker in the served HTML.
 
 ### Camera is unavailable inside the Hugging Face page
 
-Open the direct `https://...hf.space` URL from the workflow summary. Camera access requires HTTPS and browser permission, and embedding policies can differ from the direct app URL.
+Open the direct Static Space URL from the workflow summary. Camera access requires HTTPS and browser permission, and embedding policies can differ from the direct app URL.
 
 ## Completion evidence
 
