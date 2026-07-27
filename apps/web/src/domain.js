@@ -164,7 +164,7 @@ export function createInitialState() {
       faithImportance: '',
       faithTags: [],
       showInstitution: false,
-      showFaithPractice: true
+      showFaithPractice: false
     },
     discoveryIndex: 0,
     matches: [],
