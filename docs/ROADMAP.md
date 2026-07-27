@@ -1,181 +1,185 @@
 # Rendezvue roadmap
 
-**Version:** 0.6  
-**Updated:** 2026-07-27
+**Version:** 0.7  
+**Updated:** 2026-07-28
 
 ## Operating doctrine
 
 - GitHub is the source of truth.
 - Hugging Face is a disposable, one-way generated pilot deployment.
 - Work advances through explicit work packages and evidence-based gates.
-- Claims distinguish demonstrated prototype behavior from planned production capability.
+- Demonstrated prototype behavior is separated from production claims.
 - High-risk uncertainties are tested before broad feature expansion.
-- Safety and privacy controls are not deferred until launch.
-- Browser-only phases should not require paid server compute or a second unvalidated build environment.
+- Safety, privacy and legal constraints are product requirements.
+- Dutch is the default language; English is the supported alternative.
+- The Netherlands launches before any Belgium expansion.
 
-## Phase 0 — Foundation and governance
+## Phase 0 — Foundation and hosting
 
-**Goal:** establish a reproducible project with unambiguous authority and handover.
+**Status:** complete.
+
+Delivered:
+
+- governance documents and architecture decisions;
+- browser-native PWA foundation;
+- CI, static and retained Docker builds;
+- free Hugging Face Static Space deployment;
+- verified public deployment pipeline.
+
+## Phase 1 — Netherlands interaction prototype
+
+**Goal:** determine whether a privacy-avatar product for Muslim students in Dutch MBO, HBO and WO is understandable, attractive and culturally credible.
+
+### Phase 1A — Core dating flow
+
+**Status:** complete and hosted.
+
+Delivered:
+
+- adult-only onboarding language;
+- live-camera interaction;
+- privacy avatar preview;
+- profile, discovery, matching and local chat;
+- report, block and pause controls;
+- installable PWA structure.
+
+### Phase 1B — Netherlands and faith pivot
+
+**Status:** active; implementation complete on the milestone branch, hosted verification pending.
 
 Deliverables:
 
-- repository governance and contribution model;
-- requirements baseline;
-- roadmap, work packages, work claims and changelog;
-- architecture and decision records;
-- static and Docker build targets;
-- CI and Hugging Face deployment workflow;
-- security and privacy warnings for the public repository.
-
-**Gate:** repository checks pass and every implemented claim is traceable.
-
-**Status:** complete. Milestone 0.1 was approved, CI passed and PR #1 was squash-merged to `main`.
-
-## Phase 1 — Interaction prototype
-
-**Goal:** validate whether users understand and value private animated avatars as sufficient visual input for dating discovery.
-
-Deliverables:
-
-- mobile onboarding;
-- institution/email-domain interaction;
-- live-camera capture interaction;
-- local non-production avatar preview;
-- profile privacy controls;
-- single-card discovery;
-- contextual likes;
-- mutual-match simulation;
-- text-chat demonstration;
-- report, block, unmatch and pause controls;
-- installable PWA shell.
+- Netherlands replaces Morocco as launch geography;
+- MBO, HBO and WO are peer education categories;
+- Dutch becomes the default language;
+- English remains available from a top-level switch;
+- synthetic Dutch institution/domain fixtures replace Moroccan fixtures;
+- faith background, daily practice, compatibility importance and lifestyle tags;
+- private-by-default visibility for faith practice;
+- no piety score or inferred religious identity;
+- Dutch synthetic MBO, HBO and WO profiles;
+- improved local avatar rendering with smoothing, line extraction and warm illustration treatment;
+- updated requirements, privacy model, work packages, work claims and handover;
+- automatic hosted deployment and marker verification.
 
 Research questions:
 
-1. Is the avatar sufficiently representative to create attraction without publishing the real face?
-2. Does the privacy proposition increase willingness to register?
-3. Does hiding the institution by default improve perceived safety or reduce trust?
-4. Are contextual likes more useful than a generic swipe alone?
-5. Is the live-capture process acceptable on mid-range Android devices?
+1. Does the Dutch positioning feel credible and specific rather than exclusionary or administrative?
+2. Do MBO, HBO and WO users feel equally represented?
+3. Are faith categories understandable without implying judgement?
+4. Is practice visibility sufficiently private and controllable?
+5. Does the illustrated avatar provide more attraction and privacy than the previous pixelized treatment?
+6. Does switching between Dutch and English preserve orientation and form progress?
 
-**Gate:** moderated user testing shows that the core proposition is understood and the avatar is useful enough to choose whether to engage.
-
-**Status:** functional prototype complete and hosted; external user testing not yet completed.
-
-### Phase 1A — Hosted prototype deployment
-
-**Goal:** make the approved prototype reviewable on real mobile browsers without local development tools or a paid hosting plan.
-
-Deliverables:
-
-- deterministic browser build from `apps/web/` to `dist/`;
-- complete prebuilt `.hf-deploy/` artifact;
-- automatic creation or confirmation of a public Hugging Face Static Space;
-- direct upload of accepted GitHub build output;
-- direct public-page and deployment-marker verification;
-- verified URL in the Actions summary and issue #2;
-- web-only activation and troubleshooting guide;
-- deployment evidence in changelog, work claims and handover.
-
-**Gate:** the workflow succeeds, the direct public URL opens on representative phones, camera access is tested through HTTPS and the deployed artifact matches GitHub `main`.
-
-**Status:** hosted deployment passed. Public URL: `https://solidprivacy-rendezvue.static.hf.space/`. GitHub commit `edec6c59bdc2b46acf6652d1c03671006e86f250` and workflow run `30305071548` were verified. Representative mobile camera and PWA field tests remain before Phase 1A is closed.
+**Gate:** the hosted milestone works end-to-end, the owner approves the new direction, and a moderated user-test protocol is ready.
 
 ## Phase 2 — High-risk technical proofs
 
-**Goal:** replace prototype substitutions with independently validated technical components.
+### 2A. Authoritative Dutch student verification
 
-### 2A. Student verification
-
-- authoritative Moroccan institution registry;
-- domain ownership checks;
-- real email delivery;
-- fallback-document workflow;
-- annual reverification rules.
+- build the institution registry from DUO/RIO data;
+- cover MBO, HBO and WO;
+- verify student mailbox domains separately;
+- implement real email possession verification;
+- design current-student-document fallback;
+- define annual reverification and institution exceptions.
 
 ### 2B. Adult access
 
-- select privacy-preserving age-assurance method;
+- select a privacy-preserving age-assurance method;
+- explicitly account for under-18 MBO students;
 - assess bias, false rejection and appeals;
-- test escalation and suspected-minor operations.
+- implement suspected-minor escalation.
 
 ### 2C. Liveness
 
 - browser-compatible face landmarks;
-- random blink/head-turn challenge;
+- randomized blink/head-turn challenges;
 - replay and injection threat analysis;
-- device and browser coverage;
-- measurable false-accept/false-reject thresholds.
+- representative Android and iPhone coverage;
+- measurable false-accept and false-reject thresholds.
 
 ### 2D. Avatar pipeline
 
-- approved visual style;
-- identity resemblance and fairness evaluation;
-- quality and deception thresholds;
-- server job orchestration;
-- source-media deletion evidence;
-- generation cost and latency model.
+- approve a romantic illustrated style;
+- evaluate identity resemblance and fairness;
+- define deception and beautification limits;
+- validate head covering, skin tone, facial hair and glasses handling;
+- implement server job orchestration and source-media deletion evidence;
+- quantify cost and latency.
 
-**Gate:** each component passes a written acceptance protocol on representative users and devices.
+### 2E. Faith-data legality and product validation
 
-## Phase 3 — Closed PWA MVP
+- perform a DPIA/legal review for religious-belief data;
+- define explicit and separable consent or another valid Article 9 condition;
+- validate self-description and preference categories with target users;
+- test withdrawal and deletion controls;
+- establish anti-discrimination and anti-harassment safeguards;
+- prohibit advertising use and inferred religious classification.
 
-**Goal:** operate a real but deliberately constrained pilot.
+**Gate:** each component passes a written acceptance protocol and legal/safety review.
+
+## Phase 3 — Closed Dutch PWA MVP
+
+**Goal:** operate a real but deliberately constrained pilot in one Dutch city or a small institution cluster.
 
 Scope:
 
-- one city or a small set of institutions;
-- external PostgreSQL;
-- external object storage;
+- authoritative institution and domain data;
+- external PostgreSQL and object storage;
 - production authentication;
-- phone and institutional-email verification;
+- phone and student-email verification;
 - age assurance;
 - liveness and avatar generation;
+- Dutch and English production copy;
 - profiles, discovery, matching and text chat;
-- moderation console;
-- safety operations;
-- PWA push notifications;
-- French and Arabic/RTL.
+- faith/lifestyle compatibility with user-controlled visibility;
+- moderation console and safety operations;
+- privacy-conscious PWA push notifications.
 
-The Static Space may continue to serve the frontend, but persistent application services must be hosted externally or moved to an appropriate backend platform.
+**Gate:** privacy, security and legal assessments approved; moderation coverage and deletion flows proven; real-user admission explicitly authorized.
 
-**Gate:** privacy and safety assessments approved; monitoring and moderation coverage proven; kill switches and deletion flows tested.
-
-## Phase 4 — Public PWA beta
+## Phase 4 — Dutch public beta
 
 - broader institution coverage;
 - annual student reverification;
-- improved recommendations;
+- recommendation and compatibility refinement;
 - invisible mode;
-- refined notification engagement;
 - voice notes after moderation validation;
-- reliability and abuse hardening;
-- measured marketplace-density expansion.
+- abuse and reliability hardening;
+- measured expansion by local marketplace density.
 
-**Gate:** healthy local match and reply rates without an unacceptable safety burden.
+## Phase 5 — Belgium evaluation
 
-## Phase 5 — Native shells
+Belgium is not a copy-paste extension. Before implementation:
 
-Add thin Android and iOS shells only where native capability materially improves the product:
+- map Flemish and Belgian education categories and registers;
+- validate Dutch/French language requirements;
+- evaluate institution email practices;
+- assess legal and moderation implications;
+- confirm a credible community launch channel.
 
-- reliable push;
-- native camera and codec control;
+## Phase 6 — Native shells
+
+Add thin Android and iOS shells only where native capability materially improves:
+
+- notification reliability;
+- camera and codec control;
 - secure credential storage;
 - app/device integrity signals;
-- deep links;
-- screenshot deterrence on sensitive future screens;
-- app-store distribution;
-- improved audio/video calling.
-
-The shell shall not duplicate server-side product logic.
+- deep links and app-store distribution;
+- screenshot deterrence on future sensitive screens;
+- improved calling.
 
 ## Stop / reconsider criteria
 
-The project should pause or change direction if validated testing shows any of the following:
+Pause or change direction if evidence shows:
 
-- avatars are consistently too inaccurate or unattractive to support dating choices;
-- users demand public real-face photos before matching;
-- age and student verification create prohibitive abandonment;
-- sufficient local student density cannot be reached economically;
-- safety or moderation requirements exceed viable operating capacity;
-- avatar processing cost or latency is incompatible with expected acquisition economics;
-- regulatory constraints make the proposed biometric flow disproportionate.
+- illustrated avatars are too inaccurate or unattractive;
+- users require public real-face photos before matching;
+- MBO/HBO/WO or faith fields produce unacceptable exclusion or confusion;
+- verification and age assurance create prohibitive abandonment;
+- target community acquisition cannot create sufficient local density;
+- moderation requirements exceed viable capacity;
+- biometric or religious-data processing cannot be justified proportionately;
+- avatar cost or latency is economically unworkable.
