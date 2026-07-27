@@ -4,6 +4,7 @@ import {
   EDUCATION_LEVELS,
   INSTITUTIONS,
   ageOnDate,
+  createInitialState,
   extractEmailDomain,
   getInstitutionsByType,
   institutionAcceptsEmail,
@@ -47,4 +48,8 @@ test('faith profile uses self-description rather than a numeric religiosity scor
   const valid = { faithIdentity: 'muslim', faithPractice: 'moderate', faithImportance: 'important', faithTags: ['family', 'noAlcohol'] };
   assert.deepEqual(validateFaithProfile(valid), []);
   assert.ok(validateFaithProfile({ ...valid, faithPractice: '10/10' }).includes('faithPractice'));
+});
+
+test('faith practice visibility is private by default', () => {
+  assert.equal(createInitialState().profile.showFaithPractice, false);
 });
