@@ -2,7 +2,7 @@
 title: Rendezvue NL Pilot
 emoji: 💞
 colorFrom: pink
-colorTo: teal
+colorTo: green
 sdk: static
 app_file: index.html
 fullWidth: true
