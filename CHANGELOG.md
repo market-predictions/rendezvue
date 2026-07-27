@@ -1,0 +1,28 @@
+# Changelog
+
+All notable project changes are recorded here. The project follows a lightweight form of Keep a Changelog and uses pre-release semantic versions during the pilot.
+
+## [Unreleased]
+
+### Planned
+
+- Connect a real institutional-email delivery service.
+- Select and integrate an age-assurance method.
+- Add automated blink and head-turn liveness analysis.
+- Replace the local avatar stylization preview with an approved generation service.
+- Add persistent backend services for accounts, matches, messages and moderation.
+
+## [0.1.0-alpha.1] - 2026-07-27
+
+### Added
+
+- Established GitHub as the sole source of truth and Hugging Face as a one-way pilot deployment target.
+- Added requirements, roadmap, work packages, work claims, handover and architecture-decision records.
+- Added a dependency-light mobile HTML5/PWA prototype.
+- Added institutional-domain validation fixtures for selected Moroccan institutions.
+- Added browser camera capture with four-second in-memory recording and best-frame extraction.
+- Added a local posterization effect as an explicitly non-production avatar pipeline substitute.
+- Added profile onboarding, privacy controls, discovery, contextual likes, matching, chat demonstration, blocking and reporting UX.
+- Added PWA manifest, service worker, icons, Docker image and Nginx configuration.
+- Added static validation, domain tests and GitHub Actions continuous integration.
+- Added an official Hugging Face Hub synchronization workflow, gated by repository configuration.

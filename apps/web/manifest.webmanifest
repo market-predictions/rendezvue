@@ -1,0 +1,21 @@
+{
+  "name": "Rendezvue Pilot",
+  "short_name": "Rendezvue",
+  "description": "Privacy-first student dating pilot for Morocco.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fff9f5",
+  "theme_color": "#6d3158",
+  "orientation": "portrait-primary",
+  "categories": ["social", "lifestyle"],
+  "icons": [
+    {
+      "src": "/assets/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
