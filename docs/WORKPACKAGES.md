@@ -48,10 +48,10 @@ Remaining gate:
 
 ## WP-016 — Netherlands Muslim-student pivot
 
-**Status:** active  
+**Status:** review  
 **Objective:** convert the prototype from a Moroccan higher-education concept into a Dutch-first product for Muslim students aged 18+ in MBO, HBO and WO.
 
-Scope:
+Scope delivered:
 
 - Dutch default and English top-level switch;
 - Netherlands-first positioning;
@@ -75,14 +75,14 @@ Acceptance evidence:
 - no numeric piety score exists;
 - the avatar renderer no longer uses coarse color quantization;
 - CI validates both static deployment artifacts and Docker fallback;
-- hosted workflow serves the new marker-confirmed build.
+- hosted workflow serves the marker-confirmed build;
+- deployment commit `30192de007e2de85bd95ef6a3a4ff57155dd4d82` verified in workflow run `30311060515`.
 
-Completion gate:
+Remaining completion gate:
 
-- PR merged after CI success;
-- automatic Hugging Face deployment succeeds;
 - owner reviews the Dutch onboarding, faith flow and avatar treatment;
-- material UX defects are logged.
+- mobile camera flow is tested;
+- material UX defects are logged or resolved.
 
 ## WP-020 — Authoritative Dutch institution registry
 

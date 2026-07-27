@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 0.7  
+**Version:** 0.8  
 **Updated:** 2026-07-28
 
 ## Operating doctrine
@@ -45,22 +45,22 @@ Delivered:
 
 ### Phase 1B — Netherlands and faith pivot
 
-**Status:** active; implementation complete on the milestone branch, hosted verification pending.
+**Status:** implementation, CI and hosted deployment complete; owner and target-user review pending.
 
-Deliverables:
+Delivered:
 
 - Netherlands replaces Morocco as launch geography;
 - MBO, HBO and WO are peer education categories;
-- Dutch becomes the default language;
+- Dutch is the default language;
 - English remains available from a top-level switch;
-- synthetic Dutch institution/domain fixtures replace Moroccan fixtures;
+- 39 synthetic Dutch institution/domain fixtures replace Moroccan fixtures;
 - faith background, daily practice, compatibility importance and lifestyle tags;
 - private-by-default visibility for faith practice;
 - no piety score or inferred religious identity;
 - Dutch synthetic MBO, HBO and WO profiles;
 - improved local avatar rendering with smoothing, line extraction and warm illustration treatment;
 - updated requirements, privacy model, work packages, work claims and handover;
-- automatic hosted deployment and marker verification.
+- successful hosted deployment at `https://solidprivacy-rendezvue.static.hf.space/` from commit `30192de007e2de85bd95ef6a3a4ff57155dd4d82`.
 
 Research questions:
 
@@ -71,7 +71,7 @@ Research questions:
 5. Does the illustrated avatar provide more attraction and privacy than the previous pixelized treatment?
 6. Does switching between Dutch and English preserve orientation and form progress?
 
-**Gate:** the hosted milestone works end-to-end, the owner approves the new direction, and a moderated user-test protocol is ready.
+**Gate:** the owner approves the hosted direction, material defects are logged, and a moderated target-user test protocol is ready.
 
 ## Phase 2 — High-risk technical proofs
 
