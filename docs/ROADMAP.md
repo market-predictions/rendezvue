@@ -1,17 +1,17 @@
 # Rendezvue roadmap
 
-**Version:** 0.4  
+**Version:** 0.5  
 **Updated:** 2026-07-27
 
 ## Operating doctrine
 
 - GitHub is the source of truth.
-- Hugging Face is a disposable, one-way synchronized pilot deployment.
+- Hugging Face is a disposable, one-way generated pilot deployment.
 - Work advances through explicit work packages and evidence-based gates.
 - Claims distinguish demonstrated prototype behavior from planned production capability.
 - High-risk uncertainties are tested before broad feature expansion.
 - Safety and privacy controls are not deferred until launch.
-- Hosting architecture should match actual product needs; browser-only phases should not require paid server compute.
+- Browser-only phases should not require paid server compute or a second unvalidated build environment.
 
 ## Phase 0 — Foundation and governance
 
@@ -24,7 +24,7 @@ Deliverables:
 - roadmap, work packages, work claims and changelog;
 - architecture and decision records;
 - static and Docker build targets;
-- CI and Hugging Face synchronization workflow;
+- CI and Hugging Face deployment workflow;
 - security and privacy warnings for the public repository.
 
 **Gate:** repository checks pass and every implemented claim is traceable.
@@ -63,22 +63,22 @@ Research questions:
 
 ### Phase 1A — Hosted prototype deployment
 
-**Goal:** make the approved prototype reviewable on real mobile browsers without requiring local development tools or a paid hosting plan.
+**Goal:** make the approved prototype reviewable on real mobile browsers without local development tools or a paid hosting plan.
 
 Deliverables:
 
-- deterministic static build from `apps/web/` to `dist/`;
+- deterministic browser build from `apps/web/` to `dist/`;
+- complete prebuilt `.hf-deploy/` artifact;
 - automatic creation or confirmation of a public Hugging Face Static Space;
-- one-way synchronization from GitHub `main`;
-- hosted static-build polling;
+- direct upload of accepted GitHub build output;
 - direct public-page and deployment-marker verification;
-- verified public URL in the GitHub Actions summary;
+- verified URL in the Actions summary and issue #2;
 - web-only activation and troubleshooting guide;
 - deployment evidence in changelog, work claims and handover.
 
-**Gate:** the workflow succeeds, the direct public URL opens on representative phones, camera access is tested through HTTPS and the running source matches GitHub `main`.
+**Gate:** the workflow succeeds, the direct public URL opens on representative phones, camera access is tested through HTTPS and the deployed artifact matches GitHub `main`.
 
-**Status:** active. Credentials and repository variables were accepted. The first Docker attempt failed with HTTP 402 because new Docker Spaces require a paid plan. A free Static Space correction is implemented and awaiting hosted confirmation.
+**Status:** active. Credentials are valid. Docker hosting was rejected by the free plan; source synchronization reached the Static Space but did not yield a reachable page. The current path uploads the fully built artifact directly and awaits hosted confirmation.
 
 ## Phase 2 — High-risk technical proofs
 
