@@ -6,11 +6,38 @@ All notable project changes are recorded here. The project follows a lightweight
 
 ### Planned
 
-- Connect a real institutional-email delivery service.
-- Select and integrate an age-assurance method.
+- Replace Dutch institution/domain fixtures with a DUO/RIO-backed registry and separately verified student mailbox domains.
+- Validate the faith profile with target users and establish the production Article 9 condition.
+- Select a privacy-preserving age-assurance method.
 - Add automated blink and head-turn liveness analysis.
-- Replace the local avatar stylization preview with an approved generation service.
-- Add persistent backend services for accounts, matches, messages and moderation.
+- Replace the local avatar renderer with an approved generation service.
+- Add persistent backend services and moderation operations.
+
+## [0.2.0-alpha.1] - 2026-07-28
+
+### Changed
+
+- Pivoted the target market from Morocco to the Netherlands.
+- Expanded eligible education from higher education to MBO, HBO and WO while retaining a strict independent 18+ requirement.
+- Made Dutch the default product language and added an English switch at the top of the interface.
+- Replaced Moroccan synthetic institutions and profiles with Dutch MBO, HBO and WO fixtures.
+- Replaced coarse color quantization with a smoother illustrated avatar treatment using edge extraction, warm lighting and portrait framing.
+
+### Added
+
+- Added 39 Dutch pilot institution fixtures: 15 MBO, 12 HBO and 12 WO.
+- Added faith-background, daily-practice and compatibility-preference fields.
+- Added optional prayer, Ramadan, halal, alcohol, smoking, family, modesty, community and marriage-intention tags.
+- Added private-by-default faith-practice visibility.
+- Added Dutch/English localization tests and education/faith domain tests.
+- Added Netherlands institution-registry and faith-profile governance documents.
+- Added ADR-0005 recording the strategic pivot.
+
+### Security and privacy
+
+- Explicitly classified religious beliefs as sensitive production data requiring a separate lawful basis and controls.
+- Prohibited piety scoring, inferred religion and advertising use of faith data in the requirements.
+- Continued to prohibit real-user admission to the prototype.
 
 ## [0.1.0-alpha.7] - 2026-07-27
 
@@ -28,79 +55,52 @@ All notable project changes are recorded here. The project follows a lightweight
 ### Changed
 
 - Replaced source mirroring plus Hugging Face-side building with direct upload of a GitHub-built static artifact.
-- The Static Space now receives an `index.html`-rooted application with no remote build command.
+- The Static Space receives an `index.html`-rooted application with no remote build command.
 
 ### Added
 
-- Added `.hf-deploy/` generation with dedicated Static Space metadata and source provenance.
+- Added `.hf-deploy/` generation with Static Space metadata and source provenance.
 - Added validation of the complete prebuilt deployment artifact.
 
 ## [0.1.0-alpha.5] - 2026-07-27
 
 ### Added
 
-- Added automatic success and failure status comments to deployment issue #2.
-- Added the verified pilot URL, commit SHA and workflow link to successful deployment evidence.
-
-### Changed
-
-- Granted the deployment workflow narrowly scoped issue-write permission for operational reporting.
+- Added automatic deployment status comments to issue #2.
+- Added verified URL, commit and workflow evidence to successful deployment reports.
 
 ## [0.1.0-alpha.4] - 2026-07-27
 
 ### Fixed
 
-- Corrected hosted verification for Hugging Face Static Spaces by preferring the `.static.hf.space` hostname.
-- Added fallback verification for `/index.html` and the ordinary `.hf.space` hostname.
+- Corrected Static Space URL verification and fallback paths.
 
 ### Added
 
-- Added regression tests for Hugging Face Static Space URL derivation and normalization.
-- Added CI execution of the Python deployment-helper tests.
+- Added regression tests for URL derivation and Python deployment helpers.
 
 ## [0.1.0-alpha.3] - 2026-07-27
 
 ### Fixed
 
-- Replaced the paid Docker Space creation path after Hugging Face returned HTTP 402 for a free account.
-- Changed hosted verification from a Docker `/healthz` endpoint to the direct static page and an embedded Rendezvue deployment marker.
+- Replaced the paid Docker Space path with a free Static Space.
 
 ### Added
 
-- Added a deterministic `npm run build:static` output in `dist/`.
-- Added Static Space metadata using `app_build_command` and `app_file`.
-- Added validation of the generated static artifact and hosted deployment marker.
-
-### Changed
-
-- The pilot deployment now creates and synchronizes a free Hugging Face Static Space.
-- Docker remains a future backend-capable option but is no longer required for the browser-only prototype.
+- Added deterministic static build and deployment-marker validation.
 
 ## [0.1.0-alpha.2] - 2026-07-27
 
 ### Added
 
-- Added automatic creation or confirmation of the public Hugging Face Docker Space.
-- Added runtime polling, `/healthz` verification and publication of the verified pilot URL in the GitHub Actions summary.
-- Added a web-interface-only activation guide requiring no local Git, Node.js or Docker installation.
-- Added CI syntax validation for the Hugging Face deployment helper.
-
-### Changed
-
-- Upgraded the deployment workflow from a silent gated mirror to an explicit configuration, deployment and verification pipeline.
-- Marked the foundation and interaction prototype milestone as approved and merged.
+- Added automatic Space creation, deployment polling and hosted URL publication.
 
 ## [0.1.0-alpha.1] - 2026-07-27
 
 ### Added
 
-- Established GitHub as the sole source of truth and Hugging Face as a one-way pilot deployment target.
-- Added requirements, roadmap, work packages, work claims, handover and architecture-decision records.
-- Added a dependency-light mobile HTML5/PWA prototype.
-- Added institutional-domain validation fixtures for selected Moroccan institutions.
-- Added browser camera capture with four-second in-memory recording and best-frame extraction.
-- Added a local posterization effect as an explicitly non-production avatar pipeline substitute.
-- Added profile onboarding, privacy controls, discovery, contextual likes, matching, chat demonstration, blocking and reporting UX.
-- Added PWA manifest, service worker, icons, Docker image and Nginx configuration.
-- Added static validation, domain tests and GitHub Actions continuous integration.
-- Added an official Hugging Face Hub synchronization workflow, gated by repository configuration.
+- Established GitHub as the sole source of truth.
+- Added governance documents and a dependency-light mobile PWA prototype.
+- Added browser camera capture, frame extraction and initial posterized preview.
+- Added profile, discovery, matching, chat and safety UX.
+- Added PWA, Docker, CI and Hugging Face synchronization foundations.
