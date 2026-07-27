@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 0.3  
+**Version:** 0.4  
 **Updated:** 2026-07-27
 
 ## Operating doctrine
@@ -11,6 +11,7 @@
 - Claims distinguish demonstrated prototype behavior from planned production capability.
 - High-risk uncertainties are tested before broad feature expansion.
 - Safety and privacy controls are not deferred until launch.
+- Hosting architecture should match actual product needs; browser-only phases should not require paid server compute.
 
 ## Phase 0 — Foundation and governance
 
@@ -22,7 +23,7 @@ Deliverables:
 - requirements baseline;
 - roadmap, work packages, work claims and changelog;
 - architecture and decision records;
-- Docker deployment target;
+- static and Docker build targets;
 - CI and Hugging Face synchronization workflow;
 - security and privacy warnings for the public repository.
 
@@ -62,21 +63,22 @@ Research questions:
 
 ### Phase 1A — Hosted prototype deployment
 
-**Goal:** make the approved prototype reviewable on real mobile browsers without requiring local development tools.
+**Goal:** make the approved prototype reviewable on real mobile browsers without requiring local development tools or a paid hosting plan.
 
 Deliverables:
 
-- automatic creation or confirmation of a public Hugging Face Docker Space;
+- deterministic static build from `apps/web/` to `dist/`;
+- automatic creation or confirmation of a public Hugging Face Static Space;
 - one-way synchronization from GitHub `main`;
-- runtime/build polling;
-- `/healthz` verification;
+- hosted static-build polling;
+- direct public-page and deployment-marker verification;
 - verified public URL in the GitHub Actions summary;
 - web-only activation and troubleshooting guide;
 - deployment evidence in changelog, work claims and handover.
 
-**Gate:** the workflow succeeds, the public URL opens on representative phones and the running source matches GitHub `main`.
+**Gate:** the workflow succeeds, the direct public URL opens on representative phones, camera access is tested through HTTPS and the running source matches GitHub `main`.
 
-**Status:** source implementation complete; externally blocked by one-time `HF_TOKEN` and `HF_SPACE_ID` configuration.
+**Status:** active. Credentials and repository variables were accepted. The first Docker attempt failed with HTTP 402 because new Docker Spaces require a paid plan. A free Static Space correction is implemented and awaiting hosted confirmation.
 
 ## Phase 2 — High-risk technical proofs
 
@@ -133,6 +135,8 @@ Scope:
 - safety operations;
 - PWA push notifications;
 - French and Arabic/RTL.
+
+The Static Space may continue to serve the frontend, but persistent application services must be hosted externally or moved to an appropriate backend platform.
 
 **Gate:** privacy and safety assessments approved; monitoring and moderation coverage proven; kill switches and deletion flows tested.
 
