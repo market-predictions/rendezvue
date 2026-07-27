@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 0.5  
+**Version:** 0.6  
 **Updated:** 2026-07-27
 
 ## Operating doctrine
@@ -59,7 +59,7 @@ Research questions:
 
 **Gate:** moderated user testing shows that the core proposition is understood and the avatar is useful enough to choose whether to engage.
 
-**Status:** functional technical prototype complete; hosted access and external user testing not yet completed.
+**Status:** functional prototype complete and hosted; external user testing not yet completed.
 
 ### Phase 1A — Hosted prototype deployment
 
@@ -78,7 +78,7 @@ Deliverables:
 
 **Gate:** the workflow succeeds, the direct public URL opens on representative phones, camera access is tested through HTTPS and the deployed artifact matches GitHub `main`.
 
-**Status:** active. Credentials are valid. Docker hosting was rejected by the free plan; source synchronization reached the Static Space but did not yield a reachable page. The current path uploads the fully built artifact directly and awaits hosted confirmation.
+**Status:** hosted deployment passed. Public URL: `https://solidprivacy-rendezvue.static.hf.space/`. GitHub commit `edec6c59bdc2b46acf6652d1c03671006e86f250` and workflow run `30305071548` were verified. Representative mobile camera and PWA field tests remain before Phase 1A is closed.
 
 ## Phase 2 — High-risk technical proofs
 
