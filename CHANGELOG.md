@@ -12,6 +12,18 @@ All notable project changes are recorded here. The project follows a lightweight
 - Replace the local avatar stylization preview with an approved generation service.
 - Add persistent backend services for accounts, matches, messages and moderation.
 
+## [0.1.0-alpha.6] - 2026-07-27
+
+### Changed
+
+- Replaced source mirroring plus Hugging Face-side building with direct upload of a GitHub-built static artifact.
+- The Static Space now receives an `index.html`-rooted application with no remote build command.
+
+### Added
+
+- Added `.hf-deploy/` generation with dedicated Static Space metadata and source provenance.
+- Added validation of the complete prebuilt deployment artifact.
+
 ## [0.1.0-alpha.5] - 2026-07-27
 
 ### Added

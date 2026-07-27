@@ -18,7 +18,23 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run check
+      - name: Run application and artifact checks
+        id: app_checks
+        continue-on-error: true
+        run: npm run check > check.log 2>&1
+      - name: Upload check evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-check-log
+          path: check.log
+          if-no-files-found: error
+          retention-days: 7
+      - name: Fail after preserving check evidence
+        if: steps.app_checks.outcome == 'failure'
+        run: |
+          tail -n 80 check.log
+          exit 1
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
