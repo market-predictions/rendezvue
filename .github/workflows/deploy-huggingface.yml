@@ -17,6 +17,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 concurrency:
   group: huggingface-pilot
@@ -112,7 +113,43 @@ jobs:
             echo
             echo "**Pilot URL:** $SPACE_URL"
             echo
-            echo "Open the direct hf.space URL for camera and PWA testing."
+            echo "Open the direct Static Space URL for camera and PWA testing."
             echo
             echo "GitHub remains the source of truth; future pushes to main redeploy automatically."
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record successful deployment in issue 2
+        if: success()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SPACE_URL: ${{ steps.verify.outputs.space_url }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          gh issue comment 2 --body-file - <<EOF
+          ✅ Hosted deployment verified
+
+          - Pilot URL: $SPACE_URL
+          - Commit: \`$COMMIT_SHA\`
+          - Workflow run: $RUN_URL
+
+          The direct page returned the Rendezvue deployment marker. Mobile camera and PWA field testing remain before WP-015 is closed.
+          EOF
+
+      - name: Record failed deployment in issue 2
+        if: failure()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          gh issue comment 2 --body-file - <<EOF
+          ❌ Hosted deployment failed
+
+          - Commit: \`$COMMIT_SHA\`
+          - Workflow run: $RUN_URL
+
+          Open the failed step in the linked run. Do not rotate the Hugging Face token unless the log reports an authentication or authorization error.
+          EOF
