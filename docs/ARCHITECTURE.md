@@ -6,19 +6,22 @@
 GitHub branch / pull request
         |
         v
-CI validation, static build and retained Docker build
+CI validation, browser build and retained Docker build
         |
         v
 GitHub main (authoritative)
         |
         v
-Hugging Face hub-sync
+GitHub Actions generates .hf-deploy/
+        |
+        v
+Hugging Face CLI uploads prebuilt files
         |
         v
 Hugging Face Static Space (web-facing, disposable, free)
 ```
 
-The current repository is a static browser prototype. Hugging Face runs `npm run build:static` and serves `dist/index.html`. No server process or persistent filesystem is required for the pilot.
+The current repository is a static browser prototype. GitHub Actions builds and validates the complete deployment artifact before uploading it. Hugging Face only serves the already-built files and does not run Node, an application process or a Docker runtime.
 
 The Dockerfile and Nginx target remain validated for future backend-capable or alternative hosting scenarios, but new Docker Spaces require a paid Hugging Face plan and are not part of the current pilot path.
 
@@ -40,8 +43,14 @@ apps/web/
 
 scripts/
   build-static.mjs       deterministic apps/web -> dist build
+  build-hf-deploy.mjs    dist + Space metadata -> .hf-deploy artifact
   huggingface_space.py   Static Space creation and public-page verification
+
+infrastructure/huggingface/
+  README.static.md       metadata and notice placed in the deployed Space
 ```
+
+The generated `.hf-deploy/` directory is ignored by Git. It is reproducibly created from versioned source and uploaded from GitHub Actions.
 
 ## 3. Production target boundaries
 
@@ -71,7 +80,9 @@ The Static Space can continue to host public frontend assets, but production bac
 - verification labels are derived from evidence records, not editable profile fields;
 - block and moderation enforcement is server authoritative;
 - native shells remain thin clients;
-- GitHub remains the only source repository whose changes are supported.
+- GitHub remains the only source repository whose changes are supported;
+- Hugging Face never builds from unvalidated application source during the pilot;
+- deployed files are generated from the accepted GitHub commit.
 
 ## 4. Prototype state model
 
