@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Rendezvue</title>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#df5873"/>
+      <stop offset="1" stop-color="#6d3158"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="130" fill="url(#background)"/>
+  <circle cx="404" cy="90" r="94" fill="#ffffff" opacity=".12"/>
+  <circle cx="74" cy="430" r="126" fill="#ffffff" opacity=".09"/>
+  <rect x="96" y="96" width="320" height="320" rx="105" fill="#fff9f5"/>
+  <path d="M161 218c35-58 92-23 95 17 3-40 61-75 96-17 37 61-43 119-96 161-53-42-132-100-95-161Z" fill="none" stroke="#6d3158" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M161 218c35-58 92-23 95 17" fill="none" stroke="#df5873" stroke-width="30" stroke-linecap="round"/>
+</svg>
