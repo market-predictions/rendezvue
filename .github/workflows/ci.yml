@@ -19,4 +19,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m py_compile scripts/huggingface_space.py
       - run: docker build -t rendezvue-pilot:${{ github.sha }} .
