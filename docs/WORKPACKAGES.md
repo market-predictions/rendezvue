@@ -1,141 +1,157 @@
 # Work packages
 
-Work packages are the operational units of the roadmap. Status values are `planned`, `active`, `blocked`, `review`, or `complete`.
+Status values are `planned`, `active`, `blocked`, `review`, or `complete`.
 
 ## WP-000 — Repository foundation
 
 **Status:** complete  
-**Objective:** make GitHub authoritative and establish reproducible governance and deployment structure.
+**Objective:** establish GitHub authority, CI, governance and reproducible deployment.
 
-### Scope
+Evidence:
 
-- requirements, roadmap, changelog and handover;
-- work claims and architecture decisions;
-- contribution and security policies;
-- CI;
-- Docker image;
-- Hugging Face deployment workflow.
+- requirements, roadmap, work claims, handover and ADRs;
+- static and Docker validation;
+- automated Hugging Face deployment;
+- hosted marker verification.
 
-### Acceptance evidence
-
-- `npm run check` passes;
-- CI builds the Docker image;
-- deployment workflow is present and documented;
-- documentation states Hugging Face is not authoritative;
-- milestone 0.1 was approved and squash-merged.
-
-## WP-010 — Mobile PWA interaction prototype
+## WP-010 — Core PWA interaction prototype
 
 **Status:** complete  
-**Objective:** implement the complete local product loop without implying production verification.
+**Objective:** demonstrate the complete dating flow without claiming production verification.
 
-### Scope
+Evidence:
 
-- onboarding and adult-only copy;
-- institution and email-domain validation;
-- camera permission and timed capture;
-- in-memory frame extraction;
-- prototype stylization;
-- profile/privacy configuration;
-- discovery and contextual likes;
-- match/chat demonstration;
-- safety controls;
-- PWA manifest and service worker.
-
-### Acceptance evidence
-
-- automated institution-domain tests;
-- static-file and manifest validation;
-- browser smoke test;
-- no captured media persisted by the prototype;
-- product and architecture milestone approved by the owner.
+- onboarding, camera, avatar preview, profile and privacy;
+- discovery, contextual likes, deterministic matching and local chat;
+- report, block and pause controls;
+- PWA manifest and service worker;
+- synthetic-only data.
 
 ## WP-015 — Hosted Hugging Face prototype
 
 **Status:** review  
-**Objective:** provide a working public mobile-browser prototype without requiring reviewers to install local development tools.
+**Objective:** provide a working public prototype without local development tools.
 
-### Scope
+Evidence:
 
-- create or confirm a public, free Hugging Face Static Space;
-- build the browser application reproducibly into `dist/`;
-- package a complete `.hf-deploy/` artifact with Space metadata;
-- upload the prebuilt artifact from GitHub Actions;
-- verify the direct public page and Rendezvue deployment marker;
-- publish the verified URL in GitHub Actions and issue #2;
-- document activation, evidence and troubleshooting.
+- free Static Space;
+- prebuilt `.hf-deploy/` artifact;
+- direct upload from GitHub Actions;
+- public marker verification;
+- URL: `https://solidprivacy-rendezvue.static.hf.space/`.
 
-### Implemented evidence
+Remaining gate:
 
-- credentials and free Static Space creation were accepted;
-- the paid Docker path and unreliable remote-build path were removed;
-- GitHub generates and validates the complete deployable artifact;
-- direct `hf upload` replaces remote building and source mirroring;
-- deployment succeeded for commit `edec6c59bdc2b46acf6652d1c03671006e86f250`;
-- workflow run `30305071548` verified the Rendezvue marker;
-- public URL: `https://solidprivacy-rendezvue.static.hf.space/`;
-- Docker remains available for later backend phases but is not the pilot host.
+- repeat field review after the Netherlands pivot;
+- camera test on at least one mobile browser;
+- record browser-specific defects.
 
-### Remaining review
+## WP-016 — Netherlands Muslim-student pivot
 
-- open the direct URL on desktop and mobile;
-- complete the four-second camera flow;
-- test Android Chrome, Samsung Internet and iPhone Safari where available;
-- record any browser-specific defects.
+**Status:** active  
+**Objective:** convert the prototype from a Moroccan higher-education concept into a Dutch-first product for Muslim students aged 18+ in MBO, HBO and WO.
 
-### Completion gate
+Scope:
 
-- deployment succeeds without a paid Hugging Face plan — **passed**;
-- direct public URL serves the current Rendezvue marker — **passed**;
-- running Space matches GitHub `main` — **passed at recorded commit**;
-- camera flow works through the direct HTTPS URL — pending field test;
-- public URL opens on representative Android and iPhone browsers — pending field test;
-- work claims and handover record the evidence — passed.
+- Dutch default and English top-level switch;
+- Netherlands-first positioning;
+- MBO, HBO and WO institution categories;
+- independent 18+ eligibility rule;
+- Dutch synthetic institution/domain fixtures;
+- faith background and daily-practice self-description;
+- faith compatibility preference;
+- optional lifestyle tags;
+- private-by-default faith-practice visibility;
+- Dutch synthetic MBO, HBO and WO discovery profiles;
+- illustrated avatar renderer;
+- updated requirements, roadmap, privacy model and handover;
+- hosted deployment.
 
-## WP-020 — Moroccan institution registry
+Acceptance evidence:
+
+- unit tests cover all three education sectors;
+- Dutch is the manifest and document default;
+- English switch is present throughout the flow;
+- no numeric piety score exists;
+- the avatar renderer no longer uses coarse color quantization;
+- CI validates both static deployment artifacts and Docker fallback;
+- hosted workflow serves the new marker-confirmed build.
+
+Completion gate:
+
+- PR merged after CI success;
+- automatic Hugging Face deployment succeeds;
+- owner reviews the Dutch onboarding, faith flow and avatar treatment;
+- material UX defects are logged.
+
+## WP-020 — Authoritative Dutch institution registry
 
 **Status:** planned  
-**Objective:** create a sourced, maintainable registry of recognised institutions and student email domains.
+**Objective:** create a sourced and maintainable registry of recognised MBO, HBO and WO institutions plus verified student email domains.
 
-### Key outputs
+Key outputs:
 
-- institution source schema;
-- verification date and status;
-- domain/subdomain rules;
-- administrative management interface;
-- unknown-domain review workflow.
+- DUO/RIO source ingestion;
+- institution identity, sector, locations and status;
+- source date and refresh cadence;
+- separate student-domain verification evidence;
+- institutional exceptions and aliases;
+- unknown-domain review workflow;
+- administrative management interface.
+
+The current 39 institutions and domains are pilot fixtures only.
+
+## WP-025 — Faith profile validation and legal basis
+
+**Status:** planned  
+**Objective:** validate the faith model with target users and establish a lawful, proportionate production design for religious-belief data.
+
+Key outputs:
+
+- moderated user research;
+- category and terminology review;
+- explicit consent or other valid Article 9 condition;
+- privacy notice and withdrawal path;
+- visibility and deletion controls;
+- anti-discrimination safeguards;
+- prohibition on advertising use and inferred faith classification.
 
 ## WP-030 — Production identity-friction stack
 
 **Status:** planned  
-**Objective:** implement phone verification, adult access assurance and account-risk controls.
+**Objective:** implement phone verification, age assurance and account-risk controls, including the under-18 MBO risk.
 
 ## WP-040 — Production liveness
 
 **Status:** planned  
-**Objective:** detect randomized blink/head-turn challenge completion with documented attack limits.
+**Objective:** detect randomized blink/head-turn completion with documented attack limits.
 
 ## WP-050 — Production avatar generation
 
 **Status:** planned  
-**Objective:** create recognisable, attractive, fair and temporally stable animated avatars with short retention of source media.
+**Objective:** create recognisable, attractive, fair and stable illustrated avatars with short source-media retention.
 
 ## WP-060 — Persistent application services
 
 **Status:** planned  
-**Objective:** implement account, profile, discovery, matching, messaging and notification services using external persistent infrastructure.
+**Objective:** implement accounts, profiles, discovery, matching, messaging and notifications using external persistent infrastructure.
 
 ## WP-070 — Trust and safety operations
 
 **Status:** planned  
-**Objective:** implement moderation tooling, child-safety procedures, appeals, audit logs and enforcement operations.
+**Objective:** implement moderation, child-safety procedures, appeals, audit logs and enforcement.
 
-## WP-080 — Closed pilot readiness
+## WP-080 — Closed Dutch pilot readiness
 
 **Status:** planned  
-**Objective:** meet legal, privacy, security, accessibility and operational release gates for selected institutions.
+**Objective:** meet legal, privacy, security, accessibility and operational gates for selected Dutch institutions.
 
-## WP-090 — Native shell
+## WP-090 — Belgium assessment
 
 **Status:** deferred  
-**Objective:** add native capabilities after PWA evidence justifies the investment.
+**Objective:** assess Belgian institutions, languages, law and community distribution after Dutch validation.
+
+## WP-100 — Native shell
+
+**Status:** deferred  
+**Objective:** add native capabilities only after PWA evidence justifies the investment.
