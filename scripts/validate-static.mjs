@@ -45,10 +45,13 @@ for (const marker of ['nl:', 'en:', 'MBO · HBO · WO', 'Geloof & leefstijl', 'F
 }
 
 const avatar = await readFile(resolve(root, 'apps/web/src/avatar.js'), 'utf8');
-for (const marker of ['buildEdgeLayer', 'addRomanticLighting', 'addIllustratedFrame']) {
-  if (!avatar.includes(marker)) throw new Error(`Illustrated avatar renderer is missing ${marker}.`);
+for (const marker of ['buildInkLayer', 'localAverage', 'sobelMagnitude', 'addPaperAndAccent']) {
+  if (!avatar.includes(marker)) throw new Error(`Privacy ink avatar renderer is missing ${marker}.`);
 }
-if (avatar.includes('quantize(')) throw new Error('Coarse pixel quantization must not return in the Netherlands milestone.');
+for (const forbidden of ['buildEdgeLayer', 'addRomanticLighting', "globalAlpha = 0.58", "saturate(1.08)"]) {
+  if (avatar.includes(forbidden)) throw new Error(`Near-photo avatar treatment must not return: ${forbidden}`);
+}
+if (avatar.includes('quantize(')) throw new Error('Coarse pixel quantization must not return.');
 
 const builtHtml = await readFile(resolve(root, 'dist/index.html'), 'utf8');
 if (!builtHtml.includes('rendezvue-deployment')) throw new Error('Static build is missing the deployment marker.');
