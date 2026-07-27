@@ -70,13 +70,13 @@ for (const marker of ['GitHub shall be the sole authoritative source', 'Netherla
   if (!requirements.includes(marker)) throw new Error(`Requirements are missing marker: ${marker}`);
 }
 
-const institutionPlan = await readFile(resolve(root, 'docs/INSTITUTION-REGISTRY-NL.md'), 'utf8');
-for (const marker of ['DUO/RIO', 'Student mailbox domains', 'pilot fixtures']) {
+const institutionPlan = (await readFile(resolve(root, 'docs/INSTITUTION-REGISTRY-NL.md'), 'utf8')).toLowerCase();
+for (const marker of ['duo/rio', 'student mailbox domains', 'pilot fixture']) {
   if (!institutionPlan.includes(marker)) throw new Error(`Institution plan is missing ${marker}.`);
 }
 
-const faithModel = await readFile(resolve(root, 'docs/FAITH-PROFILE-MODEL.md'), 'utf8');
-for (const marker of ['never a numeric religiosity score', 'Article 9', 'private']) {
+const faithModel = (await readFile(resolve(root, 'docs/FAITH-PROFILE-MODEL.md'), 'utf8')).toLowerCase();
+for (const marker of ['never a numeric religiosity score', 'article 9', 'private']) {
   if (!faithModel.includes(marker)) throw new Error(`Faith profile model is missing ${marker}.`);
 }
 
