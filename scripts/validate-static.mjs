@@ -71,7 +71,7 @@ for (const marker of ['GitHub shall be the sole authoritative source', 'Netherla
 }
 
 const institutionPlan = await readFile(resolve(root, 'docs/INSTITUTION-REGISTRY-NL.md'), 'utf8');
-for (const marker of ['DUO/RIO', 'student mailbox domains', 'pilot fixtures']) {
+for (const marker of ['DUO/RIO', 'Student mailbox domains', 'pilot fixtures']) {
   if (!institutionPlan.includes(marker)) throw new Error(`Institution plan is missing ${marker}.`);
 }
 
