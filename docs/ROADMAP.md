@@ -8,7 +8,7 @@
 - GitHub is the source of truth.
 - Hugging Face is a disposable, one-way generated pilot deployment.
 - Work advances through explicit work packages and evidence-based gates.
-- Demonstrated prototype behavior is separated from production claims.
+- Demonstrated prototype behaviour is separated from production claims.
 - High-risk uncertainties are tested before broad feature expansion.
 - Safety, privacy and legal constraints are product requirements.
 - Dutch is the default language; English is the supported alternative.
@@ -28,7 +28,7 @@ Delivered:
 
 ## Phase 1 — Netherlands interaction prototype
 
-**Goal:** determine whether a privacy-avatar product for Muslim students in Dutch MBO, HBO and WO is understandable, attractive and culturally credible.
+**Goal:** determine whether a privacy-first dating product for Muslim students in Dutch MBO, HBO and WO is understandable, attractive and culturally credible.
 
 ### Phase 1A — Core dating flow
 
@@ -38,7 +38,7 @@ Delivered:
 
 - adult-only onboarding language;
 - live-camera interaction;
-- privacy avatar preview;
+- privacy portrait preview;
 - profile, discovery, matching and local chat;
 - report, block and pause controls;
 - installable PWA structure.
@@ -53,25 +53,54 @@ Delivered:
 - MBO, HBO and WO are peer education categories;
 - Dutch is the default language;
 - English remains available from a top-level switch;
-- 39 synthetic Dutch institution/domain fixtures replace Moroccan fixtures;
+- 39 synthetic Dutch institution/domain fixtures;
 - faith background, daily practice, compatibility importance and lifestyle tags;
 - private-by-default visibility for faith practice;
 - no piety score or inferred religious identity;
 - Dutch synthetic MBO, HBO and WO profiles;
-- improved local avatar rendering with smoothing, line extraction and warm illustration treatment;
-- updated requirements, privacy model, work packages, work claims and handover;
-- successful hosted deployment at `https://solidprivacy-rendezvue.static.hf.space/` from commit `30192de007e2de85bd95ef6a3a4ff57155dd4d82`.
+- automatic hosted deployment.
 
 Research questions:
 
-1. Does the Dutch positioning feel credible and specific rather than exclusionary or administrative?
+1. Does the Dutch positioning feel credible rather than exclusionary or administrative?
 2. Do MBO, HBO and WO users feel equally represented?
 3. Are faith categories understandable without implying judgement?
 4. Is practice visibility sufficiently private and controllable?
-5. Does the illustrated avatar provide more attraction and privacy than the previous pixelized treatment?
-6. Does switching between Dutch and English preserve orientation and form progress?
+5. Does switching between Dutch and English preserve orientation and form progress?
 
-**Gate:** the owner approves the hosted direction, material defects are logged, and a moderated target-user test protocol is ready.
+### Phase 1C — Selectable privacy-filter grid
+
+**Status:** implementation and CI complete; merge, hosted verification and owner camera review pending.
+
+Purpose:
+
+The softened-photo treatment was too revealing and the ink-sketch treatment was visually unacceptable. The interim pilot therefore lets the registrant choose among controlled browser-local privacy variants generated from the same captured frame.
+
+Deliverables:
+
+- four fixed recipes: Soft focus, Warm veil, Monochrome mist and Extra private;
+- a 2×2 preview grid before profile creation;
+- explicit recognisability/privacy labels;
+- no raw or lightly edited selfie option;
+- a minimum blur/privacy floor for every recipe;
+- consistent crop, tonal neutralisation and framing;
+- browser-local preview generation;
+- downsampling fallback where Canvas filters are inconsistent;
+- Dutch and English copy;
+- deployment and anti-regression validation;
+- ADR-0006 and work-claim boundaries.
+
+Research questions:
+
+1. Is the 2×2 grid understandable without explanation?
+2. Is each preview large enough on a mobile device?
+3. Does at least one recipe retain sufficient visual attraction?
+4. Is Soft focus too revealing?
+5. Is Extra private too abstract to be useful?
+6. Do results remain acceptable across lighting, skin tones, hijab/headwear, glasses and facial hair?
+7. Should weak recipes be removed rather than expanded into more choices?
+
+**Gate:** hosted marker verification succeeds, the owner completes a real-camera review, and weak or overly revealing variants are logged for tuning or removal.
 
 ## Phase 2 — High-risk technical proofs
 
@@ -99,14 +128,19 @@ Research questions:
 - representative Android and iPhone coverage;
 - measurable false-accept and false-reject thresholds.
 
-### 2D. Avatar pipeline
+### 2D. Production privacy portrait
 
-- approve a romantic illustrated style;
-- evaluate identity resemblance and fairness;
+The filter grid is an interim presentation, not the production avatar architecture.
+
+- define and approve a controlled visual style;
+- prototype server-side generation from one selected frame;
+- preserve broad appearance while reducing exact photographic fidelity;
+- evaluate identity resemblance and privacy distance;
 - define deception and beautification limits;
-- validate head covering, skin tone, facial hair and glasses handling;
-- implement server job orchestration and source-media deletion evidence;
-- quantify cost and latency.
+- validate hijab/headwear, skin tone, facial hair and glasses handling;
+- implement source-media retention and deletion evidence;
+- quantify cost and latency;
+- retain smart cropped blur as a failure fallback.
 
 ### 2E. Faith-data legality and product validation
 
@@ -130,7 +164,7 @@ Scope:
 - production authentication;
 - phone and student-email verification;
 - age assurance;
-- liveness and avatar generation;
+- liveness and production privacy-portrait generation;
 - Dutch and English production copy;
 - profiles, discovery, matching and text chat;
 - faith/lifestyle compatibility with user-controlled visibility;
@@ -175,7 +209,7 @@ Add thin Android and iOS shells only where native capability materially improves
 
 Pause or change direction if evidence shows:
 
-- illustrated avatars are too inaccurate or unattractive;
+- no browser or generated privacy portrait is both attractive and private enough;
 - users require public real-face photos before matching;
 - MBO/HBO/WO or faith fields produce unacceptable exclusion or confusion;
 - verification and age assurance create prohibitive abandonment;
