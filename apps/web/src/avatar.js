@@ -1,226 +1,251 @@
-function fitCover(context, source, width, height) {
+export const AVATAR_FILTERS = Object.freeze([
+  { id: 'softFocus', privacy: 'balanced' },
+  { id: 'warmVeil', privacy: 'private' },
+  { id: 'monoMist', privacy: 'private' },
+  { id: 'privacyMax', privacy: 'maximum' }
+]);
+
+function fitCover(context, source, width, height, zoom = 1.14, yBias = -0.03) {
   const sourceWidth = source.width;
   const sourceHeight = source.height;
-  const scale = Math.max(width / sourceWidth, height / sourceHeight);
+  const scale = Math.max(width / sourceWidth, height / sourceHeight) * zoom;
   const drawWidth = sourceWidth * scale;
   const drawHeight = sourceHeight * scale;
-  context.drawImage(source, (width - drawWidth) / 2, (height - drawHeight) / 2, drawWidth, drawHeight);
+  const x = (width - drawWidth) / 2;
+  const y = (height - drawHeight) / 2 + height * yBias;
+  context.drawImage(source, x, y, drawWidth, drawHeight);
 }
 
-function sampleSource(sourceCanvas, width, height) {
+function filterSupported(context) {
+  return typeof context.filter === 'string';
+}
+
+function downsampleBlur(source, width, height, strength) {
+  const tiny = document.createElement('canvas');
+  const divisor = Math.max(4, Math.min(18, Math.round(strength * 0.9)));
+  tiny.width = Math.max(24, Math.round(width / divisor));
+  tiny.height = Math.max(30, Math.round(height / divisor));
+  const tinyContext = tiny.getContext('2d');
+  tinyContext.imageSmoothingEnabled = true;
+  tinyContext.imageSmoothingQuality = 'high';
+  fitCover(tinyContext, source, tiny.width, tiny.height);
+  return tiny;
+}
+
+function drawFiltered(context, source, width, height, {
+  blur = 10,
+  grayscale = 0,
+  sepia = 0,
+  saturate = 1,
+  contrast = 1,
+  brightness = 1,
+  zoom = 1.14
+} = {}) {
+  context.save();
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = 'high';
+  if (filterSupported(context)) {
+    context.filter = [
+      `blur(${blur}px)`,
+      `grayscale(${Math.round(grayscale * 100)}%)`,
+      `sepia(${Math.round(sepia * 100)}%)`,
+      `saturate(${Math.round(saturate * 100)}%)`,
+      `contrast(${Math.round(contrast * 100)}%)`,
+      `brightness(${Math.round(brightness * 100)}%)`
+    ].join(' ');
+    fitCover(context, source, width, height, zoom);
+  } else {
+    const blurred = downsampleBlur(source, width, height, blur);
+    context.globalAlpha = 0.98;
+    context.drawImage(blurred, 0, 0, width, height);
+    if (grayscale > 0.45) {
+      context.globalCompositeOperation = 'saturation';
+      context.fillStyle = '#888';
+      context.fillRect(0, 0, width, height);
+    }
+  }
+  context.restore();
+}
+
+function addPortraitWindow(context, source, width, height, settings) {
+  context.save();
+  context.beginPath();
+  context.ellipse(width * 0.5, height * 0.42, width * 0.29, height * 0.34, 0, 0, Math.PI * 2);
+  context.clip();
+  drawFiltered(context, source, width, height, settings);
+  context.restore();
+}
+
+function addNeutralBackdrop(context, width, height, palette) {
+  const gradient = context.createLinearGradient(0, 0, width, height);
+  gradient.addColorStop(0, palette[0]);
+  gradient.addColorStop(0.55, palette[1]);
+  gradient.addColorStop(1, palette[2]);
+  context.save();
+  context.globalCompositeOperation = 'soft-light';
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, width, height);
+  context.restore();
+
+  const vignette = context.createRadialGradient(
+    width * 0.5, height * 0.42, width * 0.08,
+    width * 0.5, height * 0.42, width * 0.72
+  );
+  vignette.addColorStop(0, 'rgba(255,255,255,.10)');
+  vignette.addColorStop(0.64, 'rgba(255,255,255,0)');
+  vignette.addColorStop(1, 'rgba(38,26,38,.20)');
+  context.fillStyle = vignette;
+  context.fillRect(0, 0, width, height);
+}
+
+function addFrost(context, width, height, amount = 0.12) {
+  context.save();
+  context.fillStyle = `rgba(255, 251, 247, ${amount})`;
+  context.fillRect(0, 0, width, height);
+  context.globalAlpha = 0.16;
+  context.fillStyle = '#ffffff';
+  for (const [x, y, r] of [[0.17, 0.16, 38], [0.82, 0.24, 54], [0.78, 0.82, 34]]) {
+    context.beginPath();
+    context.arc(width * x, height * y, r, 0, Math.PI * 2);
+    context.fill();
+  }
+  context.restore();
+}
+
+function addFrame(context, width, height) {
+  const margin = 9;
+  context.save();
+  context.strokeStyle = 'rgba(255,255,255,.70)';
+  context.lineWidth = 7;
+  context.beginPath();
+  context.roundRect(margin, margin, width - margin * 2, height - margin * 2, 32);
+  context.stroke();
+  context.strokeStyle = 'rgba(83,54,76,.14)';
+  context.lineWidth = 2;
+  context.beginPath();
+  context.roundRect(margin + 8, margin + 8, width - (margin + 8) * 2, height - (margin + 8) * 2, 26);
+  context.stroke();
+  context.restore();
+}
+
+const RECIPES = Object.freeze({
+  softFocus: {
+    base: { blur: 13, saturate: 0.88, contrast: 0.95, brightness: 1.07 },
+    center: { blur: 8, saturate: 0.90, contrast: 0.96, brightness: 1.06 },
+    palette: ['rgba(255,230,218,.30)', 'rgba(250,246,241,.05)', 'rgba(86,110,103,.18)'],
+    frost: 0.10
+  },
+  warmVeil: {
+    base: { blur: 15, sepia: 0.24, saturate: 0.78, contrast: 0.91, brightness: 1.08 },
+    center: { blur: 10, sepia: 0.18, saturate: 0.82, contrast: 0.93, brightness: 1.07 },
+    palette: ['rgba(255,218,203,.42)', 'rgba(214,158,174,.16)', 'rgba(92,68,88,.20)'],
+    frost: 0.15
+  },
+  monoMist: {
+    base: { blur: 14, grayscale: 1, saturate: 0, contrast: 0.92, brightness: 1.08 },
+    center: { blur: 9, grayscale: 1, saturate: 0, contrast: 0.95, brightness: 1.07 },
+    palette: ['rgba(255,255,255,.28)', 'rgba(236,232,235,.10)', 'rgba(61,52,65,.18)'],
+    frost: 0.13
+  },
+  privacyMax: {
+    base: { blur: 21, grayscale: 0.42, sepia: 0.12, saturate: 0.62, contrast: 0.84, brightness: 1.10 },
+    center: { blur: 15, grayscale: 0.30, sepia: 0.10, saturate: 0.68, contrast: 0.87, brightness: 1.09 },
+    palette: ['rgba(250,228,220,.50)', 'rgba(225,214,222,.28)', 'rgba(74,91,87,.26)'],
+    frost: 0.24
+  }
+});
+
+function renderVariant(sourceCanvas, id, width = 420, height = 520) {
+  const recipe = RECIPES[id];
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
   const context = canvas.getContext('2d', { willReadFrequently: true });
-  context.filter = 'blur(1.8px) contrast(1.06)';
-  fitCover(context, sourceCanvas, width, height);
-  context.filter = 'none';
+
+  context.fillStyle = '#f7f1ed';
+  context.fillRect(0, 0, width, height);
+  drawFiltered(context, sourceCanvas, width, height, recipe.base);
+  addPortraitWindow(context, sourceCanvas, width, height, recipe.center);
+  addNeutralBackdrop(context, width, height, recipe.palette);
+  addFrost(context, width, height, recipe.frost);
+  addFrame(context, width, height);
+
+  return canvas.toDataURL('image/jpeg', 0.88);
+}
+
+export function generateAvatarVariants(sourceCanvas) {
+  return AVATAR_FILTERS.map((filter) => ({
+    ...filter,
+    dataUrl: renderVariant(sourceCanvas, filter.id)
+  }));
+}
+
+function createSyntheticSource() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 420;
+  canvas.height = 420;
+  const context = canvas.getContext('2d');
+  const background = context.createLinearGradient(0, 0, 420, 420);
+  background.addColorStop(0, '#ead7ce');
+  background.addColorStop(1, '#8fa49e');
+  context.fillStyle = background;
+  context.fillRect(0, 0, 420, 420);
+  context.fillStyle = '#463344';
+  context.beginPath();
+  context.moveTo(62, 420);
+  context.quadraticCurveTo(83, 286, 210, 278);
+  context.quadraticCurveTo(341, 290, 360, 420);
+  context.closePath();
+  context.fill();
+  context.fillStyle = '#c98f73';
+  context.beginPath();
+  context.ellipse(210, 190, 92, 112, 0, 0, Math.PI * 2);
+  context.fill();
+  context.fillStyle = '#342a34';
+  context.beginPath();
+  context.moveTo(112, 174);
+  context.quadraticCurveTo(119, 60, 214, 55);
+  context.quadraticCurveTo(316, 66, 316, 184);
+  context.quadraticCurveTo(274, 116, 207, 116);
+  context.quadraticCurveTo(147, 121, 112, 174);
+  context.fill();
+  context.strokeStyle = '#3b3039';
+  context.lineWidth = 7;
+  context.lineCap = 'round';
+  context.beginPath();
+  context.moveTo(157, 187);
+  context.quadraticCurveTo(176, 177, 194, 187);
+  context.moveTo(228, 187);
+  context.quadraticCurveTo(247, 177, 265, 188);
+  context.stroke();
+  context.fillStyle = '#2b252b';
+  context.beginPath();
+  context.arc(177, 205, 7, 0, Math.PI * 2);
+  context.arc(246, 205, 7, 0, Math.PI * 2);
+  context.fill();
+  context.strokeStyle = '#8f5a54';
+  context.lineWidth = 5;
+  context.beginPath();
+  context.moveTo(210, 210);
+  context.quadraticCurveTo(197, 247, 214, 255);
+  context.stroke();
+  context.strokeStyle = '#8e3b55';
+  context.lineWidth = 6;
+  context.beginPath();
+  context.moveTo(174, 278);
+  context.quadraticCurveTo(210, 297, 250, 276);
+  context.stroke();
   return canvas;
 }
 
-function luminanceData(image) {
-  const gray = new Float32Array(image.width * image.height);
-  for (let source = 0, target = 0; source < image.data.length; source += 4, target += 1) {
-    gray[target] = image.data[source] * 0.299 + image.data[source + 1] * 0.587 + image.data[source + 2] * 0.114;
-  }
-  return gray;
+export function createFallbackAvatarVariants() {
+  return generateAvatarVariants(createSyntheticSource());
 }
 
-function localAverage(gray, width, height, radius = 4) {
-  const integralWidth = width + 1;
-  const integral = new Float64Array((width + 1) * (height + 1));
-  for (let y = 1; y <= height; y += 1) {
-    let row = 0;
-    for (let x = 1; x <= width; x += 1) {
-      row += gray[(y - 1) * width + x - 1];
-      integral[y * integralWidth + x] = integral[(y - 1) * integralWidth + x] + row;
-    }
-  }
-  const average = new Float32Array(width * height);
-  for (let y = 0; y < height; y += 1) {
-    const top = Math.max(0, y - radius);
-    const bottom = Math.min(height - 1, y + radius);
-    for (let x = 0; x < width; x += 1) {
-      const left = Math.max(0, x - radius);
-      const right = Math.min(width - 1, x + radius);
-      const sum = integral[(bottom + 1) * integralWidth + right + 1]
-        - integral[top * integralWidth + right + 1]
-        - integral[(bottom + 1) * integralWidth + left]
-        + integral[top * integralWidth + left];
-      average[y * width + x] = sum / ((right - left + 1) * (bottom - top + 1));
-    }
-  }
-  return average;
-}
-
-function sobelMagnitude(gray, width, height) {
-  const output = new Float32Array(width * height);
-  const sx = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
-  const sy = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
-  for (let y = 1; y < height - 1; y += 1) {
-    for (let x = 1; x < width - 1; x += 1) {
-      let gx = 0;
-      let gy = 0;
-      let kernel = 0;
-      for (let ky = -1; ky <= 1; ky += 1) {
-        for (let kx = -1; kx <= 1; kx += 1) {
-          const value = gray[(y + ky) * width + x + kx];
-          gx += value * sx[kernel];
-          gy += value * sy[kernel];
-          kernel += 1;
-        }
-      }
-      output[y * width + x] = Math.hypot(gx, gy);
-    }
-  }
-  return output;
-}
-
-function buildInkLayer(sourceCanvas, width, height) {
-  const workingWidth = 210;
-  const workingHeight = Math.round(workingWidth * height / width);
-  const sample = sampleSource(sourceCanvas, workingWidth, workingHeight);
-  const context = sample.getContext('2d', { willReadFrequently: true });
-  const image = context.getImageData(0, 0, workingWidth, workingHeight);
-  const gray = luminanceData(image);
-  const average = localAverage(gray, workingWidth, workingHeight, 5);
-  const edges = sobelMagnitude(gray, workingWidth, workingHeight);
-  const output = context.createImageData(workingWidth, workingHeight);
-
-  for (let pixel = 0; pixel < gray.length; pixel += 1) {
-    const localContrast = average[pixel] - gray[pixel];
-    const edge = edges[pixel];
-    const isStrongLine = edge > 92 || localContrast > 23;
-    const isSoftLine = edge > 54 || localContrast > 15;
-    const isFlatShadow = gray[pixel] < average[pixel] - 10 && gray[pixel] < 116;
-    let tone = 250;
-    if (isStrongLine) tone = 27;
-    else if (isSoftLine) tone = 69;
-    else if (isFlatShadow) tone = 207;
-    const target = pixel * 4;
-    output.data[target] = tone;
-    output.data[target + 1] = tone;
-    output.data[target + 2] = tone;
-    output.data[target + 3] = 255;
-  }
-
-  context.putImageData(output, 0, 0);
-  const enlarged = document.createElement('canvas');
-  enlarged.width = width;
-  enlarged.height = height;
-  const enlargedContext = enlarged.getContext('2d');
-  enlargedContext.imageSmoothingEnabled = true;
-  enlargedContext.imageSmoothingQuality = 'high';
-  enlargedContext.drawImage(sample, 0, 0, width, height);
-  return enlarged;
-}
-
-function addPaperAndAccent(context, width, height) {
-  const paper = context.createLinearGradient(0, 0, width, height);
-  paper.addColorStop(0, '#fffdf9');
-  paper.addColorStop(0.62, '#f7f2ec');
-  paper.addColorStop(1, '#eee6df');
-  context.globalCompositeOperation = 'destination-over';
-  context.fillStyle = paper;
-  context.fillRect(0, 0, width, height);
-  context.globalCompositeOperation = 'source-over';
-
-  const halo = context.createRadialGradient(width * 0.5, height * 0.38, 12, width * 0.5, height * 0.38, width * 0.58);
-  halo.addColorStop(0, 'rgba(255,255,255,.18)');
-  halo.addColorStop(0.72, 'rgba(255,255,255,0)');
-  halo.addColorStop(1, 'rgba(111,71,89,.08)');
-  context.fillStyle = halo;
-  context.fillRect(0, 0, width, height);
-
-  context.strokeStyle = 'rgba(98,60,79,.18)';
-  context.lineWidth = 2;
-  context.beginPath();
-  context.roundRect(12, 12, width - 24, height - 24, 34);
-  context.stroke();
-}
-
-export function stylizeFrame(sourceCanvas, width = 420, height = 520) {
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext('2d');
-  context.fillStyle = '#fbf8f4';
-  context.fillRect(0, 0, width, height);
-
-  const ink = buildInkLayer(sourceCanvas, width, height);
-  context.save();
-  context.globalCompositeOperation = 'multiply';
-  context.globalAlpha = 0.94;
-  context.filter = 'contrast(1.13)';
-  context.drawImage(ink, 0, 0);
-  context.restore();
-
-  addPaperAndAccent(context, width, height);
-  return canvas.toDataURL('image/jpeg', 0.9);
+export function stylizeFrame(sourceCanvas) {
+  return generateAvatarVariants(sourceCanvas)[0].dataUrl;
 }
 
 export function createFallbackAvatar() {
-  const canvas = document.createElement('canvas');
-  canvas.width = 420;
-  canvas.height = 520;
-  const context = canvas.getContext('2d');
-  context.fillStyle = '#fbf8f4';
-  context.fillRect(0, 0, 420, 520);
-  context.strokeStyle = '#252126';
-  context.fillStyle = '#252126';
-  context.lineCap = 'round';
-  context.lineJoin = 'round';
-
-  context.lineWidth = 8;
-  context.beginPath();
-  context.moveTo(113, 201);
-  context.bezierCurveTo(104, 125, 147, 78, 215, 78);
-  context.bezierCurveTo(291, 78, 326, 134, 308, 220);
-  context.bezierCurveTo(299, 283, 273, 342, 211, 357);
-  context.bezierCurveTo(151, 341, 119, 285, 113, 201);
-  context.stroke();
-
-  context.lineWidth = 11;
-  context.beginPath();
-  context.moveTo(107, 191);
-  context.bezierCurveTo(115, 92, 190, 49, 264, 82);
-  context.bezierCurveTo(310, 103, 326, 144, 312, 202);
-  context.moveTo(126, 154);
-  context.bezierCurveTo(164, 112, 222, 106, 278, 139);
-  context.stroke();
-
-  context.lineWidth = 6;
-  context.beginPath();
-  context.moveTo(151, 224);
-  context.quadraticCurveTo(174, 210, 196, 224);
-  context.moveTo(226, 224);
-  context.quadraticCurveTo(249, 210, 270, 224);
-  context.stroke();
-  context.beginPath();
-  context.arc(174, 226, 5, 0, Math.PI * 2);
-  context.arc(248, 226, 5, 0, Math.PI * 2);
-  context.fill();
-
-  context.lineWidth = 5;
-  context.beginPath();
-  context.moveTo(211, 234);
-  context.quadraticCurveTo(199, 272, 216, 282);
-  context.stroke();
-  context.beginPath();
-  context.moveTo(177, 310);
-  context.quadraticCurveTo(211, 330, 250, 307);
-  context.stroke();
-
-  context.lineWidth = 7;
-  context.beginPath();
-  context.moveTo(150, 350);
-  context.quadraticCurveTo(141, 410, 78, 477);
-  context.moveTo(273, 348);
-  context.quadraticCurveTo(282, 410, 345, 477);
-  context.moveTo(78, 477);
-  context.quadraticCurveTo(210, 426, 345, 477);
-  context.stroke();
-
-  addPaperAndAccent(context, 420, 520);
-  return canvas.toDataURL('image/jpeg', 0.9);
+  return createFallbackAvatarVariants()[0].dataUrl;
 }

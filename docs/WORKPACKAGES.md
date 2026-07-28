@@ -42,14 +42,14 @@ Evidence:
 
 Remaining gate:
 
-- repeat field review after the Netherlands pivot;
+- repeat field review after the privacy-filter-grid deployment;
 - camera test on at least one mobile browser;
 - record browser-specific defects.
 
 ## WP-016 — Netherlands Muslim-student pivot
 
 **Status:** review  
-**Objective:** convert the prototype from a Moroccan higher-education concept into a Dutch-first product for Muslim students aged 18+ in MBO, HBO and WO.
+**Objective:** convert the prototype into a Dutch-first product for Muslim students aged 18+ in MBO, HBO and WO.
 
 Scope delivered:
 
@@ -63,8 +63,6 @@ Scope delivered:
 - optional lifestyle tags;
 - private-by-default faith-practice visibility;
 - Dutch synthetic MBO, HBO and WO discovery profiles;
-- illustrated avatar renderer;
-- updated requirements, roadmap, privacy model and handover;
 - hosted deployment.
 
 Acceptance evidence:
@@ -73,16 +71,45 @@ Acceptance evidence:
 - Dutch is the manifest and document default;
 - English switch is present throughout the flow;
 - no numeric piety score exists;
-- the avatar renderer no longer uses coarse color quantization;
 - CI validates both static deployment artifacts and Docker fallback;
-- hosted workflow serves the marker-confirmed build;
-- deployment commit `30192de007e2de85bd95ef6a3a4ff57155dd4d82` verified in workflow run `30311060515`.
+- hosted workflow serves the marker-confirmed build.
 
 Remaining completion gate:
 
-- owner reviews the Dutch onboarding, faith flow and avatar treatment;
+- owner reviews the Dutch onboarding and faith flow;
 - mobile camera flow is tested;
 - material UX defects are logged or resolved.
+
+## WP-017 — Selectable browser privacy filters
+
+**Status:** active  
+**Objective:** provide a usable interim privacy portrait by letting the registrant choose among controlled browser-local variants generated from one live-capture frame.
+
+Scope:
+
+- four fixed filter recipes with a minimum privacy floor;
+- 2×2 preview and selection grid;
+- Dutch and English labels;
+- no raw or lightly edited selfie option;
+- browser-memory-only preview generation;
+- downsampling fallback for inconsistent Canvas filter support;
+- ADR-0006 and explicit work-claim boundaries.
+
+Acceptance evidence:
+
+- CI confirms all four recipes;
+- the generated app contains the selection grid and `select-avatar` action;
+- generated Dutch and English copy is validated;
+- deployment metadata identifies `browser-local-filter-grid`;
+- the rejected ink-sketch pipeline is prohibited by validation;
+- retained Docker and deployment tests remain green.
+
+Completion gate:
+
+- PR merged after CI success;
+- Hugging Face deployment marker verified;
+- owner tests at least one real capture on mobile;
+- weak or overly revealing variants are logged for tuning or removal.
 
 ## WP-020 — Authoritative Dutch institution registry
 
@@ -129,7 +156,7 @@ Key outputs:
 ## WP-050 — Production avatar generation
 
 **Status:** planned  
-**Objective:** create recognisable, attractive, fair and stable illustrated avatars with short source-media retention.
+**Objective:** create recognisable, attractive, fair and stable generated privacy portraits with short source-media retention.
 
 ## WP-060 — Persistent application services
 
