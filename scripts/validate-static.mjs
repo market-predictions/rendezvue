@@ -12,11 +12,11 @@ const required = [
   'docs/HANDOVER.md', 'docs/HUGGINGFACE-PILOT.md', 'docs/PRIVACY-AND-SAFETY.md',
   'docs/UX-PRINCIPLES.md', 'docs/INSTITUTION-REGISTRY-NL.md', 'docs/FAITH-PROFILE-MODEL.md',
   'docs/decisions/ADR-0005-netherlands-muslim-student-pivot.md',
-  'scripts/build-static.mjs', 'scripts/build-hf-deploy.mjs',
+  'scripts/build-static.mjs', 'scripts/build-hf-deploy.mjs', 'scripts/apply-filter-grid.mjs',
   'scripts/huggingface_space.py', '.github/workflows/deploy-huggingface.yml',
   'infrastructure/huggingface/README.static.md',
-  'dist/index.html', 'dist/manifest.webmanifest', 'dist/deployment.json',
-  '.hf-deploy/README.md', '.hf-deploy/index.html',
+  'dist/index.html', 'dist/app.js', 'dist/src/i18n.js', 'dist/manifest.webmanifest', 'dist/deployment.json',
+  '.hf-deploy/README.md', '.hf-deploy/index.html', '.hf-deploy/app.js',
   '.hf-deploy/manifest.webmanifest', '.hf-deploy/source.json'
 ];
 
@@ -45,22 +45,33 @@ for (const marker of ['nl:', 'en:', 'MBO · HBO · WO', 'Geloof & leefstijl', 'F
 }
 
 const avatar = await readFile(resolve(root, 'apps/web/src/avatar.js'), 'utf8');
-for (const marker of ['buildInkLayer', 'localAverage', 'sobelMagnitude', 'addPaperAndAccent']) {
-  if (!avatar.includes(marker)) throw new Error(`Privacy ink avatar renderer is missing ${marker}.`);
+for (const marker of ['AVATAR_FILTERS', 'generateAvatarVariants', 'softFocus', 'warmVeil', 'monoMist', 'privacyMax', 'downsampleBlur']) {
+  if (!avatar.includes(marker)) throw new Error(`Privacy filter renderer is missing ${marker}.`);
 }
-for (const forbidden of ['buildEdgeLayer', 'addRomanticLighting', "globalAlpha = 0.58", "saturate(1.08)"]) {
-  if (avatar.includes(forbidden)) throw new Error(`Near-photo avatar treatment must not return: ${forbidden}`);
-}
-if (avatar.includes('quantize(')) throw new Error('Coarse pixel quantization must not return.');
+if (avatar.includes('buildInkLayer')) throw new Error('The rejected ink-sketch renderer must not return.');
 
 const builtHtml = await readFile(resolve(root, 'dist/index.html'), 'utf8');
 if (!builtHtml.includes('rendezvue-deployment')) throw new Error('Static build is missing the deployment marker.');
 const deployHtml = await readFile(resolve(root, '.hf-deploy/index.html'), 'utf8');
 if (!deployHtml.includes('rendezvue-deployment')) throw new Error('Hugging Face artifact is missing the deployment marker.');
 
+const builtApp = await readFile(resolve(root, 'dist/app.js'), 'utf8');
+for (const marker of ['privacy-filter-grid', "data-do=\"select-avatar\"", 'generateAvatarVariants', 'createFallbackAvatarVariants']) {
+  if (!builtApp.includes(marker)) throw new Error(`Built app is missing privacy filter selection marker: ${marker}`);
+}
+const builtI18n = await readFile(resolve(root, 'dist/src/i18n.js'), 'utf8');
+for (const marker of ['Kies hoe privé je portret wordt', 'Choose how private your portrait should be', 'avatarStyles', 'avatarPrivacy']) {
+  if (!builtI18n.includes(marker)) throw new Error(`Built localization is missing filter-grid marker: ${marker}`);
+}
+const builtStyles = await readFile(resolve(root, 'dist/styles.css'), 'utf8');
+for (const marker of ['.privacy-filter-grid', '.privacy-filter-card.selected']) {
+  if (!builtStyles.includes(marker)) throw new Error(`Built styles are missing ${marker}.`);
+}
+
 const deployment = JSON.parse(await readFile(resolve(root, 'dist/deployment.json'), 'utf8'));
 if (deployment.market !== 'netherlands') throw new Error('Deployment metadata must identify the Netherlands market.');
 if (!deployment.education?.includes('mbo') || !deployment.languages?.includes('nl')) throw new Error('Deployment metadata is missing education or language scope.');
+if (deployment.avatarMode !== 'browser-local-filter-grid') throw new Error('Deployment metadata must identify the filter-grid avatar mode.');
 
 const spaceMetadataSource = await readFile(resolve(root, 'infrastructure/huggingface/README.static.md'), 'utf8');
 const allowedSpaceColors = new Set(['red', 'yellow', 'green', 'blue', 'indigo', 'purple', 'pink', 'gray']);
