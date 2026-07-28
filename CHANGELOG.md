@@ -10,8 +10,31 @@ All notable project changes are recorded here. The project follows a lightweight
 - Validate the faith profile with target users and establish the production Article 9 condition.
 - Select a privacy-preserving age-assurance method.
 - Add automated blink and head-turn liveness analysis.
-- Evaluate a production identity-preserving avatar generation service after the browser sketch concept is validated.
+- Evaluate a controlled server-side generative privacy portrait after the browser filter-grid trade-off is reviewed.
 - Add persistent backend services and moderation operations.
+
+## [0.2.0-alpha.4] - 2026-07-28
+
+### Changed
+
+- Replaced the single imposed ink-sketch avatar with four selectable browser-local privacy portraits.
+- Introduced a 2×2 selection grid before profile creation.
+- Enforced a minimum blur/privacy floor across every option; no raw or lightly edited selfie is available.
+- Added a centered portrait crop, blurred surroundings and consistent neutral framing.
+
+### Added
+
+- Added Soft focus, Warm veil, Monochrome mist and Extra private recipes.
+- Added Dutch and English filter names and recognisability/privacy labels.
+- Added visible selection state, radio semantics and an explicit confirmation action.
+- Added a downsampling blur fallback for browsers without dependable Canvas filter support.
+- Added ADR-0006 and generated-artifact regression checks for the selection grid.
+
+### Privacy
+
+- All four previews are generated from the same selected frame in browser memory.
+- The source capture and unselected previews are not uploaded by the prototype.
+- Blur and tonal abstraction are not claimed to provide anonymity.
 
 ## [0.2.0-alpha.3] - 2026-07-28
 
