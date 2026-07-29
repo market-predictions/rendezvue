@@ -1,184 +1,96 @@
 # Work packages
 
-Status values are `planned`, `active`, `blocked`, `review`, or `complete`.
+Status values: `planned`, `active`, `blocked`, `review`, `complete`.
 
 ## WP-000 — Repository foundation
 
 **Status:** complete  
-**Objective:** establish GitHub authority, CI, governance and reproducible deployment.
-
-Evidence:
-
-- requirements, roadmap, work claims, handover and ADRs;
-- static and Docker validation;
-- automated Hugging Face deployment;
-- hosted marker verification.
+GitHub authority, CI, generated Static Space deployment, retained Docker validation and governance.
 
 ## WP-010 — Core PWA interaction prototype
 
 **Status:** complete  
-**Objective:** demonstrate the complete dating flow without claiming production verification.
-
-Evidence:
-
-- onboarding, camera, avatar preview, profile and privacy;
-- discovery, contextual likes, deterministic matching and local chat;
-- report, block and pause controls;
-- PWA manifest and service worker;
-- synthetic-only data.
+Camera flow, profile cards, likes, deterministic match, local chat, safety controls and installable PWA.
 
 ## WP-015 — Hosted Hugging Face prototype
 
 **Status:** review  
-**Objective:** provide a working public prototype without local development tools.
+Generated free Static Space is reachable. Reverify marker and mobile camera after the product-baseline milestone merges.
 
-Evidence:
-
-- free Static Space;
-- prebuilt `.hf-deploy/` artifact;
-- direct upload from GitHub Actions;
-- public marker verification;
-- URL: `https://solidprivacy-rendezvue.static.hf.space/`.
-
-Remaining gate:
-
-- repeat field review after the privacy-filter-grid deployment;
-- camera test on at least one mobile browser;
-- record browser-specific defects.
-
-## WP-016 — Netherlands Muslim-student pivot
+## WP-016 — Netherlands and faith foundation
 
 **Status:** review  
-**Objective:** convert the prototype into a Dutch-first product for Muslim students aged 18+ in MBO, HBO and WO.
+Dutch/English, MBO/HBO/WO fixtures and descriptive faith model delivered. Representative terminology review remains.
 
-Scope delivered:
+## WP-017 — Browser-local privacy portraits
 
-- Dutch default and English top-level switch;
-- Netherlands-first positioning;
-- MBO, HBO and WO institution categories;
-- independent 18+ eligibility rule;
-- Dutch synthetic institution/domain fixtures;
-- faith background and daily-practice self-description;
-- faith compatibility preference;
-- optional lifestyle tags;
-- private-by-default faith-practice visibility;
-- Dutch synthetic MBO, HBO and WO discovery profiles;
-- hosted deployment.
+**Status:** review  
+Four controlled fuzzy variants delivered. Mobile attractiveness/privacy review remains.
 
-Acceptance evidence:
-
-- unit tests cover all three education sectors;
-- Dutch is the manifest and document default;
-- English switch is present throughout the flow;
-- no numeric piety score exists;
-- CI validates both static deployment artifacts and Docker fallback;
-- hosted workflow serves the marker-confirmed build.
-
-Remaining completion gate:
-
-- owner reviews the Dutch onboarding and faith flow;
-- mobile camera flow is tested;
-- material UX defects are logged or resolved.
-
-## WP-017 — Selectable browser privacy filters
+## WP-018 — Product baseline and onboarding v1
 
 **Status:** active  
-**Objective:** provide a usable interim privacy portrait by letting the registrant choose among controlled browser-local variants generated from one live-capture frame.
+Open membership, student-first positioning, eligibility, account simulation, life stage, family context, resumable onboarding, preview and community promise.
 
-Scope:
+## WP-019 — Interaction and contact concept
 
-- four fixed filter recipes with a minimum privacy floor;
-- 2×2 preview and selection grid;
-- Dutch and English labels;
-- no raw or lightly edited selfie option;
-- browser-memory-only preview generation;
-- downsampling fallback for inconsistent Canvas filter support;
-- ADR-0006 and explicit work-claim boundaries.
+**Status:** active  
+Pass, direct/contextual like, swipe controls, reciprocal match, simulated contact entitlement, text chat and end-contact flow.
 
-Acceptance evidence:
-
-- CI confirms all four recipes;
-- the generated app contains the selection grid and `select-avatar` action;
-- generated Dutch and English copy is validated;
-- deployment metadata identifies `browser-local-filter-grid`;
-- the rejected ink-sketch pipeline is prohibited by validation;
-- retained Docker and deployment tests remain green.
-
-Completion gate:
-
-- PR merged after CI success;
-- Hugging Face deployment marker verified;
-- owner tests at least one real capture on mobile;
-- weak or overly revealing variants are logged for tuning or removal.
-
-## WP-020 — Authoritative Dutch institution registry
+## WP-020 — Institution registry and student benefits
 
 **Status:** planned  
-**Objective:** create a sourced and maintainable registry of recognised MBO, HBO and WO institutions plus verified student email domains.
+DUO/RIO institution identity, independently evidenced student mailbox domains, expiry, graduation transition, badge, discount and Campus Mode.
 
-Key outputs:
+## WP-021 — Feedback and behavioural standing
 
-- DUO/RIO source ingestion;
-- institution identity, sector, locations and status;
-- source date and refresh cadence;
-- separate student-domain verification evidence;
-- institutional exceptions and aliases;
-- unknown-domain review workflow;
-- administrative management interface.
-
-The current 39 institutions and domains are pilot fixtures only.
+**Status:** active for UX; production proof planned  
+Structured private feedback is prototyped without ranking effect. Credibility, retaliation, fairness, correction and appeal logic remain.
 
 ## WP-025 — Faith profile validation and legal basis
 
 **Status:** planned  
-**Objective:** validate the faith model with target users and establish a lawful, proportionate production design for religious-belief data.
+Target-user research, Article 9 basis, withdrawal/deletion and anti-discrimination safeguards.
 
-Key outputs:
-
-- moderated user research;
-- category and terminology review;
-- explicit consent or other valid Article 9 condition;
-- privacy notice and withdrawal path;
-- visibility and deletion controls;
-- anti-discrimination safeguards;
-- prohibition on advertising use and inferred faith classification.
-
-## WP-030 — Production identity-friction stack
+## WP-030 — Production account and eligibility stack
 
 **Status:** planned  
-**Objective:** implement phone verification, age assurance and account-risk controls, including the under-18 MBO risk.
+Authentication, recovery, duplicate-account controls, age assurance, single-status reconfirmation and risk controls.
 
-## WP-040 — Production liveness
-
-**Status:** planned  
-**Objective:** detect randomized blink/head-turn completion with documented attack limits.
-
-## WP-050 — Production avatar generation
+## WP-040 — Production liveness and privacy portrait
 
 **Status:** planned  
-**Objective:** create recognisable, attractive, fair and stable generated privacy portraits with short source-media retention.
+Randomized challenge analysis, replay threat model, short retention, fair portrait output and device coverage. AI generation is optional, not required.
 
-## WP-060 — Persistent application services
+## WP-050 — Persistent application services
 
 **Status:** planned  
-**Objective:** implement accounts, profiles, discovery, matching, messaging and notifications using external persistent infrastructure.
+External PostgreSQL, row-level authorization, private storage, discovery, matching, contact ledger, realtime text chat and notifications.
+
+## WP-060 — Payments and entitlements
+
+**Status:** planned  
+Mollie/Stripe decision, hosted checkout, webhooks, cancellation, refunds, regular pricing and verified-student discount.
 
 ## WP-070 — Trust and safety operations
 
 **Status:** planned  
-**Objective:** implement moderation, child-safety procedures, appeals, audit logs and enforcement.
+Moderation queue, child safety, hidden relationship reports, audit, enforcement and appeals.
 
-## WP-080 — Closed Dutch pilot readiness
+## WP-080 — Closed city pilot readiness
 
 **Status:** planned  
-**Objective:** meet legal, privacy, security, accessibility and operational gates for selected Dutch institutions.
+Legal, privacy, security, accessibility, support, moderation and deletion gates for an invite-only Dutch city cohort.
+
+## WP-085 — Local density and events
+
+**Status:** planned  
+City launch analytics, campus/community partnerships and later small verified events.
 
 ## WP-090 — Belgium assessment
 
-**Status:** deferred  
-**Objective:** assess Belgian institutions, languages, law and community distribution after Dutch validation.
+**Status:** deferred.
 
-## WP-100 — Native shell
+## WP-100 — Native shells
 
-**Status:** deferred  
-**Objective:** add native capabilities only after PWA evidence justifies the investment.
+**Status:** deferred until PWA evidence justifies app-store and native complexity.
