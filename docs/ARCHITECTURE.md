@@ -1,131 +1,131 @@
-# Architecture
+# Rendezvue architecture
 
-## 1. Pilot topology
+**Version:** 1.0  
+**Updated:** 2026-07-29
+
+## 1. Current concept-pilot topology
 
 ```text
-GitHub branch / pull request
-        |
-        v
-CI: tests + browser build + deployment artifact + Docker build
-        |
-        v
-GitHub main (authoritative)
-        |
-        v
-GitHub Actions uploads .hf-deploy/
-        |
-        v
-Hugging Face Static Space (web-facing, disposable, free)
+GitHub branch / PR
+      |
+      v
+CI: tests -> static build -> deployment artifact -> Docker validation
+      |
+      v
+GitHub main (authority)
+      |
+      v
+Hugging Face Static Space (generated web-facing PWA)
 ```
 
-The browser prototype is built and validated in GitHub Actions. Hugging Face serves prebuilt files and performs no application build or server execution.
+The Static Space performs no application build and owns no persistent state. The current milestone stores only local concept-pilot state in the browser.
 
-Docker/Nginx remain CI-validated for later backend-capable or alternative hosting, but are not the free pilot path.
-
-## 2. Current modules
+## 2. Current browser modules
 
 ```text
 apps/web/
-  index.html             Dutch-default application shell
-  styles.css             responsive visual system
-  app.js                 screen composition and event orchestration
-  src/domain.js          MBO/HBO/WO and profile rules
-  src/i18n.js            Dutch and English copy
-  src/camera.js          camera capture and frame extraction
-  src/avatar.js          local illustrated non-production renderer
-  src/demo-data.js       Dutch synthetic profiles and messages
-  manifest.webmanifest   Dutch-default PWA metadata
-  service-worker.js      application-shell cache
-
-scripts/
-  build-static.mjs       apps/web -> dist
-  build-hf-deploy.mjs    dist + Space metadata -> .hf-deploy
-  validate-static.mjs    source and artifact contract checks
-  huggingface_space.py   Space creation and hosted verification
+  app.js                 onboarding state machine and interaction orchestration
+  styles.css             retained visual system
+  pilot-v1.css           product-baseline additions
+  src/domain.js          eligibility, life stage, family, faith and profile rules
+  src/i18n.js            Dutch/English copy
+  src/camera.js          live capture and frame extraction
+  src/avatar.js          browser-local privacy portrait variants
+  src/demo-data.js       synthetic cross-life-stage profiles
 ```
 
-## 3. Prototype state model
+The former build-time patching of the privacy-filter grid is removed. Source now equals the behaviour that is built and deployed.
 
-The current prototype uses browser memory plus a persisted language preference. It does not create persistent identities.
+## 3. Concept-pilot state
 
-- source capture and canvas data are browser-local;
-- Blob URLs are revoked when the flow ends or the page closes;
-- matches and messages are synthetic session state;
-- no student, faith or camera data is uploaded;
-- faith-practice visibility starts disabled;
-- language switching preserves current form state where implemented.
+The browser state models the complete flow but is not a security boundary. It may persist non-production progress in local storage. Camera source data remains browser-local. The selected derived portrait may be stored locally so the concept flow can resume.
 
-## 4. Dutch institution boundary
+Prototype interactions are deterministic and local:
 
-The typed institution fixture contains MBO, HBO and WO records. Production data must be separated into:
+- likes and passes are not shared between users;
+- the first like creates a pilot match;
+- one local contact entitlement opens a conversation;
+- chat, reports and feedback exist only in local demo state;
+- feedback has no ranking effect.
 
-1. authoritative institution identity from DUO/RIO;
-2. independently verified student mailbox domains;
-3. aliases, campuses and exceptions;
-4. dated verification evidence.
-
-Public web domains must not automatically become accepted student domains.
-
-## 5. Faith-data boundary
-
-Faith background, practice, compatibility preference and lifestyle tags are separate fields. They must never be reduced to a single score.
-
-Production architecture must provide:
-
-- separable user choice and legal-basis evidence;
-- field-level visibility controls;
-- deletion and withdrawal;
-- purpose limitation to profile and matching;
-- no advertising segmentation;
-- no inferred religion;
-- access and audit controls for sensitive data;
-- moderation safeguards against sectarian or anti-Muslim harassment.
-
-The current prototype stores these fields only in local memory.
-
-## 6. Production target
+## 4. Production domain boundaries
 
 ```text
-PWA / later native shell
-        |
-        v
-Backend-for-frontend / API gateway
-  |        |         |          |            |
- auth   profile   discovery   messaging   moderation
-  |        |         |          |            |
-PostgreSQL       durable queues       audit/evidence store
-        |
-Object storage for avatars and temporary source media
-        |
-Email, SMS, age assurance, liveness and avatar services
+Account
+Eligibility
+Profile
+LifeStage
+StudentVerification
+FamilyContext
+FaithProfile
+PrivacyPortrait
+VerificationEvidence
+DiscoveryPreferences
+AttractionSignal
+Match
+ContactEntitlement
+Conversation / Message
+InteractionFeedback
+SafetyReport
+TrustSignal / ProfileStanding
+Subscription / PaymentEvent
+ModerationCase / AuditEvent
 ```
 
-### Invariants
+These boundaries are described in `docs/DATA-MODEL.md`.
 
+## 5. Target pilot architecture
+
+```text
+Hugging Face PWA / later native shell
+             |
+             v
+Backend-for-frontend / API gateway
+ | auth | profile | discovery | messaging | payments | moderation |
+             |
+             v
+PostgreSQL + row-level authorization
+Private object storage + signed access
+Realtime channels + durable job queue
+Audit/evidence store
+             |
+             v
+Email/SMS, age assurance, liveness and payment providers
+```
+
+A managed PostgreSQL platform such as Supabase is the leading backend proof candidate because it combines authentication, relational storage, realtime messaging, private storage and row-level policies. Provider selection remains an ADR gate rather than a hard dependency.
+
+## 6. Security and privacy invariants
+
+- the browser is untrusted;
 - persistent state never depends on Hugging Face;
-- source capture and public avatar are separate data classes;
-- verification labels derive from evidence, not editable profile fields;
-- age assurance remains independent of student verification;
-- block and moderation enforcement is server-authoritative;
-- faith data is never used for ads or inferred classification;
-- deployed files are generated from accepted GitHub source;
-- native shells remain thin clients.
+- account identity and student evidence are separate;
+- age assurance and student verification are independent;
+- source media and public portrait are separate data classes;
+- verification labels derive from evidence, not editable fields;
+- blocks, contact entitlements and moderation are server-authoritative;
+- faith and family data are not advertising segments;
+- data about individual children is not collected;
+- likes are attraction signals, not reputation votes;
+- serious reports never become a simple ranking penalty;
+- all deployed files derive from accepted GitHub source.
 
-## 7. Deferred framework decision
+## 7. Contact-entitlement architecture
 
-A component framework is likely appropriate for production, but the interaction model should be validated first. Selection criteria include:
+A match does not itself create an open conversation. A server transaction will:
 
-- accessibility and localization tooling;
-- state-machine support;
-- camera/WebRTC integration;
-- code sharing with native shells;
-- bundle size on mid-range Android;
-- test ecosystem;
-- maintainability;
-- static frontend and cloud-backend compatibility.
+1. lock the match and entitlement ledger;
+2. consume one valid contact entitlement once;
+3. create or return the unique conversation;
+4. permit both participants to reply;
+5. record an auditable idempotency key.
 
-## 8. Security boundary
+Redirect success from a payment provider shall never activate entitlement without a verified server-side event.
 
-The browser is untrusted. Production authentication, age assurance, student verification, authorization, matching, moderation, rate limiting, retention and audit evidence must be server-side.
+## 8. Feedback architecture
 
-The prototype deliberately makes no production-security or legal-readiness claim.
+AttractionSignal, InteractionFeedback and SafetyReport remain separate. Aggregation may create internal TrustSignals, but no single review can directly reduce distribution. Serious categories create moderation cases. Positive public badges require sufficient independent evidence.
+
+## 9. Framework decision
+
+The dependency-light PWA remains appropriate for concept validation. A production component framework is selected only after the interaction model stabilizes, using accessibility, localization, state-machine, WebRTC, testing, bundle-size and maintainability criteria.
