@@ -9,28 +9,38 @@ function avatarSvg({ skin, hair, shirt, background, accent, glasses = false, hij
 
 export const DEMO_PROFILES = Object.freeze([
   {
-    id: 'samira', name: 'Samira', age: 22, city: 'Rotterdam', educationLevel: 'hbo', institution: 'Hogeschool Rotterdam', intent: 'marriage', faithPractice: 'moderate',
-    faithTags: ['family', 'noAlcohol', 'halal'],
+    id: 'samira', name: 'Samira', gender: 'woman', age: 22, city: 'Rotterdam', lifeStage: 'student', educationLevel: 'hbo', institution: 'Hogeschool Rotterdam', studentVerified: true,
+    maritalHistory: 'neverMarried', childStatus: 'none', childWish: 'yes', intent: 'marriage', faithPractice: 'moderate', faithTags: ['family', 'noAlcohol', 'halal'],
     prompt: { nl: 'De snelste manier om mij te laten lachen is… vertel je meest chaotische introductieweek-verhaal.', en: 'The fastest way to make me laugh is… tell me your most chaotic orientation-week story.' },
-    interests: ['cinema', 'coffee', 'languages'],
-    avatar: avatarSvg({ skin: '#c98568', hair: '#4b2738', shirt: '#5c2d58', background: '#f4c4c9', accent: '#6a817b', hijab: true })
+    openingMessage: { nl: 'Je reactie op mijn introductieverhaal maakte me nieuwsgierig 😄', en: 'Your comment on my orientation story made me curious 😄' },
+    interests: ['cinema', 'coffee', 'languages'], avatar: avatarSvg({ skin: '#c98568', hair: '#4b2738', shirt: '#5c2d58', background: '#f4c4c9', accent: '#6a817b', hijab: true })
   },
   {
-    id: 'youssef', name: 'Youssef', age: 24, city: 'Utrecht', educationLevel: 'wo', institution: 'Universiteit Utrecht', intent: 'serious', faithPractice: 'practicing',
-    faithTags: ['prayer', 'noAlcohol', 'community'],
+    id: 'youssef', name: 'Youssef', gender: 'man', age: 26, city: 'Utrecht', lifeStage: 'employed', occupation: 'Data-analist', studentVerified: false,
+    maritalHistory: 'neverMarried', childStatus: 'none', childWish: 'yes', intent: 'serious', faithPractice: 'practicing', faithTags: ['prayer', 'noAlcohol', 'community'],
     prompt: { nl: 'Wij passen waarschijnlijk goed als… je houdt van lange gesprekken en spontane foodstops.', en: 'We will probably get along if… you enjoy long conversations and spontaneous food stops.' },
-    interests: ['football', 'food', 'technology'],
-    avatar: avatarSvg({ skin: '#a9644d', hair: '#282021', shirt: '#203c58', background: '#d6c0ab', accent: '#6d8981', beard: true })
+    openingMessage: { nl: 'Lange gesprekken en foodstops: goede combinatie. Wat is jouw vaste plek?', en: 'Long conversations and food stops: good combination. What is your go-to place?' },
+    interests: ['football', 'food', 'technology'], avatar: avatarSvg({ skin: '#a9644d', hair: '#282021', shirt: '#203c58', background: '#d6c0ab', accent: '#6d8981', beard: true })
   },
   {
-    id: 'lina', name: 'Lina', age: 20, city: 'Amsterdam', educationLevel: 'mbo', institution: 'ROC van Amsterdam - Flevoland', intent: 'getToKnow', faithPractice: 'cultural',
-    faithTags: ['family', 'ramadan', 'noSmoking'],
+    id: 'lina', name: 'Lina', gender: 'woman', age: 24, city: 'Amsterdam', lifeStage: 'recentGraduate', educationLevel: 'mbo', studentVerified: false,
+    maritalHistory: 'divorced', childStatus: 'none', childWish: 'maybe', intent: 'getToKnow', faithPractice: 'cultural', faithTags: ['family', 'ramadan', 'noSmoking'],
     prompt: { nl: 'Mijn ideale vrije middag… een boekwinkel, chai en nergens dringend naartoe hoeven.', en: 'My ideal free afternoon… a bookshop, chai and nowhere urgent to be.' },
-    interests: ['books', 'art', 'travel'],
-    avatar: avatarSvg({ skin: '#d79a78', hair: '#342026', shirt: '#853f50', background: '#f1d4b7', accent: '#718c85', glasses: true })
+    openingMessage: { nl: 'Een boekwinkel en chai klinkt goed. Welk boek raad je nu aan?', en: 'A bookshop and chai sounds good. Which book do you recommend right now?' },
+    interests: ['books', 'art', 'travel'], avatar: avatarSvg({ skin: '#d79a78', hair: '#342026', shirt: '#853f50', background: '#f1d4b7', accent: '#718c85', glasses: true })
+  },
+  {
+    id: 'omar', name: 'Omar', gender: 'man', age: 30, city: 'Den Haag', lifeStage: 'selfEmployed', occupation: 'Ondernemer', studentVerified: false,
+    maritalHistory: 'divorced', childStatus: 'hasChildren', childCountBand: 'one', childWish: 'openToMore', intent: 'marriage', faithPractice: 'practicing', faithTags: ['family', 'halal', 'noSmoking'],
+    prompt: { nl: 'Een gezonde relatie betekent voor mij… eerlijk plannen, ruimte voor familie en ook kunnen lachen.', en: 'A healthy relationship means… honest planning, room for family and being able to laugh.' },
+    openingMessage: { nl: 'Je antwoord over familie sprak me aan. Wat betekent balans voor jou?', en: 'Your answer about family resonated. What does balance mean to you?' },
+    interests: ['fitness', 'travel', 'food'], avatar: avatarSvg({ skin: '#9f654f', hair: '#2d2326', shirt: '#31514b', background: '#d8c5ae', accent: '#7c5874', beard: true })
+  },
+  {
+    id: 'meryem', name: 'Meryem', gender: 'woman', age: 28, city: 'Eindhoven', lifeStage: 'employed', occupation: 'Verpleegkundige', studentVerified: false,
+    maritalHistory: 'widowed', childStatus: 'hasChildren', childCountBand: 'one', childWish: 'unsure', intent: 'serious', faithPractice: 'activelyPracticing', faithTags: ['prayer', 'family', 'community'],
+    prompt: { nl: 'Ik waardeer iemand die… zacht communiceert, afspraken nakomt en niet bang is voor diepgang.', en: 'I value someone who… communicates gently, keeps promises and is not afraid of depth.' },
+    openingMessage: { nl: 'Zacht communiceren is ook voor mij belangrijk. Hoe merk jij dat in de praktijk?', en: 'Gentle communication matters to me too. What does that look like in practice?' },
+    interests: ['volunteering', 'nature', 'coffee'], avatar: avatarSvg({ skin: '#b8755f', hair: '#51405a', shirt: '#764a68', background: '#efd0c4', accent: '#69887f', hijab: true })
   }
-]);
-
-export const INITIAL_CHAT_MESSAGES = Object.freeze([
-  { id: 'm1', from: 'samira', text: { nl: 'Je antwoord over verdwalen tijdens de introductie liet me lachen 😄', en: 'Your answer about getting lost during orientation made me laugh 😄' }, time: 'now' }
 ]);

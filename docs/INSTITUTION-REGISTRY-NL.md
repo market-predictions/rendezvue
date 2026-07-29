@@ -1,106 +1,73 @@
-# Dutch institution registry plan
+# Dutch institution registry and student-benefit plan
 
 ## Purpose
 
-Create an authoritative, maintainable eligibility registry for adult students in Dutch:
+Create an authoritative, maintainable verification registry for users who voluntarily claim current student status in Dutch MBO, HBO or WO.
 
-- MBO;
-- HBO;
-- WO.
+The registry no longer determines general Rendezvue membership. It supports:
 
-The registry determines whether an institution is recognised and which student email domains may be used as a probability signal. It does not prove legal identity or current enrolment by itself.
+- verified-student badges;
+- student contact-price benefits;
+- Campus Mode for verified students;
+- verified student events;
+- expiry and graduation transition.
+
+It does not prove legal identity, age, single status or serious intent.
 
 ## Source hierarchy
 
 ### Institution identity
 
-The production source of truth shall be Dutch DUO/RIO institution data.
-
-Required fields:
-
-- stable internal institution ID;
-- DUO/RIO identifiers where available;
-- official institution name;
-- sector: MBO, HBO or WO;
-- active/inactive status;
-- locations/campuses;
-- source URL/dataset;
-- source publication date;
-- ingestion date;
-- last review date.
+The production source of truth shall be Dutch DUO/RIO institution data. Records include stable ID, official name, sector, status, campuses, provenance, source date and review date.
 
 ### Student mailbox domains
 
-Email domains require separate evidence. A public website domain is not sufficient.
+Student mailbox domains require separate evidence; a public website domain is insufficient. Evidence may include official student ICT documentation, support pages, direct institution confirmation or controlled verified onboarding evidence with administrative approval.
 
-Accepted evidence may include:
+Every domain record includes institution, exact rule, source, date, confidence, student-only/mixed classification, expiry and exceptions.
 
-- official student-ICT or account documentation;
-- official institution support pages;
-- direct confirmation from the institution;
-- successful controlled verification during onboarding review;
-- repeated verified student evidence with administrator approval.
+## Statuses
 
-Every domain record shall include:
+- `candidate`;
+- `verified`;
+- `mixed`;
+- `manual-review`;
+- `deprecated`;
+- `pilot-fixture`.
 
-- exact domain or approved subdomain rule;
-- institution ID;
-- evidence source;
-- evidence date;
-- confidence/status;
-- student-only, mixed-affiliation or unknown classification;
-- expiry/review date;
-- notes and exceptions.
+## Verification flow
 
-## Data statuses
+1. user identifies as a student;
+2. chooses MBO/HBO/WO and institution;
+3. submits student mailbox;
+4. system checks an approved domain rule;
+5. system verifies mailbox possession;
+6. success creates a dated expiring verification record;
+7. mixed/unknown domains route to review;
+8. a minimized current-enrolment fallback may be offered;
+9. expiry removes benefits, not the user account;
+10. graduation may receive a short transparent transition period.
 
-- `candidate`: found but not approved;
-- `verified`: evidence supports student mailbox use;
-- `mixed`: also issued to staff, alumni or applicants;
-- `manual-review`: usable only with additional evidence;
-- `deprecated`: no longer accepted;
-- `pilot-fixture`: synthetic prototype data only.
+## Privacy and safety
 
-## Eligibility flow
+- age assurance remains independent;
+- exact institution visibility is optional;
+- non-students do not receive unrestricted student-only targeting in the first live pilot;
+- a verified student may hide their own institution;
+- evidence is minimized and deleted after the review/appeal period;
+- administrators can disable a compromised domain without redeployment.
 
-1. user chooses MBO, HBO or WO;
-2. user selects institution;
-3. application checks the submitted domain against approved records;
-4. application sends a possession code/link;
-5. successful possession creates a dated verification record;
-6. mixed or unknown domains route to review;
-7. users without institutional email may use a minimized current-enrolment document fallback;
-8. student status expires and requires reverification.
+## Prototype warning
 
-## MBO-specific requirements
-
-- keep the 18+ gate independent from enrolment;
-- expect more underage applicants than HBO/WO;
-- account for regional colleges, multiple campuses and possible shared ICT domains;
-- do not assume all MBO students receive individual institutional email;
-- provide a realistic document fallback.
-
-## Update process
-
-- ingest institution data on a scheduled cadence;
-- compare additions, closures, mergers and renamed institutions;
-- never auto-approve newly discovered email domains;
-- retain review history and evidence;
-- support emergency domain disablement;
-- expose unknown-domain submissions to administrators;
-- test fixtures must remain separate from production records.
-
-## Prototype fixture warning
-
-The current browser prototype includes 39 illustrative records and plausible domains. These records are pilot fixtures designed to test the interface only and must not be used to admit real users.
+The browser pilot contains 39 illustrative records and plausible domains. They are synthetic fixtures and must not admit real users or activate financial benefits.
 
 ## Acceptance criteria for WP-020
 
-- every active MBO, HBO and WO institution is represented from an authoritative source;
-- institution records have dated provenance;
-- accepted student domains have independent evidence;
-- aliases, mergers and campus structures are supported;
-- unknown and mixed domains have a documented workflow;
-- annual reverification rules are implemented;
-- automated tests distinguish fixture, candidate and verified records;
-- administrators can disable a domain without redeploying code.
+- active MBO/HBO/WO institutions have authoritative provenance;
+- student domains have independent dated evidence;
+- aliases, mergers, campuses and mixed domains are supported;
+- verification expires and benefits are reversible;
+- account continuity survives graduation or verification expiry;
+- tests distinguish fixtures, candidates and verified records;
+- unknown-domain and document-fallback review is operational;
+- Campus Mode and pricing entitlements use verification records, not editable profile claims.

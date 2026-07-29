@@ -1,234 +1,200 @@
-# Rendezvue requirements baseline
+# Rendezvue product requirements baseline
 
-**Version:** 0.3  
-**Date:** 2026-07-28  
-**Status:** Netherlands pivot pilot baseline  
-**Authority:** GitHub repository `market-predictions/rendezvue`
+**Version:** 1.0  
+**Date:** 2026-07-29  
+**Status:** product rebaseline and concept-pilot implementation  
+**Authority:** `market-predictions/rendezvue`
 
 ## 1. Product statement
 
-Rendezvue is an adult-only, privacy-first dating and introduction platform for Muslim students and students from a Muslim background in the Netherlands.
+Rendezvue is an adult-only, privacy-first platform for serious introductions between Muslims and people from a Muslim background in the Netherlands. Membership is open to eligible adults; it is **student-first, not student-only**. Students, recent graduates and young professionals are priority launch communities.
 
-The eligible education sectors are:
+The public profile uses a controlled fuzzy privacy portrait derived from a live camera capture. The source selfie is never the public profile image. The pilot is a Dutch-first, English-capable mobile PWA hosted as a generated Hugging Face Static Space artifact.
 
-- MBO — middelbaar beroepsonderwijs;
-- HBO — hoger beroepsonderwijs;
-- WO — wetenschappelijk onderwijs.
-
-Rendezvue remains strictly 18+. Enrolment in MBO does not imply adulthood and must never bypass age assurance.
-
-The public profile uses a stylized, recognisable privacy avatar generated from a short live-selfie challenge instead of publishing the source face video. The pilot is delivered as a mobile-first HTML5 Progressive Web App. Belgium may be considered after the Netherlands model is validated.
-
-## 2. Product language and audience
+## 2. Operating principles
 
 | ID | Priority | Requirement |
 |---|---:|---|
-| LOC-01 | P0 | Dutch shall be the default product language. |
-| LOC-02 | P0 | English shall be available through a persistent language switch at the top of the interface. |
-| LOC-03 | P0 | Switching language shall preserve the current onboarding or profile state. |
-| LOC-04 | P0 | All safety, privacy, verification and consent copy shall exist in Dutch and English before live users are admitted. |
-| AUD-01 | P0 | The product shall be positioned for Muslim students and students from a Muslim background without requiring a single uniform level of religious practice. |
-| AUD-02 | P0 | The interface shall avoid sectarian ranking, piety scoring and moral judgement. |
-| AUD-03 | P1 | Belgium expansion shall remain outside the first Dutch pilot and require a separate institution and legal review. |
+| GOV-01 | P0 | GitHub shall be the sole source of truth for code, product decisions, schema, roadmap, changelog and evidence. |
+| GOV-02 | P0 | Hugging Face shall serve a one-way generated static frontend and shall not be an editing or persistent-data environment. |
+| GOV-03 | P0 | Demonstrated prototype behaviour shall be separated from production verification, safety and legal claims. |
+| GOV-04 | P0 | The public repository shall contain synthetic users and synthetic conversations only. |
+| LOC-01 | P0 | Dutch shall be the default language and English shall remain available throughout the flow. |
+| A11Y-01 | P0 | WCAG 2.2 AA is the target and every gesture shall have a visible control alternative. |
 
-## 3. Source-of-truth and deployment requirements
-
-| ID | Priority | Requirement |
-|---|---:|---|
-| GOV-01 | P0 | GitHub shall be the sole authoritative source for code, requirements, roadmap, work packages, decisions, changelog and handover. |
-| GOV-02 | P0 | Hugging Face shall be treated as a one-way generated pilot deployment target, not an editing environment. |
-| GOV-03 | P0 | Direct changes in the Hugging Face Space are unsupported and may be overwritten. |
-| GOV-04 | P0 | Changes shall be integrated through focused branches, CI and reviewed pull requests. |
-| GOV-05 | P0 | Every milestone shall update the changelog, work-package state, work claims and handover. |
-| GOV-06 | P0 | Continuous integration shall validate the static application, generated deployment artifact, automated tests and retained Docker image. |
-| GOV-07 | P0 | Deployment credentials shall be stored only in GitHub secrets or a future short-lived OIDC mechanism. |
-| GOV-08 | P0 | The public repository shall contain only synthetic user data and synthetic media. |
-
-## 4. Verification semantics
-
-The platform creates probability and friction, not formal proof of identity or enrolment.
-
-Approved public labels:
-
-- Student email verified;
-- Student document verified;
-- Live selfie verified.
-
-Disallowed unless independently justified:
-
-- Identity verified;
-- Institution-confirmed student;
-- Officially authenticated student.
-
-## 5. Eligibility and student verification
-
-### 5.1 Adult-only access
+## 3. Audience and eligibility
 
 | ID | Priority | Requirement |
 |---|---:|---|
-| AGE-01 | P0 | Only users aged 18 or older may access discovery or messaging. |
-| AGE-02 | P0 | Production access shall require an age-assurance control stronger than self-declaration alone. |
-| AGE-03 | P0 | MBO enrolment shall never be treated as evidence that a person is 18 or older. |
-| AGE-04 | P0 | Suspected underage accounts shall be suspended pending review. |
-| AGE-05 | P1 | Users shall have an appeal route for incorrect age decisions. |
+| ELIG-01 | P0 | Discovery and messaging shall be limited to users aged 18 or older. |
+| ELIG-02 | P0 | A user must declare that they are currently single. |
+| ELIG-03 | P0 | Married, partnered, engaged or not-yet-legally-separated users shall not enter discovery. |
+| ELIG-04 | P0 | Users shall affirm serious relationship intent and community fit before account creation. |
+| ELIG-05 | P0 | Student status shall not be an admission requirement. |
+| ELIG-06 | P1 | Current single status shall be periodically reconfirmed in production. |
+| ELIG-07 | P1 | Suspected hidden relationships shall have a dedicated report and review workflow. |
 
-### 5.2 Dutch institution registry
-
-The production registry shall use DUO/RIO as the principal authority for recognised Dutch education providers. The prototype may use clearly marked pilot fixtures.
-
-| ID | Priority | Requirement |
-|---|---:|---|
-| EDU-01 | P0 | Users shall first choose MBO, HBO or WO and then select an institution from the matching controlled registry. |
-| EDU-02 | P0 | The production registry shall include recognised MBO institutions, universities of applied sciences and research universities. |
-| EDU-03 | P0 | Each institution record shall include sector, name, city, source, source date, status and accepted email domains. |
-| EDU-04 | P0 | Institutional domains shall be separately validated; a public website domain shall not automatically be assumed to be a student mailbox domain. |
-| EDU-05 | P0 | Successful mailbox possession verification shall create a dated verification record. |
-| EDU-06 | P0 | A current-student-document fallback shall exist for students without a usable institutional mailbox. |
-| EDU-07 | P0 | Documents shall be minimized and deleted after the review and appeal window. |
-| EDU-08 | P1 | Student status shall be reverified at least annually. |
-| EDU-09 | P1 | Institution and domain data shall support scheduled refresh from DUO/RIO and manual exceptions. |
-
-## 6. Live-selfie and avatar requirements
-
-### 6.1 Live-selfie challenge
+## 4. Account and onboarding
 
 | ID | Priority | Requirement |
 |---|---:|---|
-| LIVE-01 | P0 | Capture shall use the live front camera and shall not accept a gallery file as the verification source. |
-| LIVE-02 | P0 | Capture shall last approximately three to five seconds. |
-| LIVE-03 | P0 | The user shall look at the camera, blink and perform a requested slow head turn. |
-| LIVE-04 | P0 | Production liveness analysis shall verify face presence and requested motion. |
-| LIVE-05 | P0 | A high-quality source frame shall be selected automatically. |
-| LIVE-06 | P0 | Raw video shall never be public and shall be deleted after processing within a documented short retention window. |
-| LIVE-07 | P0 | The prototype shall clearly distinguish camera-flow demonstration from production liveness verification. |
+| ONB-01 | P0 | Eligibility shall be checked before extended profile data is collected. |
+| ONB-02 | P0 | A recoverable private account shall be created before extensive profile building. |
+| ONB-03 | P0 | Personal account identity and student-verification identity shall be separate. |
+| ONB-04 | P0 | Onboarding progress shall be saved after each coherent stage. |
+| ONB-05 | P0 | The camera step shall occur after account, identity, life-stage and family-context setup but before publication. |
+| ONB-06 | P0 | Users shall preview the complete public profile before publication. |
+| ONB-07 | P0 | Payment details shall not be requested during onboarding. |
+| ONB-08 | P1 | Abandoned production onboarding data shall expire after a documented retention period. |
 
-### 6.2 Avatar style
+The required sequence is documented in `docs/ONBOARDING.md`.
 
-| ID | Priority | Requirement |
-|---|---:|---|
-| AV-01 | P0 | The avatar shall be recognisable and linkable to the source person while being visibly illustrated rather than pixelated. |
-| AV-02 | P0 | The intended style shall be warm, romantic, polished and adult rather than childish, anime-like or caricatured. |
-| AV-03 | P0 | Face shape, skin tone, hairstyle or head covering, facial hair and glasses shall be preserved where visible. |
-| AV-04 | P0 | The transformation shall not materially change apparent age, skin tone or facial proportions. |
-| AV-05 | P0 | The public avatar shall use a controlled three-to-five-second animation. |
-| AV-06 | P0 | Users shall preview and accept the avatar before publishing. |
-| AV-07 | P0 | Failed, offensive or materially misleading outputs shall not be published. |
-| AV-08 | P0 | Model training on user captures shall be prohibited without separate optional consent. |
-| AV-09 | P0 | The local illustrated prototype renderer shall not be represented as the production avatar model. |
-
-## 7. Faith, identity and lifestyle profile
-
-Information revealing religious beliefs is a special category of personal data. Production processing therefore requires a documented Article 9 condition, explicit and separable user choice, data minimisation and an easy withdrawal path.
-
-### 7.1 Self-description model
-
-The model shall use descriptive categories rather than a numeric religiosity score.
+## 5. Life stage and student layer
 
 | ID | Priority | Requirement |
 |---|---:|---|
-| FAITH-01 | P0 | Users shall be able to describe their background as Muslim, Muslim background, convert, exploring/spiritual or prefer not to say. |
-| FAITH-02 | P0 | Users shall be able to describe daily practice as actively practising, practising, moderately practising, culturally connected or private. |
-| FAITH-03 | P0 | Users shall be able to indicate how important faith compatibility is: essential, important, important but open, or no strict preference. |
-| FAITH-04 | P0 | Optional lifestyle tags may include prayer, Ramadan, halal lifestyle, no alcohol, no smoking, family orientation, modesty, community involvement and marriage intention. |
-| FAITH-05 | P0 | The product shall not infer faith, sect, ethnicity or practice from name, appearance, institution, location or behaviour. |
-| FAITH-06 | P0 | The product shall not calculate or expose a piety score. |
-| FAITH-07 | P0 | Users shall control whether their practice description is visible on their public profile. |
-| FAITH-08 | P0 | Faith fields shall be editable and deletable without deleting the entire account. |
-| FAITH-09 | P0 | Faith data shall not be sold, used for advertising segmentation or disclosed outside the matching purpose. |
-| FAITH-10 | P1 | Advanced denominational or school-of-thought fields shall not be introduced without demonstrated user need and a separate safety/privacy review. |
+| LIFE-01 | P0 | Users shall select a current life stage: student, recent graduate, employed, self-employed, job-seeking or other. |
+| LIFE-02 | P0 | Life stage shall be a compatibility dimension and shall not create a social-quality hierarchy. |
+| STUD-01 | P0 | Students may voluntarily verify MBO, HBO or WO status through a controlled institution registry. |
+| STUD-02 | P0 | A verified-student badge shall prove only the stated verification event and date. |
+| STUD-03 | P0 | Exact institution visibility shall remain user-controlled. |
+| STUD-04 | P1 | Verified students may receive Campus Mode, student events and a reduced paid-contact price. |
+| STUD-05 | P1 | Student verification shall expire and support annual reverification and a short graduation transition. |
+| STUD-06 | P1 | Non-students shall not receive an unrestricted “only students” targeting filter in the first live pilot. |
 
-### 7.2 Compatibility use
+## 6. Relationship and family context
 
 | ID | Priority | Requirement |
 |---|---:|---|
-| MATCH-FAITH-01 | P0 | Faith compatibility shall be one matching dimension, not the sole ranking criterion. |
-| MATCH-FAITH-02 | P0 | Users shall be able to distinguish self-description from what they prefer in a match. |
-| MATCH-FAITH-03 | P0 | Dealbreakers shall be explicit user choices rather than inferred exclusions. |
-| MATCH-FAITH-04 | P1 | Recommendation explanations shall avoid moral language such as “better Muslim” or “more suitable religiously.” |
+| FAM-01 | P0 | Current relationship eligibility and prior marital history shall be separate fields. |
+| FAM-02 | P0 | Prior marital history shall support never married, divorced and widowed. |
+| FAM-03 | P0 | Users shall state whether they have children. |
+| FAM-04 | P0 | Existing children, openness to a partner with children and future child preference shall remain separate. |
+| FAM-05 | P0 | Names, photos, birth dates, schools and locations of children shall not be collected. |
+| FAM-06 | P0 | Optional child count shall use coarse categories only. |
+| FAM-07 | P0 | Divorce, widowhood and parenthood shall not create hidden ranking penalties. |
+| FAM-08 | P0 | Exclusions based on family context shall derive only from explicit user choices. |
 
-## 8. Profile, discovery and communication
-
-### 8.1 Profile and privacy
-
-| ID | Priority | Requirement |
-|---|---:|---|
-| PROF-01 | P0 | Public profiles shall use a first name or nickname, not a surname. |
-| PROF-02 | P0 | Institution visibility shall be user controlled. |
-| PROF-03 | P0 | Exact location, private email, phone number and source selfie shall never be public. |
-| PROF-04 | P0 | A profile shall contain relationship intent, at least two prompts and at least three interests. |
-| PROF-05 | P0 | Education level may be shown as MBO, HBO or WO without ranking language. |
-| PROF-06 | P0 | Users shall be able to pause discovery without deleting conversations. |
-| PROF-07 | P1 | Invisible mode shall limit visibility to people already liked. |
-
-### 8.2 Discovery and matching
+## 7. Live selfie and privacy portrait
 
 | ID | Priority | Requirement |
 |---|---:|---|
-| DISC-01 | P0 | The primary experience shall present one profile at a time. |
-| DISC-02 | P0 | Users shall be able to pass, like or comment on a specific profile component. |
-| DISC-03 | P0 | Messaging shall require a mutual match. |
-| DISC-04 | P0 | Location shall be city-level or broadly banded, never exact distance. |
-| DISC-05 | P0 | Reduced-motion and data-saving modes shall replace animation with poster images. |
-| DISC-06 | P1 | A static grid may be added after local profile density is sufficient. |
+| LIVE-01 | P0 | The verification source shall use the live front camera rather than a gallery upload. |
+| LIVE-02 | P0 | The capture shall request a short blink/head-turn challenge. |
+| LIVE-03 | P0 | The concept pilot shall state that capture is not automated liveness classification. |
+| PORT-01 | P0 | The source selfie shall never be public. |
+| PORT-02 | P0 | The primary MVP solution shall be a browser-local fuzzy privacy portrait, not a required AI avatar bridge. |
+| PORT-03 | P0 | Users shall choose from controlled privacy variants with a minimum privacy floor. |
+| PORT-04 | P0 | The interface shall not claim anonymity. |
+| PORT-05 | P0 | Apparent age, skin tone, hair/head covering, glasses and broad appearance shall not be materially falsified. |
+| PORT-06 | P1 | AI-generated illustrated portraits may be evaluated later as an optional implementation, not a product dependency. |
 
-### 8.3 Messaging and safety
-
-| ID | Priority | Requirement |
-|---|---:|---|
-| MSG-01 | P0 | Matched users shall be able to exchange text messages. |
-| MSG-02 | P0 | Every profile and conversation shall expose report, block and unmatch controls. |
-| MSG-03 | P0 | Blocking shall take effect immediately. |
-| MSG-04 | P0 | The first live MVP shall exclude user-uploaded chat images and videos. |
-| MSG-05 | P0 | Abuse, spam and scam controls shall be enforced server-side. |
-| SAFE-01 | P0 | Moderators shall have a severity-prioritised review queue and auditable enforcement actions. |
-| SAFE-02 | P0 | Community standards shall cover anti-Muslim abuse, sectarian harassment, coercion, sexual harassment, scams and suspected minors. |
-| SAFE-03 | P0 | Appeals and child-safety procedures shall exist before live users are admitted. |
-
-## 9. PWA, accessibility and hosting
+## 8. Faith and lifestyle
 
 | ID | Priority | Requirement |
 |---|---:|---|
-| PWA-01 | P0 | The application shall work in a mobile browser without installation. |
-| PWA-02 | P0 | The application shall provide a Web App Manifest and service worker. |
-| PWA-03 | P0 | Essential workflows shall not depend on background browser execution. |
-| PWA-04 | P0 | Persistent production services shall run outside the Static Space. |
-| PWA-05 | P0 | Hugging Face shall serve only the generated pilot frontend artifact. |
-| PWA-06 | P0 | The retained Docker image shall remain a validated future deployment option, not the free pilot host. |
-| PWA-07 | P0 | Camera capture shall require HTTPS outside local development. |
-| A11Y-01 | P0 | WCAG 2.2 AA is the target. |
-| A11Y-02 | P0 | Every gesture shall have a visible control alternative. |
-| A11Y-03 | P0 | Reduced motion and textual camera guidance are mandatory. |
+| FAITH-01 | P0 | Faith fields shall be self-selected and descriptive. |
+| FAITH-02 | P0 | The product shall not infer religion, sect or practice. |
+| FAITH-03 | P0 | No piety or religiosity score shall be calculated or shown. |
+| FAITH-04 | P0 | Self-description and match preference shall remain separate. |
+| FAITH-05 | P0 | Faith-practice visibility shall start private. |
+| FAITH-06 | P0 | Faith data shall not be sold or used for advertising segmentation. |
+| FAITH-07 | P1 | Production processing requires a documented Article 9 condition, withdrawal and deletion controls. |
 
-## 10. Prototype acceptance criteria
+## 9. Profile and discovery
 
-The Netherlands pivot prototype milestone is complete when:
+| ID | Priority | Requirement |
+|---|---:|---|
+| PROF-01 | P0 | Public profiles shall use a first name or nickname, never a surname. |
+| PROF-02 | P0 | Profiles shall include intent, family context, at least two prompts and at least three interests. |
+| PROF-03 | P0 | Exact location, account email, phone number and source selfie shall never be public. |
+| DISC-01 | P0 | Discovery shall present one profile at a time. |
+| DISC-02 | P0 | Users shall be able to pass, directly like or send a contextual like. |
+| DISC-03 | P0 | Swipe left/right shall be supported, with visible button alternatives. |
+| DISC-04 | P0 | A pass shall not reduce the target profile’s general visibility. |
+| DISC-05 | P0 | Like and pass counts shall not be public. |
+| DISC-06 | P0 | General popularity shall not become a trust or moral score. |
+| DISC-07 | P1 | Campus Mode may prioritize verified students for verified students. |
 
-1. Dutch is the default and the top-level English switch works throughout the flow;
-2. MBO, HBO and WO fixtures are present and separated by education level;
-3. the 18+ requirement is shown independently of student status;
-4. institution/domain matching works against synthetic Dutch fixtures;
-5. the browser can record a four-second camera clip where supported;
-6. the local avatar preview is visibly illustrated rather than coarsely pixelated;
-7. a user can complete the faith, practice, preference and lifestyle profile flow;
-8. users can control institution and faith-practice visibility;
-9. Dutch synthetic MBO, HBO and WO profiles appear in discovery;
-10. discovery, contextual like, matching, chat, report and block remain functional;
-11. PWA artifacts, unit tests, static validation and Docker validation pass;
-12. the generated Hugging Face deployment is verified against the live marker;
-13. documentation, work claims, roadmap, changelog and handover reflect the pivot and its limitations.
+## 10. Matching, contact and monetisation
 
-## 11. Explicit exclusions from this pilot
+| ID | Priority | Requirement |
+|---|---:|---|
+| MATCH-01 | P0 | A match shall require reciprocal interest. |
+| CONTACT-01 | P0 | Contact opening and message exchange shall be separate entitlements. |
+| CONTACT-02 | P0 | One party may use a contact right to open a matched conversation. |
+| CONTACT-03 | P0 | After opening, both parties shall be able to reply without per-message charges. |
+| CONTACT-04 | P0 | Safety, blocking, reporting and account deletion shall never be premium features. |
+| PAY-01 | P0 | Registration, discovery, likes and receiving matches shall remain free. |
+| PAY-02 | P1 | The pilot shall test the comprehension of paid conversation opening before taking payment. |
+| PAY-03 | P1 | Indicative pricing experiments may compare a regular plan and a verified-student discount. |
+| PAY-04 | P1 | Web payments shall use hosted checkout and server-authoritative webhook confirmation. |
+| PAY-05 | P1 | Native apps shall comply with then-current Apple and Google billing rules. |
 
-- real student-email delivery;
-- authoritative production domain coverage;
-- automated age assurance;
-- automated liveness classification;
-- production generative avatar infrastructure;
-- persistent user accounts, matching or messaging;
-- real moderation operations;
-- advertising or sale of religious profile data;
-- Belgium institutions;
-- exact location;
-- photo/video messaging;
-- payments or subscriptions;
-- native shells.
+## 11. Messaging and safety
+
+| ID | Priority | Requirement |
+|---|---:|---|
+| MSG-01 | P0 | The first pilot shall support text chat only. |
+| MSG-02 | P0 | Report, block, end-contact and unmatch controls shall be reachable from profiles and conversations. |
+| MSG-03 | P0 | Blocking shall take effect immediately and server-side in production. |
+| MSG-04 | P0 | User photo/video attachments shall be excluded from the first live MVP. |
+| SAFE-01 | P0 | Serious reports shall enter a moderation workflow, not an ordinary ranking adjustment. |
+| SAFE-02 | P0 | Appeals and child-safety procedures shall exist before real-user admission. |
+
+## 12. Feedback and behavioural standing
+
+| ID | Priority | Requirement |
+|---|---:|---|
+| FDBK-01 | P0 | Attraction signals, private experience feedback, safety reports and internal trust signals shall be separate models. |
+| FDBK-02 | P0 | Public star ratings, downvotes and numerical user reputation scores are prohibited. |
+| FDBK-03 | P0 | “No chemistry” shall never lower general visibility. |
+| FDBK-04 | P1 | Structured private feedback may be requested after meaningful contact. |
+| FDBK-05 | P1 | A single negative review shall not reduce visibility or trigger enforcement. |
+| FDBK-06 | P1 | Robust non-safety patterns may first trigger a private correction prompt, then proportionate limits. |
+| FDBK-07 | P1 | Material distribution limits shall be explainable and appealable. |
+| FDBK-08 | P1 | Only sufficiently supported positive badges may be public. |
+
+See `docs/INTERACTION-AND-TRUST-MODEL.md`.
+
+## 13. Hosting and production boundary
+
+| ID | Priority | Requirement |
+|---|---:|---|
+| HOST-01 | P0 | The concept pilot shall remain deployable as a Static Space. |
+| HOST-02 | P0 | Persistent accounts, profiles, likes, matches, messages and moderation shall live outside Hugging Face. |
+| HOST-03 | P0 | Production authorization, retention and enforcement shall be server-authoritative. |
+| HOST-04 | P1 | The first backend proof shall use relational storage, private object storage, realtime messaging and row-level authorization. |
+
+## 14. Concept-pilot acceptance criteria
+
+The rebaseline milestone is complete when:
+
+1. membership is no longer student-only;
+2. eligibility, private-account simulation and progress persistence work;
+3. life stage and optional student verification work;
+4. marital history, children and child preference fields are represented separately;
+5. live capture and selectable fuzzy privacy portraits work;
+6. faith, interests and profile preview remain functional;
+7. direct likes, contextual likes, pass buttons and swipe gestures work;
+8. the first like creates a deterministic pilot match;
+9. a simulated contact entitlement opens a text conversation;
+10. contact can be ended with structured private feedback;
+11. feedback does not automatically change profile visibility;
+12. report and block remain available;
+13. Dutch/English tests, domain tests, static build and deployment artifact validation pass;
+14. roadmap, work packages, claims, changelog and handover match the implementation.
+
+## 15. Explicit exclusions from this milestone
+
+- real-user admission;
+- persistent multi-user accounts and chat;
+- real email or SMS delivery;
+- authoritative student registry and document verification;
+- automated age assurance or liveness classification;
+- real payments or subscriptions;
+- automatic reputation-based ranking penalties;
+- production moderation operations;
+- audio/video calling, voice notes or media messages;
+- native applications;
+- Belgium launch.
