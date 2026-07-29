@@ -32,6 +32,12 @@ class PublicUrlCandidateTests(unittest.TestCase):
         self.assertEqual(urls[0], "https://solidprivacy-rendezvue.static.hf.space/")
         self.assertEqual(len(urls), len(set(urls)))
 
+    def test_product_baseline_v1_marker_is_verified(self):
+        self.assertEqual(
+            MODULE.DEPLOYMENT_MARKER,
+            'name="rendezvue-deployment" content="static-pilot-v1"',
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
