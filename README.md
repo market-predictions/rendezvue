@@ -8,7 +8,7 @@ Membership is **student-first, not student-only**. Students can eventually verif
 
 **Public review URL:** `https://solidprivacy-rendezvue.static.hf.space/`
 
-The currently published URL remains the last accepted `main` build. The product-baseline v1 implementation is developed through GitHub and reaches Hugging Face only after accepted merge and deployment verification.
+Product baseline v1 is merged into GitHub `main`. The automated deployment workflow builds the accepted source, uploads the generated Static Space artifact and records hosted verification in issue #2.
 
 The concept pilot demonstrates:
 
