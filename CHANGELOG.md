@@ -4,9 +4,10 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
-### Pending validation
+### Pending review
 
-- Publish product baseline v1 branch, run CI and review the generated Hugging Face build on mobile.
+- Owner review and merge of draft PR #14.
+- Hosted Hugging Face marker verification and mobile camera/swipe review after merge.
 - Select an external backend proof for persistent accounts, matching and realtime text chat.
 - Complete legal, privacy, security and moderation gates before any real-user pilot.
 
@@ -34,6 +35,13 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Added end-contact and structured private feedback without ranking effect.
 - Integrated the privacy-filter grid directly in source and removed the fragile build-time patch architecture.
 - Added data-model, onboarding, interaction/trust and pilot-protocol documentation plus ADR-0007.
+- Added a pull-request validation workflow for application, generated artifacts and retained Docker builds.
+
+### Validation
+
+- Local `npm run check` passed with 44 required artifacts and 10/10 tests.
+- Existing CI run `30475799061` passed application, artifact, Python helper and Docker validation.
+- New validation run `30475799089` passed application/artifact and retained Docker jobs.
 
 ### Safety and claims
 
