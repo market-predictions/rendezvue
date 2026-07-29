@@ -1,6 +1,6 @@
 # Rendezvue onboarding design
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Updated:** 2026-07-29
 
 ## Goal
@@ -29,9 +29,10 @@ Production target: phone, email OTP/magic link or approved identity provider plu
 ### 3. Basic identity
 
 - first name or nickname;
-- gender identity;
-- who the user seeks;
+- sex: man or woman;
 - city or broad region.
+
+Rendezvue is a community for introductions between men and women. The user is therefore not asked separately who they want to meet. The match direction is derived automatically: a man is shown women and a woman is shown men. “Non-binary”, “prefer not to say” and open-ended seeking options are not part of this community flow.
 
 ### 4. Life stage and optional student layer
 
@@ -73,6 +74,9 @@ Confirm truthful information, current single status, serious intent, respect for
 ## Interaction rules
 
 - one primary decision or coherent topic per screen;
+- sex selection has exactly two choices: man and woman;
+- partner sex is derived automatically and is not presented as a separate preference question;
+- discovery enforces opposite-sex profile visibility;
 - progress saved after every stage;
 - Dutch/English switching preserves state;
 - back navigation never destroys prior answers;
@@ -84,6 +88,8 @@ Confirm truthful information, current single status, serious intent, respect for
 ## Concept-pilot implementation
 
 The static pilot implements the full sequence in browser state and local storage. It uses synthetic verification and a displayed demo code. It must not be used with real identity documents or production-sensitive data.
+
+The community sex policy is applied as a dedicated browser module. It removes unsupported sex choices, hides the redundant seeking field, derives the opposite-sex target before validation and automatically skips incompatible synthetic discovery profiles.
 
 ## Measurement
 
