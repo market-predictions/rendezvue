@@ -1,8 +1,9 @@
-const CACHE_NAME = 'rendezvue-shell-v2-nl';
+const CACHE_NAME = 'rendezvue-shell-v3-product-baseline';
 const SHELL = [
   '/',
   '/index.html',
   '/styles.css',
+  '/pilot-v1.css',
   '/app.js',
   '/src/domain.js',
   '/src/i18n.js',
