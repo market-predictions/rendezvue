@@ -3,9 +3,11 @@
 **Updated:** 2026-07-29  
 **Milestone:** Product baseline v1 and full synthetic concept-pilot realization
 
-## Branch
+## GitHub state
 
-`agent/product-baseline-v1-pilot`
+- Branch: `agent/product-baseline-v1-pilot`
+- Draft pull request: [#14 — Redefine product baseline and realize concept pilot v1](https://github.com/market-predictions/rendezvue/pull/14)
+- Status: implementation complete, independent CI green, owner and hosted review pending
 
 ## Strategic decisions implemented
 
@@ -33,13 +35,25 @@
 - simulated regular/student contact pricing and one pilot contact right;
 - text chat, end-contact, structured private feedback, report and block;
 - local persistence with a versioned demo-state schema;
-- updated tests, build metadata, documentation and validation contract.
+- updated tests, build metadata, documentation and validation contract;
+- dedicated pull-request validation for application, generated artifacts and Docker checks.
 
-## Validation performed locally
+## Validation evidence
 
-- Node test suite: 10 tests passed;
-- JavaScript syntax checks passed for application, domain, localization, media and build modules;
-- static build and generated Hugging Face artifact validation passed for 44 required artifacts.
+### Local
+
+- `npm run check` passed;
+- 44 required static and Hugging Face artifacts validated;
+- 10/10 Node tests passed;
+- JavaScript syntax checks passed.
+
+### GitHub Actions
+
+- Existing CI run `30475799061`: success;
+- application/artifact validation: success;
+- Python deployment-helper compilation/tests: success;
+- retained Docker build: success;
+- new validation run `30475799089`: both application/artifact and Docker jobs succeeded.
 
 ## Explicit limitations
 
@@ -52,7 +66,7 @@
 - no production Article 9 basis or DPIA;
 - current branch is unsuitable for real-user admission.
 
-## Review journey after deployment
+## Owner review journey after merge/deployment
 
 1. complete onboarding as a non-student;
 2. restart and test optional student verification with code `246810`;
@@ -64,7 +78,7 @@
 8. exchange messages, end contact and leave feedback;
 9. test report, block, language switch, resume and local deletion.
 
-## Next production work
+## Next production work after owner acceptance
 
 1. choose and provision the external backend proof;
 2. implement schema, row-level policies and authentication;
