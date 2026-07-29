@@ -49,8 +49,8 @@ export const CHILD_STATUSES = Object.freeze(['none', 'hasChildren']);
 export const CHILD_COUNT_BANDS = Object.freeze(['one', 'two', 'threePlus', 'private']);
 export const CHILD_WISHES = Object.freeze(['yes', 'no', 'maybe', 'unsure', 'openToMore']);
 export const PARTNER_CHILD_PREFERENCES = Object.freeze(['yes', 'maybe', 'no']);
-export const GENDER_IDENTITIES = Object.freeze(['woman', 'man', 'nonBinary', 'private']);
-export const SEEKING_OPTIONS = Object.freeze(['women', 'men', 'everyone']);
+export const GENDER_IDENTITIES = Object.freeze(['woman', 'man']);
+export const SEEKING_OPTIONS = Object.freeze(['women', 'men']);
 export const RELATIONSHIP_INTENTS = Object.freeze(['getToKnow', 'serious', 'marriage']);
 export const FAITH_IDENTITIES = Object.freeze(['muslim', 'muslimBackground', 'convert', 'exploring', 'preferNotSay']);
 export const FAITH_PRACTICES = Object.freeze(['activelyPracticing', 'practicing', 'moderate', 'cultural', 'private']);
@@ -83,7 +83,8 @@ export function validateIdentity(profile) {
   const errors = [];
   if (!String(profile.nickname ?? '').trim()) errors.push('nickname');
   if (!GENDER_IDENTITIES.includes(profile.genderIdentity)) errors.push('genderIdentity');
-  if (!SEEKING_OPTIONS.includes(profile.seeking)) errors.push('seeking');
+  const expectedSeeking = profile.genderIdentity === 'man' ? 'women' : profile.genderIdentity === 'woman' ? 'men' : '';
+  if (profile.seeking !== expectedSeeking) errors.push('seeking');
   if (!String(profile.city ?? '').trim()) errors.push('city');
   return errors;
 }
@@ -116,7 +117,7 @@ export function validateFaithProfile(profile) {
 
 export function createInitialState() {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     language: 'nl', screen: 'welcome', dateOfBirth: '', currentRelationshipState: '', communityFit: false, seriousIntent: false, acceptedTerms: false,
     accountEmail: '', accountCodeSent: false, accountCode: '', accountVerified: false, studentCodeSent: false, studentCode: '',
     capturedFrame: null, avatarVariants: [], selectedAvatarStyle: '', avatarDataUrl: null, avatarAccepted: false,
