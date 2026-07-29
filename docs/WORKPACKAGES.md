@@ -15,7 +15,7 @@ Camera flow, profile cards, likes, deterministic match, local chat, safety contr
 ## WP-015 — Hosted Hugging Face prototype
 
 **Status:** review  
-Generated free Static Space is reachable. Reverify marker and mobile camera after the product-baseline milestone merges.
+Generated free Static Space is reachable. Reverify marker and mobile camera after product-baseline PR #14 merges.
 
 ## WP-016 — Netherlands and faith foundation
 
@@ -29,13 +29,13 @@ Four controlled fuzzy variants delivered. Mobile attractiveness/privacy review r
 
 ## WP-018 — Product baseline and onboarding v1
 
-**Status:** active  
-Open membership, student-first positioning, eligibility, account simulation, life stage, family context, resumable onboarding, preview and community promise.
+**Status:** review  
+Open membership, student-first positioning, eligibility, account simulation, life stage, family context, resumable onboarding, preview and community promise are implemented and CI-green in PR #14.
 
 ## WP-019 — Interaction and contact concept
 
-**Status:** active  
-Pass, direct/contextual like, swipe controls, reciprocal match, simulated contact entitlement, text chat and end-contact flow.
+**Status:** review  
+Pass, direct/contextual like, swipe controls, reciprocal match, simulated contact entitlement, text chat and end-contact flow are implemented and CI-green in PR #14.
 
 ## WP-020 — Institution registry and student benefits
 
@@ -44,7 +44,7 @@ DUO/RIO institution identity, independently evidenced student mailbox domains, e
 
 ## WP-021 — Feedback and behavioural standing
 
-**Status:** active for UX; production proof planned  
+**Status:** review for UX; production proof planned  
 Structured private feedback is prototyped without ranking effect. Credibility, retaliation, fairness, correction and appeal logic remain.
 
 ## WP-025 — Faith profile validation and legal basis
