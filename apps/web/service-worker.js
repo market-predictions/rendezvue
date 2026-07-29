@@ -1,10 +1,11 @@
-const CACHE_NAME = 'rendezvue-shell-v3-product-baseline';
+const CACHE_NAME = 'rendezvue-shell-v4-community-sex-policy';
 const SHELL = [
   '/',
   '/index.html',
   '/styles.css',
   '/pilot-v1.css',
   '/app.js',
+  '/community-policy.js',
   '/src/domain.js',
   '/src/i18n.js',
   '/src/camera.js',
