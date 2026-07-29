@@ -1,92 +1,74 @@
 # Project handover
 
-**Updated:** 2026-07-28  
-**Milestone:** Selectable browser privacy-filter grid in implementation; hosted review pending
+**Updated:** 2026-07-29  
+**Milestone:** Product baseline v1 and full synthetic concept-pilot realization
 
-## Current state
+## Branch
 
-The Netherlands-first browser prototype is publicly hosted at:
+`agent/product-baseline-v1-pilot`
 
-`https://solidprivacy-rendezvue.static.hf.space/`
+## Strategic decisions implemented
 
-The current public build still uses the single ink-sketch treatment. Work on `agent/privacy-filter-grid-v1` replaces that failed treatment with four selectable privacy portraits generated from the same live-capture frame.
+- student-only replaced by student-first open membership;
+- eligibility is adult, currently single and serious-intent based;
+- student status is an optional verified benefit layer;
+- life stage covers student, recent graduate, employed, self-employed, job-seeking and other;
+- marital history, existing children, child wish and openness to a partner with children are separate;
+- browser-local fuzzy privacy portraits are the MVP baseline;
+- AI avatars are optional later experiments;
+- registration, discovery and likes are free in the target model;
+- a contact entitlement opens a reciprocal match and both parties then reply freely;
+- likes, private feedback, safety reports and internal trust signals are separate;
+- public stars, downvotes and popularity counts are prohibited.
 
-## Product decision
+## Implemented in the concept pilot
 
-The pilot no longer tries to force one browser-generated avatar style on every registrant. After capture, the user sees a 2×2 grid and chooses among:
+- ten-stage resumable Dutch/English onboarding;
+- simulated private account and optional student verification;
+- profile preview and field visibility controls;
+- live selfie flow and four privacy portrait variants;
+- five diverse synthetic profiles across life stages and family situations;
+- pass, direct like, contextual like and left/right swipe;
+- deterministic reciprocal match;
+- simulated regular/student contact pricing and one pilot contact right;
+- text chat, end-contact, structured private feedback, report and block;
+- local persistence with a versioned demo-state schema;
+- updated tests, build metadata, documentation and validation contract.
 
-1. **Soft focus** — more recognisable;
-2. **Warm veil** — more private;
-3. **Monochrome mist** — more private;
-4. **Extra private** — strongest blur and lowest detail.
+## Validation performed locally
 
-There is no raw-selfie or lightly edited option. Every recipe enforces a minimum blur/privacy floor.
+- Node test suite: 10 tests passed;
+- JavaScript syntax checks passed for application, domain, localization, media and build modules;
+- static build and generated Hugging Face artifact validation passed for 44 required artifacts.
 
-## Implemented on the milestone branch
+## Explicit limitations
 
-- four fixed portrait recipes in `AVATAR_FILTERS`;
-- consistent centered crop based on the capture guide;
-- blurred base and a moderately blurred central portrait window;
-- warm, monochrome and high-privacy tonal treatments;
-- browser-local generation of all previews;
-- 2×2 selection grid with radio semantics and visible selected state;
-- Dutch and English filter names and privacy descriptions;
-- downsampling blur fallback for browsers without dependable Canvas filter support;
-- deployment metadata `browser-local-filter-grid`;
-- CI guards preventing the rejected ink-sketch renderer from returning;
-- ADR-0006, work claims and governance updates.
+- no real authentication or account recovery;
+- no authoritative age, single-status, student or liveness verification;
+- local deterministic matching, not multi-user discovery;
+- local chat, reports and feedback only;
+- no payment provider or money movement;
+- no moderation console or operational response coverage;
+- no production Article 9 basis or DPIA;
+- current branch is unsuitable for real-user admission.
 
-## Important limitations
+## Review journey after deployment
 
-- browser filters do not provide anonymity;
-- acquaintances may recognise broad face shape, hair, hijab/headwear, glasses or facial hair;
-- background removal is not yet semantic; the current pilot uses crop, blur and tonal neutralisation;
-- output may vary by browser, lighting and camera quality;
-- the four recipes have not yet been tested for attractiveness, privacy distance or fairness;
-- source capture and previews remain browser-local in the prototype;
-- the long-term target remains a controlled server-side generative privacy portrait;
-- the product must not admit real users.
+1. complete onboarding as a non-student;
+2. restart and test optional student verification with code `246810`;
+3. inspect family-context wording;
+4. test camera and all four portrait variants on mobile;
+5. use buttons and swipe gestures;
+6. send a direct or contextual like;
+7. open the match using the simulated contact right;
+8. exchange messages, end contact and leave feedback;
+9. test report, block, language switch, resume and local deletion.
 
-## Validation status
+## Next production work
 
-PR CI has passed:
-
-- static build and generated Hugging Face artifact checks;
-- presence of all four recipes and selection controls;
-- Dutch/English generated copy checks;
-- deployment metadata checks;
-- JavaScript domain/i18n tests;
-- Python deployment tests;
-- retained Docker build.
-
-## Current gate
-
-1. update remaining roadmap/changelog records;
-2. merge the focused pull request;
-3. deploy and marker-verify the Hugging Face build;
-4. owner completes one real-camera review of the 2×2 grid;
-5. record which variants are useful, too revealing or too abstract.
-
-## Review questions
-
-1. Is it immediately clear that the four cards are alternatives from the same selfie?
-2. Is the 2×2 grid large enough on a phone to judge the result?
-3. Does at least one option give a useful balance between attraction and privacy?
-4. Is **Soft focus** still too revealing?
-5. Is **Extra private** still useful enough for dating discovery?
-6. Do warm and monochrome treatments feel intentional rather than like technical effects?
-7. Does selection remain clear after switching between Dutch and English?
-
-## Immediate next work after owner review
-
-- tune or remove weak variants based on actual captures;
-- consider optional full-screen preview before confirmation;
-- evaluate browser-side person/background segmentation for cleaner neutralisation;
-- prepare the server-side generative privacy-portrait proof of concept;
-- continue WP-020 institution registry, WP-025 faith validation and production age-assurance selection.
-
-## Architecture
-
-GitHub remains authoritative. CI copies the browser source into `dist/`, applies the governed privacy-filter-grid transform, validates the finished artifact, creates `.hf-deploy/`, uploads it and verifies the public marker. Hugging Face serves generated static files only.
-
-Production services must remain external and server-authoritative for authentication, age assurance, matching, messaging, moderation, retention and sensitive-data controls.
+1. choose and provision the external backend proof;
+2. implement schema, row-level policies and authentication;
+3. replace deterministic matching/chat with persistent multi-user services;
+4. implement manual moderation operations;
+5. complete age, sensitive-data and legal readiness;
+6. integrate hosted checkout only after free-funnel value is demonstrated.
