@@ -1,99 +1,53 @@
-# UX principles
+# UX and visual principles
 
-## 1. Familiar, not cloned
+## 1. Serious, warm and contemporary
 
-Use successful dating-app conventions—large profile card, visible pass/like actions, mutual matching and bottom navigation—without copying another product's brand or exact expression.
+Use familiar dating patterns without cloning a competitor. The tone is respectful and attractive, not bureaucratic, preachy or hookup-oriented.
 
-## 2. Dutch first, English always available
+## 2. Open membership, student-first
 
-Dutch is the default. The NL/EN switch remains visible at the top and must preserve the user's current flow.
+The main experience welcomes eligible adults. Student verification is a visible optional benefit, not an admission barrier. MBO, HBO, WO, work and other life stages are peers, not prestige ranks.
 
-Copy should feel warm, respectful and contemporary rather than bureaucratic, preachy or hookup-oriented.
+## 3. One coherent decision per screen
 
-## 3. MBO, HBO and WO are peers
+Eligibility, account, identity, life stage, family, camera, faith, personality and privacy each have their own stage. Progress is saved and language switching preserves orientation.
 
-Education level supports navigation and compatibility, not social ranking.
+## 4. Privacy is visible
 
-- use MBO, HBO and WO labels neutrally;
-- never order profiles by perceived educational prestige;
-- explain MBO in English as vocational education;
-- keep the 18+ gate separate from education level.
+Explain what is collected, why, what becomes public, what remains private and what is deleted. The public portrait is fuzzy by design; never promise anonymity.
 
-## 4. Faith is descriptive, not scored
+## 5. Attraction plus context
 
-The interface helps users describe background, daily practice, compatibility preference and lifestyle.
+The privacy portrait is the visual anchor, supported by intent, family context, life stage, interests, prompts and optional faith/lifestyle information.
 
-- no piety score;
-- no “good/bad Muslim” language;
-- self-description and preference are distinct;
-- “prefer not to say” and private options remain available;
-- practice visibility starts off;
-- optional lifestyle tags carry more practical meaning than abstract labels alone.
+## 6. Family context without stigma
 
-## 5. Privacy is visible
+Present never married, divorced, widowed, parenthood and child preferences neutrally. Do not use warning colors, quality implications or hidden penalties.
 
-Every sensitive step explains:
+## 7. Faith is descriptive, not scored
 
-- what is collected;
-- why it is needed;
-- what may become public;
-- what remains private;
-- what is deleted;
-- what a verification badge actually proves.
+Separate self-description and preference. Keep practice private by default. Avoid moral comparison and sectarian ranking.
 
-## 6. One primary decision per screen
+## 8. Likes are invitations, not votes
 
-Onboarding is divided into student check, live selfie, avatar, general profile, faith/lifestyle and privacy. Progress is preserved when switching language.
+Offer pass, direct like and contextual like. Never show popularity totals. Contextual likes should make the first conversation easier.
 
-## 7. Attraction plus context
+## 9. Feedback is private and behavioural
 
-The avatar is the visual anchor, supported by:
+Use concrete behaviour tags after meaningful contact, never public stars or thumbs. Make “no chemistry” a neutral outcome.
 
-- relationship intention;
-- education/city context;
-- conversation prompts;
-- interests;
-- faith/practice description where shared;
-- lifestyle compatibility tags;
-- contextual likes.
+## 10. Calm premium visual character
 
-## 8. Avatar style
+Warm ivory, plum, rose, restrained sage and gold; strong readable typography; large touch targets; polished cards; minimal visual alarm. Safety controls remain easy to find.
 
-The desired avatar is:
+## 11. Gesture plus accessible control
 
-- recognisable;
-- illustrated rather than pixelated;
-- warm, romantic and polished;
-- adult and modest;
-- respectful of skin tone, hijab/head covering, hair, glasses and facial hair;
-- flattering without becoming deceptive.
+Swipe is optional. Every swipe action has a labelled button. Support reduced motion, keyboard focus, screen-reader labels and mid-range Android performance.
 
-Avoid anime exaggeration, childish cartoons, beauty transformations and coarse mosaic effects.
+## 12. Payment only after demonstrated value
 
-## 9. Calm premium character
+Do not request payment during onboarding. Explain contact rights at a reciprocal match. The recipient can reply without paying.
 
-Use warm ivory, plum and rose with restrained sage and gold accents. Faith-specific UI should be integrated rather than visually segregated.
+## 13. Honest prototype boundaries
 
-## 10. Safety without alarmism
-
-Block, report, privacy and pause controls are easy to find without making every screen feel threatening.
-
-## 11. Mobile and bandwidth discipline
-
-- one animated avatar at a time;
-- poster images elsewhere;
-- no autoplay audio;
-- large thumb targets;
-- reduced-motion support;
-- mid-range Android as a primary test target;
-- iPhone Safari and Samsung Internet field coverage.
-
-## 12. Honest prototypes
-
-Prototype substitutions remain explicit:
-
-- a domain match is not mailbox verification;
-- a camera recording is not liveness verification;
-- a local illustration renderer is not production AI avatar generation;
-- pilot institution data is not an authoritative registry;
-- local faith fields are not production legal readiness.
+A demo code is not email verification; camera recording is not liveness classification; local state is not a secure account; simulated contact pricing is not payment processing.
