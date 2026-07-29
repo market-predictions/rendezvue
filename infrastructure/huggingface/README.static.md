@@ -11,12 +11,12 @@ pinned: false
 license: other
 ---
 
-# Rendezvue Netherlands Pilot
+# Rendezvue Netherlands Concept Pilot
 
-This public Static Space is an automatically generated Dutch-first deployment of the Rendezvue browser prototype for Muslim students and students from a Muslim background aged 18+ in MBO, HBO and WO.
+This public Static Space is an automatically generated Dutch-first deployment of the Rendezvue synthetic browser concept for serious introductions between adult single Muslims and people from a Muslim background in the Netherlands. It is student-first, not student-only; MBO, HBO and WO verification is an optional benefit layer.
 
-**GitHub is the sole source of truth.** Direct edits in this Space are unsupported and will be overwritten by the next accepted GitHub deployment.
+**GitHub is the sole source of truth.** Direct edits in this Space are unsupported and overwritten by the next accepted deployment.
 
-The interface defaults to Dutch and includes an English switch. Institution/domain records and profiles are synthetic pilot fixtures.
+The interface demonstrates onboarding, life stage, family context, live camera interaction, fuzzy privacy portraits, pass/like/swipe, a deterministic match, simulated contact opening, local text chat and private feedback.
 
-The prototype demonstrates the privacy-avatar and compatibility interaction model only. It does not provide production age assurance, student mailbox verification, replay-resistant liveness, persistent accounts, lawful production processing of religious-belief data or production moderation.
+It does not provide production authentication, age or marital-status assurance, authoritative student verification, replay-resistant liveness, persistent accounts, real payments, lawful production processing of religious-belief data or moderation operations. Use synthetic data only.
