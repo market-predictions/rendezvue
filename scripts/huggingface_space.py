@@ -17,7 +17,7 @@ import urllib.request
 from typing import Any
 
 SPACE_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*$")
-DEPLOYMENT_MARKER = 'name="rendezvue-deployment" content="static-pilot"'
+DEPLOYMENT_MARKER = 'name="rendezvue-deployment" content="static-pilot-v1"'
 
 
 def require_environment() -> tuple[str, str]:
