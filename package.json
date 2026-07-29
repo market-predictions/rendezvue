@@ -1,6 +1,6 @@
 {
   "name": "rendezvue",
-  "version": "0.1.0-alpha.1",
+  "version": "0.3.0-alpha.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,7 +11,5 @@
     "validate": "node scripts/validate-static.mjs",
     "check": "npm run build:hf && npm run validate && npm test"
   },
-  "engines": {
-    "node": ">=20"
-  }
+  "engines": { "node": ">=20" }
 }
