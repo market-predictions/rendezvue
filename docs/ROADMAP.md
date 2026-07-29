@@ -39,9 +39,9 @@ Four browser-local fuzzy variants, no raw-selfie option and downsampling fallbac
 
 ### 1D. Product baseline v1 and onboarding redefinition
 
-**Status:** active on `agent/product-baseline-v1-pilot`.
+**Status:** implementation and CI complete in draft PR #14; owner and hosted review pending.
 
-Deliverables:
+Delivered:
 
 - student-first rather than student-only positioning;
 - eligibility and private-account simulation;
@@ -54,9 +54,9 @@ Deliverables:
 
 ### 1E. Interaction, contact and feedback concept
 
-**Status:** active in the same milestone.
+**Status:** implementation and CI complete in draft PR #14; owner and hosted review pending.
 
-Deliverables:
+Delivered:
 
 - pass, direct like and contextual like;
 - left/right swipe gestures plus accessible buttons;
@@ -66,7 +66,7 @@ Deliverables:
 - end-contact flow and structured private feedback;
 - no public ratings and no automatic feedback-based visibility penalty.
 
-**Gate for Phase 1:** CI passes, Hugging Face marker verifies, owner tests mobile camera/onboarding/swipe/chat, and material defects are logged.
+**Gate for Phase 1:** owner review, merge, Hugging Face marker verification, mobile camera/onboarding/swipe/chat review and logging of material defects.
 
 ## Phase 2 — External backend proof
 
