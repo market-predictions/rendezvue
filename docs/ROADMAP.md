@@ -1,219 +1,151 @@
 # Rendezvue roadmap
 
-**Version:** 0.8  
-**Updated:** 2026-07-28
+**Version:** 1.0  
+**Updated:** 2026-07-29
 
 ## Operating doctrine
 
-- GitHub is the source of truth.
-- Hugging Face is a disposable, one-way generated pilot deployment.
-- Work advances through explicit work packages and evidence-based gates.
-- Demonstrated prototype behaviour is separated from production claims.
-- High-risk uncertainties are tested before broad feature expansion.
-- Safety, privacy and legal constraints are product requirements.
-- Dutch is the default language; English is the supported alternative.
-- The Netherlands launches before any Belgium expansion.
+- GitHub is authoritative; Hugging Face is a generated web-facing pilot.
+- Rendezvue is open-membership, adult-only and serious-intent, with a student-first community layer.
+- Local marketplace density and safe interaction are validated before national expansion.
+- Privacy portraits are implementation-neutral; fuzzy browser portraits are the MVP baseline.
+- Safety, fairness, privacy and legal controls are product features.
 
 ## Phase 0 — Foundation and hosting
 
 **Status:** complete.
 
-Delivered:
+Delivered: governance, dependency-light PWA, CI, Static Space deployment, Docker fallback and hosted marker verification.
 
-- governance documents and architecture decisions;
-- browser-native PWA foundation;
-- CI, static and retained Docker builds;
-- free Hugging Face Static Space deployment;
-- verified public deployment pipeline.
+## Phase 1 — Concept and interaction validation
 
-## Phase 1 — Netherlands interaction prototype
+### 1A. Core dating loop
 
-**Goal:** determine whether a privacy-first dating product for Muslim students in Dutch MBO, HBO and WO is understandable, attractive and culturally credible.
+**Status:** complete.
 
-### Phase 1A — Core dating flow
+Camera demonstration, profile, discovery, contextual like, deterministic match, local chat, report, block and PWA shell.
 
-**Status:** complete and hosted.
+### 1B. Netherlands and faith model
 
-Delivered:
+**Status:** complete; terminology review remains.
 
-- adult-only onboarding language;
-- live-camera interaction;
-- privacy portrait preview;
-- profile, discovery, matching and local chat;
-- report, block and pause controls;
-- installable PWA structure.
+Dutch/English, MBO/HBO/WO fixtures, descriptive faith fields and private practice visibility.
 
-### Phase 1B — Netherlands and faith pivot
+### 1C. Selectable privacy portraits
 
-**Status:** implementation, CI and hosted deployment complete; owner and target-user review pending.
+**Status:** complete in code; mobile owner review remains.
 
-Delivered:
+Four browser-local fuzzy variants, no raw-selfie option and downsampling fallback.
 
-- Netherlands replaces Morocco as launch geography;
-- MBO, HBO and WO are peer education categories;
-- Dutch is the default language;
-- English remains available from a top-level switch;
-- 39 synthetic Dutch institution/domain fixtures;
-- faith background, daily practice, compatibility importance and lifestyle tags;
-- private-by-default visibility for faith practice;
-- no piety score or inferred religious identity;
-- Dutch synthetic MBO, HBO and WO profiles;
-- automatic hosted deployment.
+### 1D. Product baseline v1 and onboarding redefinition
 
-Research questions:
-
-1. Does the Dutch positioning feel credible rather than exclusionary or administrative?
-2. Do MBO, HBO and WO users feel equally represented?
-3. Are faith categories understandable without implying judgement?
-4. Is practice visibility sufficiently private and controllable?
-5. Does switching between Dutch and English preserve orientation and form progress?
-
-### Phase 1C — Selectable privacy-filter grid
-
-**Status:** implementation and CI complete; merge, hosted verification and owner camera review pending.
-
-Purpose:
-
-The softened-photo treatment was too revealing and the ink-sketch treatment was visually unacceptable. The interim pilot therefore lets the registrant choose among controlled browser-local privacy variants generated from the same captured frame.
+**Status:** active on `agent/product-baseline-v1-pilot`.
 
 Deliverables:
 
-- four fixed recipes: Soft focus, Warm veil, Monochrome mist and Extra private;
-- a 2×2 preview grid before profile creation;
-- explicit recognisability/privacy labels;
-- no raw or lightly edited selfie option;
-- a minimum blur/privacy floor for every recipe;
-- consistent crop, tonal neutralisation and framing;
-- browser-local preview generation;
-- downsampling fallback where Canvas filters are inconsistent;
-- Dutch and English copy;
-- deployment and anti-regression validation;
-- ADR-0006 and work-claim boundaries.
+- student-first rather than student-only positioning;
+- eligibility and private-account simulation;
+- resumable local onboarding;
+- life stage and optional student verification;
+- marital history, children, child wish and openness to a partner with children;
+- privacy portrait terminology and integrated filter grid;
+- profile preview and community promise;
+- synthetic profiles across student, graduate, employed and self-employed life stages.
 
-Research questions:
+### 1E. Interaction, contact and feedback concept
 
-1. Is the 2×2 grid understandable without explanation?
-2. Is each preview large enough on a mobile device?
-3. Does at least one recipe retain sufficient visual attraction?
-4. Is Soft focus too revealing?
-5. Is Extra private too abstract to be useful?
-6. Do results remain acceptable across lighting, skin tones, hijab/headwear, glasses and facial hair?
-7. Should weak recipes be removed rather than expanded into more choices?
+**Status:** active in the same milestone.
 
-**Gate:** hosted marker verification succeeds, the owner completes a real-camera review, and weak or overly revealing variants are logged for tuning or removal.
+Deliverables:
 
-## Phase 2 — High-risk technical proofs
+- pass, direct like and contextual like;
+- left/right swipe gestures plus accessible buttons;
+- reciprocal pilot match;
+- simulated contact entitlement and indicative regular/student pricing;
+- text conversation;
+- end-contact flow and structured private feedback;
+- no public ratings and no automatic feedback-based visibility penalty.
 
-### 2A. Authoritative Dutch student verification
+**Gate for Phase 1:** CI passes, Hugging Face marker verifies, owner tests mobile camera/onboarding/swipe/chat, and material defects are logged.
 
-- build the institution registry from DUO/RIO data;
-- cover MBO, HBO and WO;
-- verify student mailbox domains separately;
-- implement real email possession verification;
-- design current-student-document fallback;
-- define annual reverification and institution exceptions.
+## Phase 2 — External backend proof
 
-### 2B. Adult access
+### 2A. Authentication and resumable accounts
 
-- select a privacy-preserving age-assurance method;
-- explicitly account for under-18 MBO students;
-- assess bias, false rejection and appeals;
-- implement suspected-minor escalation.
+Email magic link or OTP, account recovery, duplicate-account controls, deletion and abandoned-onboarding retention.
 
-### 2C. Liveness
+### 2B. Persistent domain model
 
-- browser-compatible face landmarks;
-- randomized blink/head-turn challenges;
-- replay and injection threat analysis;
-- representative Android and iPhone coverage;
-- measurable false-accept and false-reject thresholds.
+PostgreSQL schema for Account, Eligibility, Profile, LifeStage, StudentVerification, FamilyContext, FaithProfile, PrivacyPortrait, AttractionSignal, Match, ContactEntitlement, Conversation, Feedback and ModerationCase.
 
-### 2D. Production privacy portrait
+### 2C. Authorization and realtime messaging
 
-The filter grid is an interim presentation, not the production avatar architecture.
+Row-level policies, private storage, server-authoritative block enforcement and realtime text chat.
 
-- define and approve a controlled visual style;
-- prototype server-side generation from one selected frame;
-- preserve broad appearance while reducing exact photographic fidelity;
-- evaluate identity resemblance and privacy distance;
-- define deception and beautification limits;
-- validate hijab/headwear, skin tone, facial hair and glasses handling;
-- implement source-media retention and deletion evidence;
-- quantify cost and latency;
-- retain smart cropped blur as a failure fallback.
+### 2D. Institution and student-benefit verification
 
-### 2E. Faith-data legality and product validation
+DUO/RIO institution identity, separately evidenced mailbox domains, annual expiry, student discount entitlement and Campus Mode privacy.
 
-- perform a DPIA/legal review for religious-belief data;
-- define explicit and separable consent or another valid Article 9 condition;
-- validate self-description and preference categories with target users;
-- test withdrawal and deletion controls;
-- establish anti-discrimination and anti-harassment safeguards;
-- prohibit advertising use and inferred religious classification.
+### 2E. Age and liveness proofs
 
-**Gate:** each component passes a written acceptance protocol and legal/safety review.
+Privacy-preserving age assurance, replay threat model, randomized challenges, error thresholds and appeal paths.
 
-## Phase 3 — Closed Dutch PWA MVP
+### 2F. Sensitive-data and fairness proof
 
-**Goal:** operate a real but deliberately constrained pilot in one Dutch city or a small institution cluster.
+DPIA/legal review for faith data, family-context minimisation, ranking fairness, explicit visibility and deletion controls.
+
+### 2G. Contact and payment proof
+
+Mollie-versus-Stripe decision, hosted checkout, webhook idempotency, refunds, online cancellation and entitlement ledger. No payment until the free funnel creates repeatable value.
+
+### 2H. Behavioural standing proof
+
+Feedback credibility, retaliation resistance, positive badges, correction prompts, explainable limitations and human moderation.
+
+## Phase 3 — Closed city-based PWA pilot
+
+**Goal:** operate a constrained real-user pilot in one Dutch city across students, recent graduates and young professionals.
 
 Scope:
 
-- authoritative institution and domain data;
-- external PostgreSQL and object storage;
-- production authentication;
-- phone and student-email verification;
-- age assurance;
-- liveness and production privacy-portrait generation;
-- Dutch and English production copy;
-- profiles, discovery, matching and text chat;
-- faith/lifestyle compatibility with user-controlled visibility;
-- moderation console and safety operations;
-- privacy-conscious PWA push notifications.
+- invite-only real accounts;
+- production authentication and external database;
+- age and serious-intent friction;
+- optional verified student layer;
+- live capture and privacy portrait;
+- persistent discovery, matching, contact opening and text chat;
+- manual moderation console and support coverage;
+- deletion, retention and incident procedures;
+- initially free contact rights or clearly labelled pricing experiment.
 
-**Gate:** privacy, security and legal assessments approved; moderation coverage and deletion flows proven; real-user admission explicitly authorized.
+**Gate:** privacy, security, legal and moderation readiness approved and real-user admission explicitly authorized.
 
-## Phase 4 — Dutch public beta
+## Phase 4 — Monetised Dutch beta
 
-- broader institution coverage;
-- annual student reverification;
-- recommendation and compatibility refinement;
-- invisible mode;
-- voice notes after moderation validation;
-- abuse and reliability hardening;
-- measured expansion by local marketplace density.
+- hosted web checkout;
+- regular plan and student discount;
+- Campus Mode for verified students;
+- broader city coverage;
+- recommendation explanations and exposure fairness;
+- private behavioural feedback with guarded interventions;
+- small verified local events;
+- in-app audio only after moderation readiness.
 
-## Phase 5 — Belgium evaluation
+## Phase 5 — National scale and Belgium assessment
 
-Belgium is not a copy-paste extension. Before implementation:
-
-- map Flemish and Belgian education categories and registers;
-- validate Dutch/French language requirements;
-- evaluate institution email practices;
-- assess legal and moderation implications;
-- confirm a credible community launch channel.
+National institution coverage, local density expansion, partnership channels and only then a separate Belgian legal/language/institution assessment.
 
 ## Phase 6 — Native shells
 
-Add thin Android and iOS shells only where native capability materially improves:
+Add thin iOS/Android shells only where app-store distribution, push reliability, camera controls, calling or device security justify the complexity.
 
-- notification reliability;
-- camera and codec control;
-- secure credential storage;
-- app/device integrity signals;
-- deep links and app-store distribution;
-- screenshot deterrence on future sensitive screens;
-- improved calling.
+## Stop or reconsider criteria
 
-## Stop / reconsider criteria
-
-Pause or change direction if evidence shows:
-
-- no browser or generated privacy portrait is both attractive and private enough;
-- users require public real-face photos before matching;
-- MBO/HBO/WO or faith fields produce unacceptable exclusion or confusion;
-- verification and age assurance create prohibitive abandonment;
-- target community acquisition cannot create sufficient local density;
-- moderation requirements exceed viable capacity;
-- biometric or religious-data processing cannot be justified proportionately;
-- avatar cost or latency is economically unworkable.
+- insufficient relevant local profile density;
+- users require ordinary public photos before matching;
+- privacy portraits are not attractive enough;
+- verification abandonment is prohibitive;
+- serious-intent positioning does not produce better conversations;
+- moderation or sensitive-data obligations are not operationally viable;
+- monetisation materially suppresses contact formation;
+- feedback mechanisms show unacceptable bias or retaliation.
