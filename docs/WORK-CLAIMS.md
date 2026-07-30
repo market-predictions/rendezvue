@@ -22,20 +22,24 @@ This register prevents prototype and backend behaviour from being overstated.
 | WC-016 | The public prototype resumes local onboarding. | Implemented | local schema-versioned state | Browser storage is not a secure account. |
 | WC-017 | The product is safe/lawful for real users. | Not claimed | N/A | Legal, moderation, verification and operational gates remain. |
 | WC-018 | Payments are operational. | Not claimed | mock-up only | No provider or money movement. |
-| WC-019 | Real-time multi-user chat is operational. | Not claimed | local chat only | Needs private provisioned backend/client integration. |
-| WC-020 | The relational schema is versioned and replayable. | Demonstrated locally | migration reset and CI | No remote project. |
+| WC-019 | Real-time multi-user chat is operational. | Not claimed | local chat only | Needs protected private integration and controlled proof. |
+| WC-020 | The relational schema is versioned and replayable. | Demonstrated locally | migration reset and CI | Private remote project exists, but migrations are not yet deployed. |
 | WC-021 | Parallel first likes create one normalized match. | Demonstrated locally | PR #19 race proof | Provider-hosted evidence remains. |
 | WC-022 | Parallel contact opens consume one right and create one conversation. | Demonstrated locally | PR #19 race proof | Provider-hosted evidence remains. |
 | WC-023 | Private domains isolate authenticated accounts with RLS. | Demonstrated locally | pgTAP suites | Private preview evidence remains. |
-| WC-024 | Portrait storage is private and owner-scoped by policy. | Demonstrated as schema/policy | bucket and policies | Upload, signed delivery and object cleanup untested. |
+| WC-024 | Portrait storage is private and owner-scoped by policy. | Demonstrated as schema/policy | bucket and policies | Upload, signed delivery and object cleanup untested remotely. |
 | WC-025 | Moderation/audit records are unavailable to ordinary users. | Demonstrated locally | grants/RLS tests | No moderator console or SLA. |
-| WC-026 | A remote production backend is operational. | Not claimed | N/A | No project, region, DPA, credentials or real-user environment. |
+| WC-026 | A remote production backend is operational. | Not claimed | N/A | The provisioned project is a non-production proof project with no remote migrations or real-user authorization. |
 | WC-027 | Blocking freezes match/conversation and revokes signals. | Demonstrated locally | RPC and tests | Unblock/rematch policy absent. |
 | WC-028 | Users cannot choose feedback credibility or report state. | Demonstrated locally | controlled RPCs | Credibility evolution/retaliation analysis remain. |
 | WC-029 | High-severity reports create a hidden moderation case. | Demonstrated locally | report RPC tests | No operational review queue. |
 | WC-030 | Account deletion cascades relational records and anonymises retained audit IDs. | Demonstrated locally | deletion tests | Object bytes need provider cleanup. |
-| WC-031 | A magic-link/session adapter is implemented and provider-injectable. | Implemented and unit-tested | auth-session tests | No real email delivery or remote Auth project. |
+| WC-031 | A magic-link/session adapter is implemented and provider-injectable. | Implemented and unit-tested | auth-session tests | Real email delivery and callback are not yet proven. |
 | WC-032 | Onboarding progress, prompts and interests persist in owner-scoped backend records. | Demonstrated locally | 118 pgTAP assertions | Not connected to the public PWA. |
 | WC-033 | Another authenticated account cannot read or update draft onboarding content. | Demonstrated locally | cross-account onboarding tests | Remote/private preview evidence remains. |
 | WC-034 | Profile publication is a server operation with minimum content gates. | Demonstrated locally | publication RPC tests | Age/student/liveness evidence is not authoritative. |
 | WC-035 | Onboarding snapshots omit student evidence references and portrait object paths. | Demonstrated locally | snapshot tests | Broader inference/privacy review remains. |
+| WC-036 | A private Supabase proof project exists in an EU region. | Owner-evidenced | dashboard evidence: Healthy, West EU (Ireland), Nano | DPA/access review and protected deployment remain; this is not production readiness. |
+| WC-037 | The private proof browser artifact is separate from the public Hugging Face build. | Implemented and CI-validated | separate source/build paths and PR #22 artifact job | No private artifact has yet been run against the remote project. |
+| WC-038 | The private artifact excludes server credentials. | Implemented and CI-validated | build allowlist and credential scan | A publishable browser key is intentionally embedded; RLS remains the security boundary. |
+| WC-039 | Repository migrations are deployed to the private project. | Not claimed | remote dashboard currently reports no migrations | Requires protected GitHub environment and first manual deployment run. |
