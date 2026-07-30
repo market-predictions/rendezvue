@@ -76,7 +76,7 @@ Delivered:
 
 ### 2A. Backend foundation and migration contract
 
-**Status:** implementation and independent CI complete in PR #17; merge review.
+**Status:** complete and merged through PR #17.
 
 Delivered:
 
@@ -90,17 +90,17 @@ Delivered:
 - explicit table and function privileges;
 - browser-safe backend adapter contract while the public build stays in `local-demo` mode.
 
-Validation evidence on head `596f4546`:
+Validation evidence:
 
-- existing CI run `30579113688`: success;
-- validation run `30579113891`: success;
+- PR #17 merge commit `8bbf1398`;
 - clean local database start and migration replay: success;
 - 90 pgTAP assertions across structure, two-account authorization, function privileges and deletion: success;
-- schema lint, application/artifact checks and retained Docker build: success.
+- schema lint, application/artifact checks and retained Docker build: success;
+- hosted synthetic pilot marker reverified after merge.
 
-### 2B. Local schema and authorization proof
+### 2B. Local schema, authorization and concurrency proof
 
-**Status:** substantial proof complete; adversarial concurrency and storage cleanup remain.
+**Status:** core database proof complete; storage cleanup and private-preview evidence remain.
 
 Demonstrated:
 
@@ -108,7 +108,9 @@ Demonstrated:
 - cross-account isolation for eligibility, family and faith records;
 - incoming likes remain hidden from their target;
 - reciprocal calls create one normalized match under repeated retries;
+- two truly parallel first likes create exactly one reciprocal match;
 - one entitlement creates one conversation idempotently;
+- two parallel contact-open requests create one conversation and consume one entitlement;
 - only conversation participants can read messages;
 - private feedback and reports are hidden from their subject;
 - high-severity reports create an inaccessible moderation case;
@@ -117,9 +119,8 @@ Demonstrated:
 
 Still required in issue #18:
 
-- true parallel/concurrent race tests rather than sequential retry tests;
-- actual private object upload and provider-API deletion cleanup;
-- negative publication-lifecycle tests through the client role;
+- actual private object upload, signed delivery and provider-API deletion cleanup;
+- negative publication-lifecycle tests through a browser/API client;
 - controlled private preview evidence.
 
 ### 2C. Authentication and resumable accounts
