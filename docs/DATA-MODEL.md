@@ -1,231 +1,279 @@
 # Rendezvue domain data model
 
-**Version:** 1.0  
-**Updated:** 2026-07-29
+**Version:** 1.1  
+**Updated:** 2026-07-30
 
 ## 1. Modelling doctrine
 
-Rendezvue separates account identity, eligibility, public profile, sensitive compatibility data, verification evidence, attraction, communication, payments and safety. One broad `user` record must not become the authorization model.
+Rendezvue separates authentication identity, eligibility, public profile, sensitive compatibility data, verification evidence, attraction, communication, entitlements and safety. One broad `user` record must not become the authorization model.
 
-The concept pilot represents these domains in browser state. A live pilot must implement them as server-authoritative records with row-level authorization, retention and audit rules.
+The public concept pilot represents these domains in browser state. The backend proof implements the first server-authoritative PostgreSQL version with Row Level Security. Implementation details are in `supabase/migrations/20260730203000_backend_proof_foundation.sql`.
 
-## 2. Core aggregates
+## 2. Identity and profile aggregates
 
 ### Account
 
-Private authentication identity.
+Supabase Auth `auth.users` is the proof account identity.
 
 ```text
 Account
 - id
-- auth_provider
-- personal_email_or_phone
-- status
+- auth provider / credential identity
+- email or phone
+- account metadata
 - created_at
-- last_login_at
-- deletion_requested_at
+- last_sign_in_at
 ```
 
 Account identifiers are never public. Student email is not the permanent login identity.
 
-### Eligibility
-
-```text
-Eligibility
-- account_id
-- date_of_birth
-- age_assurance_status
-- current_relationship_state
-- serious_intent_confirmed_at
-- community_fit_confirmed_at
-- country
-- reconfirm_due_at
-```
-
-Only `single` can enter discovery. Prior marital history is not stored here.
-
-### Profile
+### Profile — `profiles`
 
 ```text
 Profile
-- account_id
+- user_id
 - nickname
-- gender_identity
-- seeking
+- sex: woman | man
 - city_region
+- language
 - relationship_intent
 - bio
-- prompt_one
-- prompt_two
 - publication_status
+- profile_completed_at
+- published_at
+- created_at / updated_at
 ```
 
-### LifeStage
+This community does not store a separate user-selectable seeking field. Discovery direction is derived: a man is shown women and a woman is shown men.
+
+### Eligibility — `eligibility`
+
+```text
+Eligibility
+- user_id
+- date_of_birth
+- current_relationship_state
+- adult_confirmed
+- serious_intent_confirmed
+- community_fit_confirmed
+- terms_version
+- confirmed_at
+- reconfirm_after
+```
+
+Only `single` is eligible for publication/discovery. Prior marital history is not stored here.
+
+### LifeStage — `life_stages`
 
 ```text
 LifeStage
-- account_id
+- user_id
 - primary_status
 - education_level
 - institution_id
 - study_field
+- graduation_year
 - occupation_category
-- visibility
+- institution_visible
 ```
 
-`primary_status` supports student, recent graduate, employed, self-employed, job-seeking and other. No value is a quality rank.
+`primary_status` supports student, recent graduate, employed, self-employed, job-seeking, other and private. It is not a quality rank.
 
-### StudentVerification
+### StudentVerification — `student_verifications`
 
 ```text
 StudentVerification
 - id
-- account_id
+- user_id
 - institution_id
-- method
+- verification_method
 - status
 - verified_at
 - expires_at
 - evidence_reference
 ```
 
-Student verification creates optional benefits; it is not an admission gate.
+Student verification creates optional benefits and never admission eligibility.
 
-### FamilyContext
+### FamilyContext — `family_contexts`
 
 ```text
 FamilyContext
-- account_id
+- user_id
 - marital_history
 - has_children
 - child_count_band
 - wants_children
 - accepts_partner_with_children
-- visibility
-- confirmed_at
+- marital_history_visibility
+- children_visibility
 ```
 
-No record about an identifiable child is created. `marital_history` supports never married, divorced and widowed.
+No record about an identifiable child is created. `marital_history` supports never married, divorced and widowed. Current relationship state remains in Eligibility.
 
-### FaithProfile
+### FaithProfile — `faith_profiles`
 
 ```text
 FaithProfile
-- account_id
-- identity_description
+- user_id
+- faith_identity
 - practice_description
 - compatibility_importance
 - lifestyle_tags
-- field_visibility
-- consent_or_legal_basis_reference
+- practice_visibility
+- consent_version
+- consented_at
 ```
 
-Faith fields are self-selected, deletable and never reduced to a piety score.
+Faith fields are self-selected, deletable and never reduced to a piety score. The first backend migration keeps full faith records owner-only.
 
-### PrivacyPortrait
+### PrivacyPortrait — `privacy_portraits`
 
 ```text
 PrivacyPortrait
 - id
-- account_id
-- variant_id
-- derived_asset_reference
-- source_capture_reference
-- processing_method
-- accepted_at
-- source_delete_due_at
+- user_id
+- object_path
+- treatment
+- status
+- is_public_profile_portrait
+- source_retained_until
 ```
 
-Source capture and public derived portrait are different data classes. The concept pilot keeps both local; production should retain source media only as briefly as demonstrably necessary.
+Source capture and derived portrait are separate data classes. The proof uses a private object-storage bucket with a user-ID path prefix.
 
-## 3. Discovery and communication
+## 3. Discovery and attraction
 
-### AttractionSignal
+### DiscoveryProfile — `discovery_profiles` view
+
+The first security-invoker view exposes only:
+
+- user ID;
+- nickname;
+- sex;
+- broad city/region;
+- language;
+- relationship intent;
+- bio;
+- publication date;
+- life stage;
+- institution only when explicitly visible.
+
+Full family and faith records remain fail-closed until field-level discovery projections are reviewed.
+
+### AttractionSignal — `attraction_signals`
 
 ```text
 AttractionSignal
 - id
 - actor_user_id
 - target_user_id
-- signal_type
-- profile_component_id
-- optional_comment
-- created_at
+- signal_type: pass | like | contextual_like
+- profile_component
+- opening_message
+- created_at / updated_at
 - revoked_at
 ```
 
-`signal_type` is pass, like or contextual like. A pass is personal preference, not a negative reputation vote.
+A pass is personal preference, not negative reputation. Incoming likes are not directly readable by the target.
 
-### Match
+### Match — `matches`
 
 ```text
 Match
 - id
-- user_a_id
-- user_b_id
-- matched_at
+- ordered user_a_id / user_b_id
 - status
+- matched_at
 - ended_at
 ```
 
-A unique active match exists per user pair.
+The user IDs are normalized so one pair can have only one match row. `record_attraction_signal(...)` creates or reactivates the match only after reciprocal like/contextual-like signals.
 
-### ContactEntitlement
+## 4. Contact and messaging
+
+### ContactEntitlement — `contact_entitlements`
+
+Each row represents one contact-opening right.
 
 ```text
 ContactEntitlement
 - id
 - owner_user_id
-- source
-- quantity_remaining
-- valid_from
-- valid_until
+- source_type
 - status
+- valid_from
+- expires_at
+- consumed_match_id
+- consumed_at
+- idempotency_key
 ```
 
-### Conversation and Message
+Sources may later include pilot, subscription, single purchase, promotion or support. No provider currently issues these records.
+
+### Conversation — `conversations`
 
 ```text
 Conversation
 - id
-- match_id
+- match_id (unique)
 - opened_by_user_id
-- opened_at
 - status
+- opened_at
+- ended_at
+```
 
+`open_match_conversation(...)` consumes one valid entitlement once and creates or returns the unique conversation. Both match participants can reply.
+
+### Message — `messages`
+
+```text
 Message
 - id
 - conversation_id
 - sender_user_id
-- message_type
 - body
 - created_at
+- edited_at
 - deleted_at
 ```
 
-One valid contact entitlement opens the conversation. Both participants can then reply without per-message charges.
+The first live MVP supports text only. RLS permits insertion only by a participant in an open conversation.
 
-## 4. Feedback, trust and safety
+### Block — `blocks`
 
-### InteractionFeedback
+```text
+Block
+- id
+- blocker_user_id
+- blocked_user_id
+- reason_code
+- created_at
+```
+
+A block is server-authoritative. It is checked before discovery reads, new attraction signals and conversation opening. The next migration must also end or freeze existing conversations atomically.
+
+## 5. Feedback, reports and moderation
+
+### InteractionFeedback — `interaction_feedback`
 
 ```text
 InteractionFeedback
 - id
+- match_id
 - reviewer_user_id
 - subject_user_id
-- match_id
 - interaction_depth
 - positive_tags
 - concern_tags
 - optional_comment
-- created_at
 - credibility_weight
+- created_at
 ```
 
-Feedback is private. “No chemistry” is neutral and cannot lower visibility.
+Feedback is private to the reviewer and operational roles. “No chemistry” is neutral and cannot lower visibility.
 
-### SafetyReport
+### SafetyReport — `safety_reports`
 
 ```text
 SafetyReport
@@ -235,76 +283,103 @@ SafetyReport
 - match_id
 - category
 - description
-- evidence_references
 - severity
 - status
-- created_at
+- created_at / updated_at
 ```
 
-Serious reports enter moderation, not a recommendation formula.
+Serious reports enter moderation rather than a recommendation formula. The subject cannot read reports about themselves.
+
+### ModerationCase — `moderation_cases`
+
+```text
+ModerationCase
+- id
+- subject_user_id
+- source_report_id
+- status
+- priority
+- assigned_to
+- decision_code
+- decision_reason
+- appeal_deadline
+```
+
+No ordinary authenticated-user policy exists. Moderator roles and console are not implemented yet.
+
+### AuditEvent — `audit_events`
+
+```text
+AuditEvent
+- identity id
+- actor_user_id
+- actor_type
+- event_type
+- subject_user_id
+- entity_type / entity_id
+- payload
+- occurred_at
+```
+
+Audit records are not readable by ordinary authenticated users.
+
+## 6. Later aggregates not implemented in the first migration
+
+### VerificationEvidence
+
+Formal age, liveness, student document and identity evidence with purpose, provider, result, expiry, retention and appeal metadata.
 
 ### TrustSignal and ProfileStanding
 
-```text
-TrustSignal
-- id
-- user_id
-- source_type
-- signal_code
-- polarity
-- severity
-- confidence
-- observed_at
-- expires_at
+Internal, expiring, evidence-backed patterns. No single feedback item can directly reduce distribution. Material restrictions must be explainable, reviewable and appealable.
 
-ProfileStanding
-- user_id
-- discovery_eligibility
-- quality_state
-- safety_state
-- messaging_state
-- review_required
-- evaluated_at
-```
+### Subscription and PaymentEvent
 
-A robust pattern may create an internal signal. No single feedback item can directly reduce distribution. Material restrictions must be explainable, reviewable and appealable.
+Provider references, subscription period, verified webhook events, idempotency and refunds. Browser redirects never grant contact rights.
 
-## 5. Payments
+### Notification and DeviceRegistration
 
-```text
-Subscription
-- id
-- account_id
-- plan_id
-- provider
-- provider_reference
-- status
-- current_period_end
+Email/push preferences, device subscriptions and delivery state.
 
-PaymentEvent
-- id
-- account_id
-- provider_event_id
-- event_type
-- amount
-- currency
-- received_at
-- processed_at
-- idempotency_status
-```
+## 7. Authorization matrix
 
-A verified webhook or server-side provider lookup is the source of truth. Browser redirects never grant contact rights.
+| Domain | Owner | Match participant | Other authenticated user | Moderator/service |
+|---|---|---|---|---|
+| Profile basics | read/write | published read | published read | operational access later |
+| Eligibility | read/write | none | none | controlled review later |
+| Life/family/faith | read/write | fail-closed initially | none | controlled review later |
+| Student verification | read | none | badge projection later | verification service later |
+| Privacy portrait metadata/object | read/write own | signed public derivative later | signed public derivative later | controlled processing later |
+| Outgoing attraction signals | read through own scope | none | none | fraud/audit later |
+| Match/conversation/messages | participant only | participant only | none | moderation access later |
+| Feedback | reviewer only | none | none | moderation access later |
+| Safety report | reporter only | none | none | moderation access later |
+| Moderation/audit | none | none | none | service-role only |
 
-## 6. Visibility and ranking constraints
+## 8. Visibility and ranking constraints
 
 - account contact details are private;
 - exact location is never public;
 - institution is optional to display;
-- practice visibility starts private;
+- faith practice starts private;
 - child count is optional and coarse;
 - likes and passes are not public;
 - no public star, downvote or numeric trust score;
 - divorce, widowhood and parenthood create no hidden penalty;
 - student, MBO, HBO, WO and work status create no prestige ordering;
 - safety exclusion precedes discovery ranking;
-- exposure fairness prevents unchecked popularity loops.
+- exposure fairness must prevent unchecked popularity loops.
+
+## 9. Migration status
+
+Implemented as a versioned contract but not yet proven against a running database:
+
+- table and enum creation;
+- Auth profile trigger;
+- private storage bucket;
+- RLS policies;
+- match and conversation functions;
+- Realtime publication;
+- indexes and audit writes.
+
+The next gate is a clean local migration reset plus two-account RLS, concurrency, idempotency, blocking and deletion tests.
