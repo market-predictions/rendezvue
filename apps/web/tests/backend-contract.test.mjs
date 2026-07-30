@@ -12,8 +12,12 @@ import {
 } from '../src/backend-contract.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const migrationPath = path.resolve(here, '../../../supabase/migrations/20260730203000_backend_proof_foundation.sql');
-const migration = fs.readFileSync(migrationPath, 'utf8');
+const migrationsDirectory = path.resolve(here, '../../../supabase/migrations');
+const migration = fs.readdirSync(migrationsDirectory)
+  .filter((name) => name.endsWith('.sql'))
+  .sort()
+  .map((name) => fs.readFileSync(path.join(migrationsDirectory, name), 'utf8'))
+  .join('\n');
 
 test('backend defaults to the safe local demo mode', () => {
   assert.deepEqual(normaliseBackendConfig(), {
@@ -37,17 +41,19 @@ test('remote backend proof requires URL and publishable key', () => {
 });
 
 test('security-sensitive mutations are server authoritative', () => {
-  assert.throws(
-    () => assertServerAuthoritativeOperation(BACKEND_RPC.RECORD_ATTRACTION_SIGNAL),
-    /server-authoritative backend/
-  );
-  assert.throws(
-    () => assertServerAuthoritativeOperation(BACKEND_RPC.OPEN_MATCH_CONVERSATION),
-    /server-authoritative backend/
-  );
+  for (const operation of [
+    BACKEND_RPC.RECORD_ATTRACTION_SIGNAL,
+    BACKEND_RPC.OPEN_MATCH_CONVERSATION,
+    BACKEND_RPC.BLOCK_USER
+  ]) {
+    assert.throws(
+      () => assertServerAuthoritativeOperation(operation),
+      /server-authoritative backend/
+    );
+  }
 });
 
-test('migration contains required domain and RLS boundaries', () => {
+test('migrations contain required domain and RLS boundaries', () => {
   const requiredFragments = [
     'create table if not exists public.profiles',
     'create table if not exists public.eligibility',
@@ -63,6 +69,8 @@ test('migration contains required domain and RLS boundaries', () => {
     'create policy messages_participants_insert',
     'create or replace function public.record_attraction_signal',
     'create or replace function public.open_match_conversation',
+    'create or replace function public.block_user',
+    'create or replace function public.is_conversation_available',
     "insert into storage.buckets (id, name, public"
   ];
   for (const fragment of requiredFragments) {
@@ -70,8 +78,16 @@ test('migration contains required domain and RLS boundaries', () => {
   }
 });
 
-test('migration does not expose moderation or audit tables to users', () => {
+test('migrations do not expose moderation or audit tables to users', () => {
   assert.match(migration, /revoke all on public\.moderation_cases from anon, authenticated/);
   assert.match(migration, /revoke all on public\.audit_events from anon, authenticated/);
   assert.doesNotMatch(migration, /create policy .*moderation_cases.*authenticated/);
+});
+
+test('blocking cannot bypass the server transaction', () => {
+  assert.match(migration, /drop policy if exists blocks_owner_insert/);
+  assert.match(migration, /drop policy if exists blocks_owner_delete/);
+  assert.match(migration, /update public\.matches[\s\S]*status = 'blocked'/);
+  assert.match(migration, /update public\.conversations[\s\S]*status = 'blocked'/);
+  assert.match(migration, /set revoked_at = coalesce/);
 });
