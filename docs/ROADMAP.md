@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Updated:** 2026-07-30
 
 ## Operating doctrine
@@ -16,7 +16,7 @@
 
 **Status:** complete.
 
-Delivered: governance, dependency-light PWA, CI, Static Space deployment, Docker fallback and hosted marker verification.
+Governance, dependency-light PWA, CI, Static Space deployment, Docker fallback and hosted marker verification are delivered.
 
 ## Phase 1 — Concept and interaction validation
 
@@ -42,31 +42,13 @@ Four browser-local fuzzy variants, no raw-selfie option and downsampling fallbac
 
 **Status:** complete and hosted.
 
-Delivered:
-
-- student-first rather than student-only positioning;
-- eligibility and private-account simulation;
-- resumable local onboarding;
-- life stage and optional student verification;
-- marital history, children, child wish and openness to a partner with children;
-- privacy portrait terminology and integrated filter grid;
-- profile preview and community promise;
-- synthetic profiles across student, graduate, employed and self-employed life stages;
-- binary sex selection for this community with opposite-sex discovery derived automatically.
+Student-first open membership, eligibility, life stage, family context, privacy portraits, profile preview, community promise and man/woman onboarding with derived opposite-sex discovery are delivered.
 
 ### 1E. Interaction, contact and feedback concept
 
 **Status:** complete and hosted; field review remains.
 
-Delivered:
-
-- pass, direct like and contextual like;
-- left/right swipe gestures plus accessible buttons;
-- reciprocal pilot match;
-- simulated contact entitlement and indicative regular/student pricing;
-- text conversation;
-- end-contact flow and structured private feedback;
-- no public ratings and no automatic feedback-based visibility penalty.
+Pass, direct/contextual likes, swipes, reciprocal pilot match, simulated contact entitlement, text conversation, end-contact feedback and safety controls are delivered without public ratings or automatic feedback penalties.
 
 **Remaining Phase-1 gate:** desktop/mobile field review, mobile camera/privacy-portrait review, swipe/chat review, terminology review and logging of material defects in issue #2.
 
@@ -76,70 +58,69 @@ Delivered:
 
 ### 2A. Backend foundation and migration contract
 
-**Status:** complete and merged through PR #17.
+**Status:** complete; merged through PR #17.
 
-Delivered:
-
-- Supabase local configuration under version control;
-- PostgreSQL migrations for account, profile, eligibility, life stage, family, faith, student verification and privacy portrait domains;
-- server-authoritative attraction signals, reciprocal matches, contact entitlements, conversations and messages;
-- server-authoritative block, feedback and safety-report operations;
-- moderation cases, audit events and account-deletion anonymisation;
-- private portrait storage and Row Level Security;
-- fail-closed publication and opposite-sex discovery eligibility;
-- explicit table and function privileges;
-- browser-safe backend adapter contract while the public build stays in `local-demo` mode.
-
-Validation evidence:
-
-- PR #17 merge commit `8bbf1398`;
-- clean local database start and migration replay: success;
-- 90 pgTAP assertions across structure, two-account authorization, function privileges and deletion: success;
-- schema lint, application/artifact checks and retained Docker build: success;
-- hosted synthetic pilot marker reverified after merge.
+Versioned Supabase/PostgreSQL configuration, Auth-linked domain records, RLS, private portrait storage, server-authoritative likes/matches/contact/chat/block/feedback/reporting, moderation/audit contracts and account-deletion anonymisation are delivered.
 
 ### 2B. Local schema, authorization and concurrency proof
 
-**Status:** core database proof complete; storage cleanup and private-preview evidence remain.
+**Status:** core database proof complete; merged through PR #19.
 
 Demonstrated:
 
-- migrations replay from an empty local database;
-- cross-account isolation for eligibility, family and faith records;
-- incoming likes remain hidden from their target;
-- reciprocal calls create one normalized match under repeated retries;
-- two truly parallel first likes create exactly one reciprocal match;
-- one entitlement creates one conversation idempotently;
-- two parallel contact-open requests create one conversation and consume one entitlement;
-- only conversation participants can read messages;
-- private feedback and reports are hidden from their subject;
-- high-severity reports create an inaccessible moderation case;
-- blocking freezes match and conversation, revokes signals and prevents further messaging;
-- account deletion cascades owned relational records and anonymises retained audit identifiers.
-
-Still required in issue #18:
-
-- actual private object upload, signed delivery and provider-API deletion cleanup;
-- negative publication-lifecycle tests through a browser/API client;
-- controlled private preview evidence.
+- empty-database migration replay;
+- cross-account private-data isolation;
+- hidden incoming likes;
+- retry-safe and truly parallel reciprocal matching;
+- retry-safe and truly parallel contact opening with one entitlement consumed;
+- participant-only messages;
+- private feedback/report visibility;
+- moderation escalation;
+- block enforcement;
+- relational deletion and audit anonymisation.
 
 ### 2C. Authentication and resumable accounts
 
-**Next implementation package.**
+**Status:** auth/session and onboarding-persistence contracts complete in PR #20; private provider integration pending.
 
-- email magic link or OTP;
-- account recovery;
-- duplicate-account controls;
-- account deletion orchestration, including object cleanup;
-- abandoned-onboarding retention;
-- onboarding state persisted per authenticated user.
+Delivered and independently validated:
+
+- injectable magic-link/session adapter;
+- email normalization, session restore, current-user lookup, auth-state subscription and local sign-out;
+- owner-derived stage persistence with field allowlists;
+- versioned `onboarding_progress`;
+- first-class profile prompts and interests;
+- transactional personality save;
+- owner-only onboarding snapshot without evidence references or private portrait object paths;
+- server-side publication gate requiring eligibility, family context, selected portrait, two prompts and three interests;
+- cross-account draft isolation;
+- idempotent CI startup after stale local-stack cleanup.
+
+Validation on head `61bb93c6`:
+
+- CI run `30581908986`: success;
+- validation run `30581908380`: success;
+- 118 pgTAP assertions: success;
+- existing true parallel race proof: success;
+- schema lint, application/artifact checks and Docker build: success.
+
+Still required:
+
+- approved private non-production Supabase project in an EU region;
+- real magic-link delivery and callback validation;
+- recovery and duplicate-account controls;
+- provider-orchestrated account deletion including private object cleanup;
+- abandonment retention policy and job;
+- private preview evidence with controlled synthetic test accounts.
 
 ### 2D. Controlled multi-user interaction slice
 
+**Next after private environment provisioning.**
+
 - private preview deployment, not the public Hugging Face pilot;
 - two controlled adult test accounts;
-- persistent profiles and discovery;
-- reciprocal likes and exactly one match;
+- persistent onboarding, profiles and discovery;
+- reciprocal likes and one match;
 - server-issued pilot contact entitlement;
 - realtime text conversation;
 - block, report and end-contact enforcement.
@@ -202,18 +183,11 @@ Scope:
 
 ## Phase 4 — Monetised Dutch beta
 
-- hosted web checkout;
-- regular plan and student discount;
-- Campus Mode for verified students;
-- broader city coverage;
-- recommendation explanations and exposure fairness;
-- private behavioural feedback with guarded interventions;
-- small verified local events;
-- in-app audio only after moderation readiness.
+Hosted web checkout, regular pricing, student discount, Campus Mode, broader city coverage, guarded behavioural interventions, verified local events and later audio.
 
 ## Phase 5 — National scale and Belgium assessment
 
-National institution coverage, local density expansion, partnership channels and only then a separate Belgian legal/language/institution assessment.
+National institution coverage, local density expansion and partnerships, followed only then by a separate Belgian legal/language/institution assessment.
 
 ## Phase 6 — Native shells
 
