@@ -55,7 +55,7 @@ Target-user research, Article 9 basis, withdrawal/deletion and anti-discriminati
 ## WP-030 — Production account and eligibility stack
 
 **Status:** active  
-Auth-linked profiles, eligibility, life stage, family, faith, student verification and privacy portrait records are versioned and RLS-tested. Next: magic-link/OTP adapter, recovery, duplicate-account controls, onboarding persistence and provider-orchestrated account/media deletion.
+Auth-linked profiles, eligibility, life stage, family, faith, student verification and privacy portrait records are versioned, RLS-tested and concurrency-safe at the attraction boundary. Next: magic-link/OTP adapter, recovery, duplicate-account controls, onboarding persistence and provider-orchestrated account/media deletion.
 
 ## WP-040 — Production liveness and privacy portrait
 
@@ -64,13 +64,13 @@ Randomized challenge analysis, replay threat model, short retention, fair portra
 
 ## WP-050 — Persistent application services
 
-**Status:** review for foundation; integration active next  
-Server-authoritative attraction, reciprocal match, entitlement, conversation, message, block, feedback and report contracts are implemented. Private storage, Realtime publication, moderation/audit records and least-privilege grants passed local migration and pgTAP validation. Next: private preview client integration.
+**Status:** review for database foundation; integration active next  
+Server-authoritative attraction, reciprocal match, entitlement, conversation, message, block, feedback and report contracts are implemented. Private storage, Realtime publication, moderation/audit records, least-privilege grants and true parallel match/contact races passed local validation. Next: private preview client integration.
 
 ## WP-055 — Backend proof validation
 
 **Status:** active  
-CI now proves empty-database migration replay, 90 pgTAP assertions, schema lint, two-account RLS isolation, sequential retry idempotency, block enforcement, report privacy, moderation escalation and relational deletion/anonymisation. Remaining: true parallel race tests, actual object upload/deletion cleanup and private-preview evidence. Tracked in issue #18.
+CI proves empty-database migration replay, 90 pgTAP assertions, schema lint, two-account RLS isolation, retry idempotency, true parallel first-like and contact-opening races, block enforcement, report privacy, moderation escalation and relational deletion/anonymisation. Remaining: actual private object upload/signed delivery/deletion cleanup and private-preview evidence. Tracked in issue #18.
 
 ## WP-060 — Payments and entitlements
 
