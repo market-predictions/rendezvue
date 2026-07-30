@@ -1,7 +1,7 @@
 # Rendezvue roadmap
 
-**Version:** 1.2  
-**Updated:** 2026-07-30
+**Version:** 1.3  
+**Updated:** 2026-07-31
 
 ## Operating doctrine
 
@@ -11,6 +11,7 @@
 - Privacy portraits are implementation-neutral; fuzzy browser portraits are the MVP baseline.
 - Safety, fairness, privacy and legal controls are product features.
 - The public concept pilot remains synthetic until a private backend, moderation and legal gates are approved.
+- The private Supabase proof lane is isolated from the public Hugging Face lane.
 
 ## Phase 0 — Foundation and hosting
 
@@ -81,7 +82,7 @@ Demonstrated:
 
 ### 2C. Authentication and resumable accounts
 
-**Status:** auth/session and onboarding-persistence contracts complete in PR #20; private provider integration pending.
+**Status:** local contracts complete through PR #20; private project provisioned; protected remote deployment foundation in PR #22.
 
 Delivered and independently validated:
 
@@ -96,34 +97,45 @@ Delivered and independently validated:
 - cross-account draft isolation;
 - idempotent CI startup after stale local-stack cleanup.
 
-Validation on head `61bb93c6`:
+Provider progress:
 
-- CI run `30581908986`: success;
-- validation run `30581908380`: success;
-- 118 pgTAP assertions: success;
-- existing true parallel race proof: success;
-- schema lint, application/artifact checks and Docker build: success.
+- `RendezvueProject` provisioned and Healthy;
+- West EU (Ireland) selected;
+- Nano compute active;
+- project currently contains no remote migrations;
+- public Hugging Face pilot remains `local-demo`;
+- separate private proof harness and protected migration workflow prepared in PR #22;
+- browser artifact build rejects Supabase secret/service keys, database URLs, access tokens, passwords and private keys.
+
+Validation before the first remote run:
+
+- PR #20 implementation validation: 118 pgTAP assertions, true parallel race proof, schema lint, client tests and Docker build succeeded;
+- PR #22 private artifact build and server-secret boundary validation succeeded on its first technical head;
+- final PR #22 governance head must remain green before merge.
 
 Still required:
 
-- approved private non-production Supabase project in an EU region;
-- real magic-link delivery and callback validation;
-- recovery and duplicate-account controls;
-- provider-orchestrated account deletion including private object cleanup;
-- abandonment retention policy and job;
-- private preview evidence with controlled synthetic test accounts.
+- create protected GitHub environment `rendezvue-private-preview`;
+- add project reference, deployment token, database password, project URL and publishable key as protected environment secrets;
+- configure the exact magic-link callback URL in GitHub and Supabase Auth;
+- run the first protected `supabase db push` from `main`;
+- validate real magic-link delivery and callback with controlled synthetic accounts;
+- implement recovery and duplicate-account controls;
+- implement provider-orchestrated account deletion including private object cleanup;
+- define abandonment retention policy and job.
 
 ### 2D. Controlled multi-user interaction slice
 
-**Next after private environment provisioning.**
+**Next after the first protected migration and magic-link run.**
 
-- private preview deployment, not the public Hugging Face pilot;
-- two controlled adult test accounts;
-- persistent onboarding, profiles and discovery;
-- reciprocal likes and one match;
+- two isolated controlled adult synthetic accounts;
+- persistent onboarding and profile publication;
+- opposite-sex eligible discovery;
+- reciprocal likes and exactly one match;
 - server-issued pilot contact entitlement;
 - realtime text conversation;
-- block, report and end-contact enforcement.
+- block, report and end-contact enforcement;
+- private object upload, signed delivery and deletion cleanup evidence.
 
 ### 2E. Institution and student-benefit verification
 

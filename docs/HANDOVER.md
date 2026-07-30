@@ -1,7 +1,7 @@
 # Project handover
 
-**Updated:** 2026-07-30  
-**Milestone:** Phase 2C auth/session and resumable onboarding contracts validated
+**Updated:** 2026-07-31  
+**Milestone:** private EU Supabase project provisioned; protected proof lane prepared
 
 ## GitHub state
 
@@ -11,83 +11,107 @@
 - Man/woman onboarding policy: PR #16 merged and hosted.
 - Backend foundation: PR #17 merged as `8bbf1398`.
 - True parallel race proof: PR #19 merged as `5976ddea`.
-- Auth/onboarding persistence: draft PR #20 on `agent/auth-onboarding-persistence`; CI and validation green before governance-only updates.
-- Public pilot: `https://solidprivacy-rendezvue.static.hf.space/` and remains synthetic `local-demo`.
+- Auth/onboarding persistence: PR #20 merged as `1de81465`.
+- Protected private Supabase lane: draft PR #22 on `agent/private-supabase-preview-foundation`.
+- Public pilot remains synthetic `local-demo` on Hugging Face.
 
 ## Product baseline
 
 Rendezvue is adult, currently-single and serious-intent, with student-first open membership. Student verification is optional. Life stage, marital history, children, child wish, faith/lifestyle, fuzzy privacy portraits, free discovery/likes and paid conversation opening remain separate product domains. Public stars, downvotes and popularity counts are prohibited. The community flow uses man/woman sex options and derives opposite-sex discovery.
 
-## Hosted concept pilot
+## Public concept pilot
 
-The public PWA demonstrates progressive Dutch/English onboarding, simulated student verification, live selfie/privacy portraits, synthetic discovery, pass/direct/contextual likes, swipe, deterministic match, simulated contact right, local text chat, feedback, report and block. It is not a real multi-user service.
+The public PWA demonstrates progressive Dutch/English onboarding, simulated student verification, live selfie/privacy portraits, synthetic discovery, pass/direct/contextual likes, swipe, deterministic match, simulated contact right, local text chat, feedback, report and block. It is not a real multi-user service and receives no private Supabase runtime configuration.
 
-## Merged backend foundation
+## Merged backend and onboarding foundation
 
 Implemented and validated on `main`:
 
 - versioned Supabase/PostgreSQL migrations;
-- RLS and least-privilege table/function grants;
-- private portrait storage contract;
+- RLS and least-privilege grants;
+- private portrait-storage contract;
 - server-authoritative attraction, match, contact, conversation, messaging, block, feedback and report operations;
-- hidden moderation/audit domains;
-- high-severity escalation;
+- hidden moderation/audit domains and high-severity escalation;
 - relational deletion and audit anonymisation;
-- true parallel first-like and contact-opening race protection.
+- true parallel first-like and contact-opening race protection;
+- provider-injectable magic-link/session adapter;
+- owner-derived onboarding persistence;
+- first-class prompts/interests and transactional personality save;
+- owner-only sanitized onboarding snapshot;
+- server-side publication gate and cross-account draft isolation.
 
-## PR #20 — auth and resumable onboarding
+The local proof baseline passed 118 pgTAP assertions, true parallel race tests, schema lint, client tests, app/artifact checks and Docker validation.
+
+## Supabase project evidence
+
+Owner evidence received on 2026-07-31:
+
+- project: `RendezvueProject`;
+- status: Healthy;
+- region: West EU (Ireland);
+- compute: Nano;
+- remote migrations: none;
+- dashboard GitHub repository connection: none.
+
+This is an approved non-production proof project, not a production backend or real-user environment.
+
+## PR #22 — protected private proof lane
 
 Implemented:
 
-- injectable magic-link/session adapter;
-- personal-email normalization;
-- session restore and current-user lookup;
-- auth-state subscription and local sign-out;
-- `onboarding_progress` with schema version and completed stages;
-- `profile_prompts` and `profile_interests` as first-class records;
-- owner-derived stage writes with strict field allowlists;
-- transactional prompts/interests save;
-- owner-only onboarding snapshot excluding evidence references and private object paths;
-- server-side publication requiring eligibility, family context, selected privacy portrait, two prompts and three interests;
-- cross-account isolation for draft onboarding/profile content;
-- idempotent CI startup that removes stale local stacks.
+- separate `apps/private-preview` source tree, excluded from the public build;
+- browser proof interface for magic-link Auth, synthetic onboarding, owner snapshot, private portrait upload, publication, discovery, like and match inspection;
+- runtime builder that accepts only project URL, `sb_publishable_...` key and exact callback URL;
+- syntax validation and recursive artifact scan for server secrets;
+- protected manual workflow using GitHub environment `rendezvue-private-preview`;
+- project-reference/URL consistency check;
+- `supabase link`, migration listing and optional `supabase db push`;
+- remote Auth/Data API health checks;
+- three-day private workflow artifact;
+- complete provisioning and two-account proof runbook in `docs/PRIVATE-SUPABASE-PREVIEW.md`.
 
-## Validation evidence
+The first PR #22 technical head passed the public application checks, retained Docker build and the private artifact/credential-boundary job. The final governance head must pass the complete validation suite before merge.
 
-On implementation head `61bb93c67a8a03c2c66fe76c573f0b06750c935e`:
+## Required protected configuration
 
-- CI run `30581908986`: success;
-- validation run `30581908380`: success;
-- application/static artifact checks: success;
-- auth and onboarding client tests: success;
-- retained Docker build: success;
-- clean local database start and full migration replay: success;
-- 118 pgTAP assertions: success;
-- true parallel match/contact race tests: success;
-- schema lint and clean shutdown: success.
+Create GitHub environment `rendezvue-private-preview` with owner review and `main`-only deployment.
 
-The new tests prove that another account cannot read or update draft progress, prompts or interests; publication fails without a selected portrait; a complete profile publishes through one RPC; onboarding becomes complete; and snapshots omit private object paths.
+Environment secrets:
+
+- `SUPABASE_PROJECT_REF`;
+- `SUPABASE_ACCESS_TOKEN`;
+- `SUPABASE_DB_PASSWORD`;
+- `SUPABASE_URL`;
+- `SUPABASE_PUBLISHABLE_KEY` using `sb_publishable_...`.
+
+Environment variable:
+
+- `RENDEZVUE_AUTH_REDIRECT_URL`, initially `http://127.0.0.1:4174/`.
+
+The exact callback URL must also be added to Supabase Authentication → URL Configuration. Never place these values in source, issues, screenshots or chat.
+
+## Immediate next execution sequence
+
+1. merge PR #22 after final CI;
+2. create and protect GitHub environment `rendezvue-private-preview`;
+3. add the five secrets and callback variable;
+4. configure the exact callback in Supabase Auth;
+5. manually run **Deploy private Supabase preview** from `main` with migrations enabled;
+6. retain migration and health-check evidence;
+7. download and locally serve the short-lived private artifact;
+8. create two controlled synthetic adult accounts in isolated browser profiles;
+9. validate persistent onboarding, portraits, publication, opposite-sex discovery, reciprocal likes and exactly one match;
+10. add administrative pilot-entitlement orchestration and then validate realtime conversation, block/report and deletion cleanup.
 
 ## Explicit limitations
 
-- no private Supabase project is provisioned;
-- no real email or magic-link delivery is configured;
-- no real account recovery or duplicate-account handling;
-- no provider-orchestrated account/media deletion;
-- no actual object upload or signed portrait delivery;
-- no private multi-user preview;
-- public matching/chat remain deterministic and local;
+- repository migrations are not yet deployed to the remote project;
+- protected GitHub environment values are not yet configured through the current development connection;
+- real magic-link delivery/callback is unproven;
+- recovery and duplicate-account handling are incomplete;
+- private object signed delivery and provider cleanup are unproven;
+- no private multi-user proof has yet completed;
 - no payments, operational moderation, Article 9 production basis or real-user authorization.
-
-## Next actions after PR #20 merge
-
-1. approve a private non-production Supabase project and EU region;
-2. configure a preview URL, publishable key and magic-link redirect;
-3. test two controlled synthetic accounts end to end;
-4. validate recovery and account deletion including private object cleanup;
-5. connect persistent discovery, likes, matches and realtime messages to a private preview;
-6. add a minimal moderator queue before any controlled user research;
-7. keep the public Hugging Face build in `local-demo`.
 
 ## Owner review still required
 
