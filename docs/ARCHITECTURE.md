@@ -1,9 +1,9 @@
 # Rendezvue architecture
 
-**Version:** 1.0  
-**Updated:** 2026-07-29
+**Version:** 1.1  
+**Updated:** 2026-07-30
 
-## 1. Current concept-pilot topology
+## 1. Current public concept-pilot topology
 
 ```text
 GitHub branch / PR
@@ -18,25 +18,27 @@ GitHub main (authority)
 Hugging Face Static Space (generated web-facing PWA)
 ```
 
-The Static Space performs no application build and owns no persistent state. The current milestone stores only local concept-pilot state in the browser.
+The Static Space performs no application build and owns no persistent state. The public deployment remains a synthetic concept pilot and uses local browser state only.
 
 ## 2. Current browser modules
 
 ```text
 apps/web/
-  app.js                 onboarding state machine and interaction orchestration
-  styles.css             retained visual system
-  pilot-v1.css           product-baseline additions
-  src/domain.js          eligibility, life stage, family, faith and profile rules
-  src/i18n.js            Dutch/English copy
-  src/camera.js          live capture and frame extraction
-  src/avatar.js          browser-local privacy portrait variants
-  src/demo-data.js       synthetic cross-life-stage profiles
+  app.js                    onboarding state machine and interaction orchestration
+  community-policy.js       man/woman community policy and derived discovery direction
+  styles.css                retained visual system
+  pilot-v1.css              product-baseline additions
+  src/domain.js             eligibility, life stage, family, faith and profile rules
+  src/i18n.js               Dutch/English copy
+  src/camera.js             live capture and frame extraction
+  src/avatar.js             browser-local privacy portrait variants
+  src/demo-data.js          synthetic cross-life-stage profiles
+  src/backend-contract.js    safe local/remote backend boundary
 ```
 
-The former build-time patching of the privacy-filter grid is removed. Source now equals the behaviour that is built and deployed.
+The former build-time patching of the privacy-filter grid is removed. Source equals the behaviour that is built and deployed.
 
-## 3. Concept-pilot state
+## 3. Public concept-pilot state
 
 The browser state models the complete flow but is not a security boundary. It may persist non-production progress in local storage. Camera source data remains browser-local. The selected derived portrait may be stored locally so the concept flow can resume.
 
@@ -48,54 +50,81 @@ Prototype interactions are deterministic and local:
 - chat, reports and feedback exist only in local demo state;
 - feedback has no ranking effect.
 
-## 4. Production domain boundaries
+The runtime backend mode defaults to `local-demo`. A public artifact must not silently switch to a remote backend.
+
+## 4. Backend proof topology
 
 ```text
-Account
-Eligibility
+Public Hugging Face PWA                 Private proof preview
+(local-demo only)                       (controlled accounts only)
+          |                                      |
+          | no persistent calls                  v
+          |                             Supabase Auth / API
+          |                                      |
+          |                                      v
+          |                             PostgreSQL + RLS
+          |                             private Storage
+          |                             Realtime publication
+          |                                      |
+          +---------------- GitHub migrations ---+
+```
+
+`supabase/config.toml` and versioned migrations are committed to GitHub. Provider secrets, service-role keys and real user data are never committed or included in the public static artifact.
+
+## 5. Server-authoritative domain boundaries
+
+```text
+Account (auth.users)
 Profile
+Eligibility
 LifeStage
 StudentVerification
 FamilyContext
 FaithProfile
 PrivacyPortrait
-VerificationEvidence
-DiscoveryPreferences
 AttractionSignal
 Match
 ContactEntitlement
 Conversation / Message
+Block
 InteractionFeedback
 SafetyReport
-TrustSignal / ProfileStanding
-Subscription / PaymentEvent
-ModerationCase / AuditEvent
+ModerationCase
+AuditEvent
 ```
 
-These boundaries are described in `docs/DATA-MODEL.md`.
+These boundaries are implemented as separate tables in the backend proof migration and described in `docs/DATA-MODEL.md` and `docs/BACKEND-PROOF.md`.
 
-## 5. Target pilot architecture
+## 6. Backend proof operations
 
-```text
-Hugging Face PWA / later native shell
-             |
-             v
-Backend-for-frontend / API gateway
- | auth | profile | discovery | messaging | payments | moderation |
-             |
-             v
-PostgreSQL + row-level authorization
-Private object storage + signed access
-Realtime channels + durable job queue
-Audit/evidence store
-             |
-             v
-Email/SMS, age assurance, liveness and payment providers
-```
+### Like to match
 
-A managed PostgreSQL platform such as Supabase is the leading backend proof candidate because it combines authentication, relational storage, realtime messaging, private storage and row-level policies. Provider selection remains an ADR gate rather than a hard dependency.
+`record_attraction_signal(...)` derives the actor from the authenticated session, rejects self-interaction and blocked or unpublished targets, stores the signal and creates one normalized match only after a reciprocal like.
 
-## 6. Security and privacy invariants
+### Contact right to conversation
+
+`open_match_conversation(...)` locks the match and entitlement, verifies participant and block state, consumes one valid entitlement idempotently and creates or returns the unique conversation. Both match participants may then reply.
+
+### Messaging
+
+Messages are insertable only by a participant in an open conversation. Realtime delivery never grants access by itself; table RLS remains authoritative.
+
+### Safety
+
+Blocks are server records. Feedback, safety reports, moderation cases and audit events are separate. Moderation and audit tables have no authenticated-user policies.
+
+## 7. Data exposure architecture
+
+- private profile domains are readable only by their owner in the first migration;
+- `discovery_profiles` exposes only approved basic profile and life-stage fields;
+- full family and faith data remain fail-closed until visibility projections are reviewed;
+- incoming likes are not directly queryable by the recipient;
+- a participant can read only their matches, conversations and messages;
+- report subjects cannot read reports about themselves;
+- privacy portrait objects are stored in a private bucket under the owner UUID prefix;
+- service-role operations are reserved for controlled backend and moderation processes.
+
+## 8. Security and privacy invariants
 
 - the browser is untrusted;
 - persistent state never depends on Hugging Face;
@@ -108,24 +137,23 @@ A managed PostgreSQL platform such as Supabase is the leading backend proof cand
 - data about individual children is not collected;
 - likes are attraction signals, not reputation votes;
 - serious reports never become a simple ranking penalty;
-- all deployed files derive from accepted GitHub source.
+- all deployed files derive from accepted GitHub source;
+- the public concept pilot never receives a service-role credential.
 
-## 7. Contact-entitlement architecture
+## 9. Deployment lanes
 
-A match does not itself create an open conversation. A server transaction will:
+### Public concept lane
 
-1. lock the match and entitlement ledger;
-2. consume one valid contact entitlement once;
-3. create or return the unique conversation;
-4. permit both participants to reply;
-5. record an auditable idempotency key.
+GitHub `main` builds and deploys to the existing Hugging Face Static Space. This lane remains synthetic and suitable for UX review only.
 
-Redirect success from a payment provider shall never activate entitlement without a verified server-side event.
+### Private proof lane
 
-## 8. Feedback architecture
+A later non-public preview build will receive browser-safe Supabase URL and publishable-key configuration. It is limited to controlled test accounts until privacy, legal and moderation approval.
 
-AttractionSignal, InteractionFeedback and SafetyReport remain separate. Aggregation may create internal TrustSignals, but no single review can directly reduce distribution. Serious categories create moderation cases. Positive public badges require sufficient independent evidence.
+### Production lane
 
-## 9. Framework decision
+No production lane exists yet. A production environment requires provider/region approval, DPA/DPIA review, backup and incident controls, operational moderation, monitored migrations and explicit real-user authorization.
+
+## 10. Framework decision
 
 The dependency-light PWA remains appropriate for concept validation. A production component framework is selected only after the interaction model stabilizes, using accessibility, localization, state-machine, WebRTC, testing, bundle-size and maintainability criteria.
