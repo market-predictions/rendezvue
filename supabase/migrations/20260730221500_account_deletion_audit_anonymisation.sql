@@ -17,6 +17,11 @@ begin
   set subject_user_id = null
   where subject_user_id = old.id;
 
+  update public.audit_events
+  set entity_id = null
+  where entity_type = 'account'
+    and entity_id = old.id::text;
+
   return old;
 end;
 $$;
