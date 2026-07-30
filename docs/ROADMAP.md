@@ -76,32 +76,60 @@ Delivered:
 
 ### 2A. Backend foundation and migration contract
 
-**Status:** implementation active.
+**Status:** implementation and independent CI complete in PR #17; merge review.
+
+Delivered:
 
 - Supabase local configuration under version control;
-- PostgreSQL migration for account, profile, eligibility, life stage, family, faith, student verification and privacy portrait domains;
+- PostgreSQL migrations for account, profile, eligibility, life stage, family, faith, student verification and privacy portrait domains;
 - server-authoritative attraction signals, reciprocal matches, contact entitlements, conversations and messages;
-- blocks, private feedback, safety reports, moderation cases and audit events;
+- server-authoritative block, feedback and safety-report operations;
+- moderation cases, audit events and account-deletion anonymisation;
 - private portrait storage and Row Level Security;
+- fail-closed publication and opposite-sex discovery eligibility;
+- explicit table and function privileges;
 - browser-safe backend adapter contract while the public build stays in `local-demo` mode.
+
+Validation evidence on head `596f4546`:
+
+- existing CI run `30579113688`: success;
+- validation run `30579113891`: success;
+- clean local database start and migration replay: success;
+- 90 pgTAP assertions across structure, two-account authorization, function privileges and deletion: success;
+- schema lint, application/artifact checks and retained Docker build: success.
 
 ### 2B. Local schema and authorization proof
 
-**Next.**
+**Status:** substantial proof complete; adversarial concurrency and storage cleanup remain.
 
-- clean `supabase db reset` from migrations;
-- SQL tests for RLS and cross-account isolation;
-- concurrency test for reciprocal likes creating one match;
-- idempotency test for one entitlement creating one conversation;
-- block enforcement across discovery, interaction and messaging;
-- cascade-deletion proof.
+Demonstrated:
+
+- migrations replay from an empty local database;
+- cross-account isolation for eligibility, family and faith records;
+- incoming likes remain hidden from their target;
+- reciprocal calls create one normalized match under repeated retries;
+- one entitlement creates one conversation idempotently;
+- only conversation participants can read messages;
+- private feedback and reports are hidden from their subject;
+- high-severity reports create an inaccessible moderation case;
+- blocking freezes match and conversation, revokes signals and prevents further messaging;
+- account deletion cascades owned relational records and anonymises retained audit identifiers.
+
+Still required in issue #18:
+
+- true parallel/concurrent race tests rather than sequential retry tests;
+- actual private object upload and provider-API deletion cleanup;
+- negative publication-lifecycle tests through the client role;
+- controlled private preview evidence.
 
 ### 2C. Authentication and resumable accounts
+
+**Next implementation package.**
 
 - email magic link or OTP;
 - account recovery;
 - duplicate-account controls;
-- account deletion;
+- account deletion orchestration, including object cleanup;
 - abandoned-onboarding retention;
 - onboarding state persisted per authenticated user.
 
