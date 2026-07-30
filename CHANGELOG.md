@@ -6,44 +6,47 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ### Backend proof foundation
 
-- Added versioned Supabase local configuration and PostgreSQL migrations for the server-authoritative domain model.
-- Added separate account-linked records for profiles, eligibility, life stage, family context, faith profile, student verification and privacy portraits.
-- Added attraction signals, normalized reciprocal matches, contact entitlements, idempotent conversation opening and participant-only messages.
-- Added server-authoritative blocking that freezes the match/conversation and revokes attraction signals.
-- Added controlled private-feedback and safety-report RPCs so clients cannot choose credibility weight, report status or moderation priority.
-- Added automatic high-severity moderation-case creation and audit events.
-- Added account-deletion cascade tests and anonymisation of retained audit identifiers.
-- Added private privacy-portrait storage policies, one-selected-portrait enforcement and fail-closed publication lifecycle rules.
-- Added opposite-sex and eligibility-aware discovery through a non-recursive security-definer predicate.
-- Added explicit least-privilege table and function grants alongside Row Level Security.
-- Added Realtime publication for matches and messages while retaining RLS as the access boundary.
-- Added a browser-safe backend contract with `local-demo` as the public default.
-- Added ADR-0008, `docs/BACKEND-PROOF.md` and updated requirements, architecture, data model, roadmap, work packages, claims and handover.
-- Added a database CI job that starts a clean local stack, replays migrations, runs pgTAP and lints the schema.
+- Added versioned Supabase/PostgreSQL migrations, Row Level Security, least-privilege grants and private portrait-storage contracts.
+- Added server-authoritative attraction signals, reciprocal matches, contact entitlements, conversations, messages, blocking, private feedback, safety reports, moderation cases and audit events.
+- Added account-deletion cascades and audit-identifier anonymisation.
+- Added fail-closed publication and eligibility/opposite-sex discovery rules.
+- Added true parallel race protection for simultaneous first likes and contact-opening requests.
+- Added CI database startup, empty-database replay, pgTAP, race tests and schema lint.
 
-### Backend proof validation
+### Auth and resumable onboarding contracts
 
-- Existing CI run `30579113688` passed.
-- Validation run `30579113891` passed application/artifact checks, retained Docker build, empty-database start/reset, 90 pgTAP assertions and schema lint.
-- Demonstrated two-account isolation for eligibility, family and faith records.
-- Demonstrated hidden incoming likes, normalized reciprocal matching and retry-safe contact opening.
-- Demonstrated participant-only messaging, private feedback/report visibility and high-severity moderation escalation.
-- Demonstrated block enforcement across discovery, matching and messaging.
-- Demonstrated relational account deletion and audit identifier anonymisation.
+- Added an injectable magic-link/session adapter with email normalization, session restore, current-user lookup, auth-state subscription and local sign-out.
+- Added owner-derived stage persistence with strict per-domain field allowlists.
+- Added versioned `onboarding_progress`.
+- Added first-class `profile_prompts` and `profile_interests` records.
+- Added transactional `save_profile_personality(...)`.
+- Added owner-only `load_onboarding_snapshot()` that excludes evidence references and private portrait object paths.
+- Added `publish_profile()` as the only server-side publication action.
+- Publication now requires eligible single/adult/serious/community state, family context, a selected pending/verified privacy portrait, at least two prompts and at least three interests.
+- Added cross-account draft-isolation and publication-lifecycle tests.
+- Made database CI startup idempotent by removing a stale local stack before startup.
+
+### Validation
+
+- Backend foundation PR #17 merged as `8bbf1398`.
+- Concurrency proof PR #19 merged as `5976ddea`.
+- CI run `30581908986` passed for PR #20 implementation head `61bb93c6`.
+- Validation run `30581908380` passed application/artifact checks, auth/onboarding client tests, retained Docker build, empty-database migration replay, 118 pgTAP assertions, true parallel race tests and schema lint.
 
 ### Completed since 0.3.0-alpha.1
 
 - Merged product baseline PR #14 and marker-verified the hosted v1 pilot.
-- Fixed the v1 Hugging Face deployment marker contract in PR #15.
-- Merged and hosted PR #16 to replace gender-identity/seeking questions with man/woman sex selection and derived opposite-sex discovery.
+- Fixed the Hugging Face v1 marker contract in PR #15.
+- Merged and hosted PR #16 with man/woman onboarding and derived opposite-sex discovery.
+- Merged the server-authoritative backend foundation and database concurrency proof.
 
 ### Pending review and proof
 
 - Desktop/mobile field review of the public pilot and camera/privacy portraits.
-- True parallel race tests for reciprocal likes and contact-entitlement consumption.
+- Approved private non-production Supabase project and EU region.
+- Real magic-link delivery, redirect and recovery tests.
 - Actual private object upload, signed delivery and provider-API deletion cleanup.
-- Private non-production backend provisioning and provider/region/privacy approval.
-- Auth/session adapter, recovery and persistent onboarding integration.
+- Private multi-user preview with controlled synthetic accounts.
 - Legal, privacy, security and moderation gates before any real-user pilot.
 
 ## [0.3.0-alpha.1] - 2026-07-29
@@ -64,39 +67,29 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Rebuilt onboarding as a progressive ten-stage Dutch/English flow with versioned local resume.
 - Added simulated private account creation and optional student verification.
 - Added public-profile preview and community promise.
-- Added diverse student, graduate, employed and self-employed synthetic profiles, including divorced, widowed and parent profiles.
-- Added direct likes, contextual likes and pointer swipe gestures with accessible button alternatives.
-- Added deterministic reciprocal match, simulated contact entitlement, indicative regular/student pricing and local text chat.
-- Added end-contact and structured private feedback without ranking effect.
-- Integrated the privacy-filter grid directly in source and removed the fragile build-time patch architecture.
-- Added data-model, onboarding, interaction/trust and pilot-protocol documentation plus ADR-0007.
-- Added a pull-request validation workflow for application, generated artifacts and retained Docker builds.
+- Added diverse synthetic profiles, direct/contextual likes, swipes, deterministic match, simulated contact entitlement and local text chat.
+- Added end-contact and private feedback without ranking effect.
+- Integrated privacy portraits directly in source and added product/data/governance documentation.
 
 ### Validation
 
 - Local `npm run check` passed with 44 required artifacts and 10/10 tests.
-- Existing CI run `30475799061` passed application, artifact, Python helper and Docker validation.
-- New validation run `30475799089` passed application/artifact and retained Docker jobs.
+- CI runs `30475799061` and `30475799089` passed.
 
 ### Safety and claims
 
-- Kept the repository synthetic-only and explicitly unsuitable for real-user admission.
-- Added family-data minimisation and prohibited identifiable child data.
-- Clarified that single status, student status and camera flow are not production verification.
-- Kept payment, feedback ranking and enforcement non-operational in the concept pilot.
+- Kept the repository synthetic-only and unsuitable for real-user admission.
+- Prohibited identifiable child data and clarified that eligibility/student/camera claims are not production verification.
+- Kept payment and reputation enforcement non-operational.
 
 ## [0.2.0-alpha.4] - 2026-07-28
 
-### Changed
-
-- Replaced the single imposed ink-sketch avatar with four selectable browser-local privacy portraits.
-- Introduced a 2×2 selection grid before profile creation.
-- Enforced a minimum blur/privacy floor; no raw or lightly edited selfie is available.
-- Added Soft focus, Warm veil, Monochrome mist and Extra private recipes with a downsampling fallback.
+- Replaced the single imposed avatar with four selectable browser-local privacy portraits.
+- Added a 2×2 selection grid and minimum privacy floor.
 
 ## [0.2.0-alpha.3] - 2026-07-28
 
-- Tested a stronger monochrome ink-sketch abstraction and recorded its privacy and aesthetic limitations.
+- Tested a stronger monochrome ink-sketch abstraction.
 
 ## [0.2.0-alpha.2] - 2026-07-28
 
@@ -126,7 +119,7 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [0.1.0-alpha.3] - 2026-07-27
 
-- Switched from a paid Docker Space path to a free Static Space while retaining Docker CI validation.
+- Switched to a free Static Space while retaining Docker CI validation.
 
 ## [0.1.0-alpha.2] - 2026-07-27
 
@@ -134,4 +127,4 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [0.1.0-alpha.1] - 2026-07-27
 
-- Established GitHub authority, governance, a mobile PWA prototype, camera capture, discovery, matching, chat, safety controls and CI foundations.
+- Established GitHub authority, governance, mobile PWA prototype, camera capture, discovery, matching, chat, safety controls and CI foundations.

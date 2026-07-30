@@ -35,6 +35,8 @@ jobs:
         with:
           version: latest
           github-token: ${{ github.token }}
+      - name: Remove any stale local stack
+        run: supabase stop --no-backup || true
       - name: Start clean local database and apply migrations
         run: supabase db start
       - name: Replay migrations from an empty database
