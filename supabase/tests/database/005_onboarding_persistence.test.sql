@@ -1,6 +1,6 @@
 begin;
 
-select plan(29);
+select plan(28);
 
 select has_table('public', 'onboarding_progress', 'onboarding progress table exists');
 select has_table('public', 'profile_prompts', 'profile prompts table exists');
