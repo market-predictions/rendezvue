@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://esm.sh; style-src 'self'; img-src 'self' blob: data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://esm.sh; base-uri 'none'; form-action 'self'">
+  <title>Rendezvue private backend proof</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">PRIVATE · SYNTHETIC PROOF ONLY</p>
+        <h1>Rendezvue backend preview</h1>
+        <p>Deze afzonderlijke testinterface valideert authenticatie, hervatbare onboarding, profielpublicatie, discovery en likes tegen de private Supabase-omgeving.</p>
+      </div>
+      <div class="status-stack" aria-live="polite">
+        <span id="config-status" class="badge">Configuratie controleren…</span>
+        <span id="session-status" class="badge muted">Niet aangemeld</span>
+      </div>
+    </header>
+
+    <section class="warning">
+      <strong>Geen echte persoonsgegevens.</strong>
+      Gebruik uitsluitend gecontroleerde synthetische volwassen testaccounts en synthetische profielinformatie. Dit is geen publieke of productieomgeving.
+    </section>
+
+    <section class="panel" id="auth-panel">
+      <h2>Aanmelden met magic link</h2>
+      <form id="magic-link-form" class="stack">
+        <label>
+          E-mailadres van gecontroleerd testaccount
+          <input id="email" name="email" type="email" autocomplete="email" required placeholder="proof-account@example.test">
+        </label>
+        <button type="submit">Magic link aanvragen</button>
+      </form>
+      <p class="hint">De redirect-URL moet exact in Supabase Auth → URL Configuration zijn toegestaan.</p>
+    </section>
+
+    <section id="authenticated-area" hidden>
+      <section class="panel identity-bar">
+        <div>
+          <h2>Actieve proofsessie</h2>
+          <p id="user-summary">—</p>
+        </div>
+        <button id="sign-out" class="secondary" type="button">Afmelden</button>
+      </section>
+
+      <section class="panel">
+        <h2>Synthetisch profiel opslaan</h2>
+        <form id="profile-form" class="grid-form">
+          <label>
+            Schermnaam
+            <input id="nickname" value="Proof Noor" maxlength="80" required>
+          </label>
+          <label>
+            Sekse
+            <select id="sex">
+              <option value="woman">Vrouw</option>
+              <option value="man">Man</option>
+            </select>
+          </label>
+          <label>
+            Regio
+            <input id="city" value="Utrecht" maxlength="120" required>
+          </label>
+          <label>
+            Levensfase
+            <select id="life-stage">
+              <option value="student">Student</option>
+              <option value="recent_graduate">Recent afgestudeerd</option>
+              <option value="employed">Werkend</option>
+              <option value="self_employed">Zelfstandig</option>
+            </select>
+          </label>
+          <label>
+            Huwelijksverleden
+            <select id="marital-history">
+              <option value="never_married">Nooit getrouwd</option>
+              <option value="divorced">Gescheiden</option>
+              <option value="widowed">Weduwe/weduwnaar</option>
+            </select>
+          </label>
+          <label>
+            Relatie-intentie
+            <input id="relationship-intent" value="Serieuze kennismaking met huwelijk als doel" required>
+          </label>
+          <label class="wide">
+            Korte bio
+            <textarea id="bio" maxlength="1200">Synthetisch proofprofiel voor het testen van Rendezvue.</textarea>
+          </label>
+          <label class="wide">
+            Prompt 1
+            <input id="prompt-one" value="Een rustige wandeling en een goed gesprek." required>
+          </label>
+          <label class="wide">
+            Prompt 2
+            <input id="prompt-two" value="Betrouwbaarheid, humor en duidelijke intenties." required>
+          </label>
+          <label class="wide">
+            Interesses, komma-gescheiden
+            <input id="interests" value="boeken,wandelen,koken,technologie" required>
+          </label>
+          <button class="wide" type="submit">Profiel en onboarding opslaan</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h2>Privacyportret uploaden</h2>
+        <form id="portrait-form" class="stack">
+          <label>
+            Synthetisch JPEG-, PNG- of WebP-bestand
+            <input id="portrait-file" type="file" accept="image/jpeg,image/png,image/webp" required>
+          </label>
+          <button type="submit">Uploaden en als profielportret selecteren</button>
+        </form>
+        <p class="hint">Het object wordt privé opgeslagen onder de UUID-map van het aangemelde account. De database registreert uitsluitend status <code>pending</code>.</p>
+      </section>
+
+      <section class="panel action-grid">
+        <button id="publish-profile" type="button">Profiel publiceren</button>
+        <button id="load-snapshot" class="secondary" type="button">Onboardingsnapshot laden</button>
+        <button id="load-discovery" class="secondary" type="button">Discovery laden</button>
+        <button id="load-matches" class="secondary" type="button">Matches laden</button>
+      </section>
+
+      <section class="panel">
+        <h2>Discoveryproof</h2>
+        <div id="discovery-list" class="cards empty">Nog niet geladen.</div>
+      </section>
+
+      <section class="panel">
+        <h2>Sanitized proofresultaat</h2>
+        <pre id="result-output">Nog geen bewerking uitgevoerd.</pre>
+      </section>
+    </section>
+
+    <section class="panel log-panel">
+      <h2>Prooflog</h2>
+      <ol id="proof-log" aria-live="polite"></ol>
+    </section>
+  </main>
+
+  <script src="./runtime-config.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
