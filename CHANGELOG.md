@@ -6,29 +6,44 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ### Backend proof foundation
 
-- Added versioned Supabase local configuration and a PostgreSQL migration for the server-authoritative domain model.
+- Added versioned Supabase local configuration and PostgreSQL migrations for the server-authoritative domain model.
 - Added separate account-linked records for profiles, eligibility, life stage, family context, faith profile, student verification and privacy portraits.
-- Added attraction signals, reciprocal match creation, contact entitlements, idempotent conversation opening, messages and blocks.
-- Added private interaction feedback, safety reports, moderation cases and audit events as separate domains.
-- Added private privacy-portrait storage policies and Row Level Security across exposed tables.
-- Added a fail-closed discovery projection that does not expose full family or faith records.
+- Added attraction signals, normalized reciprocal matches, contact entitlements, idempotent conversation opening and participant-only messages.
+- Added server-authoritative blocking that freezes the match/conversation and revokes attraction signals.
+- Added controlled private-feedback and safety-report RPCs so clients cannot choose credibility weight, report status or moderation priority.
+- Added automatic high-severity moderation-case creation and audit events.
+- Added account-deletion cascade tests and anonymisation of retained audit identifiers.
+- Added private privacy-portrait storage policies, one-selected-portrait enforcement and fail-closed publication lifecycle rules.
+- Added opposite-sex and eligibility-aware discovery through a non-recursive security-definer predicate.
+- Added explicit least-privilege table and function grants alongside Row Level Security.
 - Added Realtime publication for matches and messages while retaining RLS as the access boundary.
 - Added a browser-safe backend contract with `local-demo` as the public default.
-- Added backend contract tests and `docs/BACKEND-PROOF.md`.
-- Activated WP-030, WP-050 and WP-055 in the roadmap and work packages.
+- Added ADR-0008, `docs/BACKEND-PROOF.md` and updated requirements, architecture, data model, roadmap, work packages, claims and handover.
+- Added a database CI job that starts a clean local stack, replays migrations, runs pgTAP and lints the schema.
+
+### Backend proof validation
+
+- Existing CI run `30579113688` passed.
+- Validation run `30579113891` passed application/artifact checks, retained Docker build, empty-database start/reset, 90 pgTAP assertions and schema lint.
+- Demonstrated two-account isolation for eligibility, family and faith records.
+- Demonstrated hidden incoming likes, normalized reciprocal matching and retry-safe contact opening.
+- Demonstrated participant-only messaging, private feedback/report visibility and high-severity moderation escalation.
+- Demonstrated block enforcement across discovery, matching and messaging.
+- Demonstrated relational account deletion and audit identifier anonymisation.
 
 ### Completed since 0.3.0-alpha.1
 
 - Merged product baseline PR #14 and marker-verified the hosted v1 pilot.
 - Fixed the v1 Hugging Face deployment marker contract in PR #15.
-- Merged PR #16 to replace gender-identity/seeking questions with man/woman sex selection and derived opposite-sex discovery.
+- Merged and hosted PR #16 to replace gender-identity/seeking questions with man/woman sex selection and derived opposite-sex discovery.
 
 ### Pending review and proof
 
 - Desktop/mobile field review of the public pilot and camera/privacy portraits.
-- Clean local Supabase database reset from migrations.
-- Two-account RLS, concurrency, idempotency, block and deletion tests.
+- True parallel race tests for reciprocal likes and contact-entitlement consumption.
+- Actual private object upload, signed delivery and provider-API deletion cleanup.
 - Private non-production backend provisioning and provider/region/privacy approval.
+- Auth/session adapter, recovery and persistent onboarding integration.
 - Legal, privacy, security and moderation gates before any real-user pilot.
 
 ## [0.3.0-alpha.1] - 2026-07-29
