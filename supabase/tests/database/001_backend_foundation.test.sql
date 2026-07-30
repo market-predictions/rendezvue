@@ -51,8 +51,8 @@ select ok(
   'participant message insert policy exists'
 );
 select ok(
-  exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'safety_reports' and policyname = 'reports_reporter_insert'),
-  'reporter insert policy exists'
+  not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'safety_reports' and cmd = 'INSERT'),
+  'reports cannot bypass the controlled RPC with direct inserts'
 );
 select ok(
   exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'portrait_objects_insert_self'),
