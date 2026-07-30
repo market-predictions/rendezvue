@@ -1,15 +1,17 @@
 # Rendezvue product requirements baseline
 
-**Version:** 1.0  
-**Date:** 2026-07-29  
-**Status:** product rebaseline and concept-pilot implementation  
+**Version:** 1.1  
+**Date:** 2026-07-30  
+**Status:** hosted concept pilot plus active backend proof  
 **Authority:** `market-predictions/rendezvue`
 
 ## 1. Product statement
 
 Rendezvue is an adult-only, privacy-first platform for serious introductions between Muslims and people from a Muslim background in the Netherlands. Membership is open to eligible adults; it is **student-first, not student-only**. Students, recent graduates and young professionals are priority launch communities.
 
-The public profile uses a controlled fuzzy privacy portrait derived from a live camera capture. The source selfie is never the public profile image. The pilot is a Dutch-first, English-capable mobile PWA hosted as a generated Hugging Face Static Space artifact.
+The public profile uses a controlled fuzzy privacy portrait derived from a live camera capture. The source selfie is never the public profile image. The public pilot is a Dutch-first, English-capable mobile PWA hosted as a generated Hugging Face Static Space artifact.
+
+The community is designed for introductions between men and women. A user selects sex as man or woman; the partner sex is derived automatically and is not asked as a separate seeking preference.
 
 ## 2. Operating principles
 
@@ -18,7 +20,8 @@ The public profile uses a controlled fuzzy privacy portrait derived from a live 
 | GOV-01 | P0 | GitHub shall be the sole source of truth for code, product decisions, schema, roadmap, changelog and evidence. |
 | GOV-02 | P0 | Hugging Face shall serve a one-way generated static frontend and shall not be an editing or persistent-data environment. |
 | GOV-03 | P0 | Demonstrated prototype behaviour shall be separated from production verification, safety and legal claims. |
-| GOV-04 | P0 | The public repository shall contain synthetic users and synthetic conversations only. |
+| GOV-04 | P0 | The public repository and public pilot shall contain synthetic users and synthetic conversations only. |
+| GOV-05 | P0 | Secrets, service-role credentials, source selfies and real-user records shall never be committed to GitHub or embedded in the public artifact. |
 | LOC-01 | P0 | Dutch shall be the default language and English shall remain available throughout the flow. |
 | A11Y-01 | P0 | WCAG 2.2 AA is the target and every gesture shall have a visible control alternative. |
 
@@ -28,7 +31,7 @@ The public profile uses a controlled fuzzy privacy portrait derived from a live 
 |---|---:|---|
 | ELIG-01 | P0 | Discovery and messaging shall be limited to users aged 18 or older. |
 | ELIG-02 | P0 | A user must declare that they are currently single. |
-| ELIG-03 | P0 | Married, partnered, engaged or not-yet-legally-separated users shall not enter discovery. |
+| ELIG-03 | P0 | Married, partnered, engaged or not-yet-legally-divorced users shall not enter discovery. |
 | ELIG-04 | P0 | Users shall affirm serious relationship intent and community fit before account creation. |
 | ELIG-05 | P0 | Student status shall not be an admission requirement. |
 | ELIG-06 | P1 | Current single status shall be periodically reconfirmed in production. |
@@ -46,6 +49,8 @@ The public profile uses a controlled fuzzy privacy portrait derived from a live 
 | ONB-06 | P0 | Users shall preview the complete public profile before publication. |
 | ONB-07 | P0 | Payment details shall not be requested during onboarding. |
 | ONB-08 | P1 | Abandoned production onboarding data shall expire after a documented retention period. |
+| ONB-09 | P0 | Sex selection shall contain exactly man and woman for this community flow. |
+| ONB-10 | P0 | The app shall derive opposite-sex discovery and shall not present a separate “who do you want to meet?” question. |
 
 The required sequence is documented in `docs/ONBOARDING.md`.
 
@@ -88,6 +93,7 @@ The required sequence is documented in `docs/ONBOARDING.md`.
 | PORT-04 | P0 | The interface shall not claim anonymity. |
 | PORT-05 | P0 | Apparent age, skin tone, hair/head covering, glasses and broad appearance shall not be materially falsified. |
 | PORT-06 | P1 | AI-generated illustrated portraits may be evaluated later as an optional implementation, not a product dependency. |
+| PORT-07 | P0 | Production portrait objects shall be stored privately and exposed only through an approved derivative/access policy. |
 
 ## 8. Faith and lifestyle
 
@@ -115,16 +121,20 @@ The required sequence is documented in `docs/ONBOARDING.md`.
 | DISC-05 | P0 | Like and pass counts shall not be public. |
 | DISC-06 | P0 | General popularity shall not become a trust or moral score. |
 | DISC-07 | P1 | Campus Mode may prioritize verified students for verified students. |
+| DISC-08 | P0 | Discovery shall exclude blocked pairs server-side. |
+| DISC-09 | P0 | Sensitive family and faith fields shall remain fail-closed until explicit field-visibility projections are approved. |
 
 ## 10. Matching, contact and monetisation
 
 | ID | Priority | Requirement |
 |---|---:|---|
 | MATCH-01 | P0 | A match shall require reciprocal interest. |
+| MATCH-02 | P0 | Server-side matching shall create at most one active match row per user pair under concurrency. |
 | CONTACT-01 | P0 | Contact opening and message exchange shall be separate entitlements. |
 | CONTACT-02 | P0 | One party may use a contact right to open a matched conversation. |
 | CONTACT-03 | P0 | After opening, both parties shall be able to reply without per-message charges. |
 | CONTACT-04 | P0 | Safety, blocking, reporting and account deletion shall never be premium features. |
+| CONTACT-05 | P0 | Contact opening shall be idempotent and consume at most one valid entitlement. |
 | PAY-01 | P0 | Registration, discovery, likes and receiving matches shall remain free. |
 | PAY-02 | P1 | The pilot shall test the comprehension of paid conversation opening before taking payment. |
 | PAY-03 | P1 | Indicative pricing experiments may compare a regular plan and a verified-student discount. |
@@ -139,8 +149,11 @@ The required sequence is documented in `docs/ONBOARDING.md`.
 | MSG-02 | P0 | Report, block, end-contact and unmatch controls shall be reachable from profiles and conversations. |
 | MSG-03 | P0 | Blocking shall take effect immediately and server-side in production. |
 | MSG-04 | P0 | User photo/video attachments shall be excluded from the first live MVP. |
+| MSG-05 | P0 | Only participants in an open conversation may insert or read messages. |
 | SAFE-01 | P0 | Serious reports shall enter a moderation workflow, not an ordinary ranking adjustment. |
 | SAFE-02 | P0 | Appeals and child-safety procedures shall exist before real-user admission. |
+| SAFE-03 | P0 | Report subjects shall not be able to read reports or reporter identity through ordinary user access. |
+| SAFE-04 | P0 | Moderation cases and audit records shall not be readable by ordinary authenticated users. |
 
 ## 12. Feedback and behavioural standing
 
@@ -157,18 +170,37 @@ The required sequence is documented in `docs/ONBOARDING.md`.
 
 See `docs/INTERACTION-AND-TRUST-MODEL.md`.
 
-## 13. Hosting and production boundary
+## 13. Hosting and backend boundary
 
 | ID | Priority | Requirement |
 |---|---:|---|
 | HOST-01 | P0 | The concept pilot shall remain deployable as a Static Space. |
 | HOST-02 | P0 | Persistent accounts, profiles, likes, matches, messages and moderation shall live outside Hugging Face. |
 | HOST-03 | P0 | Production authorization, retention and enforcement shall be server-authoritative. |
-| HOST-04 | P1 | The first backend proof shall use relational storage, private object storage, realtime messaging and row-level authorization. |
+| HOST-04 | P0 | The first backend proof shall use relational storage, private object storage, realtime messaging and row-level authorization. |
+| HOST-05 | P0 | The public PWA shall default to local synthetic mode and shall not silently connect to a remote backend. |
+| HOST-06 | P0 | A remote backend preview shall be private and limited to controlled test accounts until real-user authorization. |
 
-## 14. Concept-pilot acceptance criteria
+## 14. Backend proof and authorization
 
-The rebaseline milestone is complete when:
+| ID | Priority | Requirement |
+|---|---:|---|
+| BACK-01 | P0 | Database changes shall be versioned as migrations in GitHub. |
+| BACK-02 | P0 | A clean CI/local database shall apply all migrations from an empty state. |
+| BACK-03 | P0 | Authentication identity, public profile, eligibility, student evidence, family context and faith data shall be separate records. |
+| BACK-04 | P0 | Row Level Security shall be enabled on every client-accessible private table. |
+| BACK-05 | P0 | Two-account tests shall demonstrate that one user cannot read or mutate another user’s private domains. |
+| BACK-06 | P0 | Incoming likes shall not be directly queryable by their target before the matching rule permits disclosure. |
+| BACK-07 | P0 | Blocks shall prevent discovery interaction, matching/contact opening and messaging. |
+| BACK-08 | P0 | Private media shall use owner-scoped storage paths and non-public buckets. |
+| BACK-09 | P0 | Service-role keys and moderator privileges shall never be present in browser code. |
+| BACK-10 | P0 | Account deletion shall remove or anonymise dependent records according to the approved retention model. |
+| BACK-11 | P0 | Realtime transport shall not bypass table authorization. |
+| BACK-12 | P1 | Database functions and policies shall have automated regression tests before private multi-user integration. |
+
+## 15. Concept-pilot acceptance criteria
+
+The concept rebaseline milestone is complete when:
 
 1. membership is no longer student-only;
 2. eligibility, private-account simulation and progress persistence work;
@@ -185,10 +217,22 @@ The rebaseline milestone is complete when:
 13. Dutch/English tests, domain tests, static build and deployment artifact validation pass;
 14. roadmap, work packages, claims, changelog and handover match the implementation.
 
-## 15. Explicit exclusions from this milestone
+## 16. Backend-foundation acceptance criteria
+
+The first backend-foundation milestone is complete when:
+
+1. local configuration and migrations are versioned;
+2. application, Docker and backend migration CI are green;
+3. migrations replay from an empty database;
+4. required domain tables, private storage and RLS exist;
+5. reciprocal likes and contact-opening functions are present;
+6. work claims state that runtime authorization and concurrency still require tests;
+7. no remote project or real-user environment is implied.
+
+## 17. Explicit exclusions from the current milestone
 
 - real-user admission;
-- persistent multi-user accounts and chat;
+- public multi-user accounts and chat;
 - real email or SMS delivery;
 - authoritative student registry and document verification;
 - automated age assurance or liveness classification;
