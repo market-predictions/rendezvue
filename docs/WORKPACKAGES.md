@@ -44,8 +44,8 @@ DUO/RIO institution identity, independently evidenced student mailbox domains, e
 
 ## WP-021 — Feedback and behavioural standing
 
-**Status:** review for UX; production proof planned  
-Structured private feedback is prototyped without ranking effect. Credibility, retaliation, fairness, correction and appeal logic remain.
+**Status:** review for UX; production proof active  
+Structured private feedback is prototyped without ranking effect. The backend now fixes initial credibility weight and separates report escalation; retaliation, fairness, correction and appeal logic remain.
 
 ## WP-025 — Faith profile validation and legal basis
 
@@ -55,7 +55,7 @@ Target-user research, Article 9 basis, withdrawal/deletion and anti-discriminati
 ## WP-030 — Production account and eligibility stack
 
 **Status:** active  
-The versioned backend migration now defines Auth-linked profiles, eligibility, life stage, family, faith, student verification and privacy portrait records. Next: clean local database reset, RLS tests, magic-link/OTP adapter, recovery, duplicate controls and deletion.
+Auth-linked profiles, eligibility, life stage, family, faith, student verification and privacy portrait records are versioned and RLS-tested. Next: magic-link/OTP adapter, recovery, duplicate-account controls, onboarding persistence and provider-orchestrated account/media deletion.
 
 ## WP-040 — Production liveness and privacy portrait
 
@@ -64,13 +64,13 @@ Randomized challenge analysis, replay threat model, short retention, fair portra
 
 ## WP-050 — Persistent application services
 
-**Status:** active  
-The backend migration now defines server-authoritative attraction signals, reciprocal matches, contact entitlements, conversations, messages, blocks, feedback, safety reports, moderation cases, audit events, private storage and Realtime publication. Next: local SQL authorization tests and private preview integration.
+**Status:** review for foundation; integration active next  
+Server-authoritative attraction, reciprocal match, entitlement, conversation, message, block, feedback and report contracts are implemented. Private storage, Realtime publication, moderation/audit records and least-privilege grants passed local migration and pgTAP validation. Next: private preview client integration.
 
 ## WP-055 — Backend proof validation
 
 **Status:** active  
-Apply migrations from an empty local database, test RLS with two accounts, prove like/match concurrency, contact idempotency, block enforcement, report privacy and cascade deletion. No real-user data.
+CI now proves empty-database migration replay, 90 pgTAP assertions, schema lint, two-account RLS isolation, sequential retry idempotency, block enforcement, report privacy, moderation escalation and relational deletion/anonymisation. Remaining: true parallel race tests, actual object upload/deletion cleanup and private-preview evidence. Tracked in issue #18.
 
 ## WP-060 — Payments and entitlements
 
@@ -80,7 +80,7 @@ The contact-entitlement ledger contract exists, but no provider or money movemen
 ## WP-070 — Trust and safety operations
 
 **Status:** planned  
-The data contract contains safety reports, moderation cases and audit events. Operational queue, child safety, hidden relationship reports, enforcement, support coverage and appeals remain.
+The data contract contains controlled safety reports, automatic high-severity case creation and audit events. Operational queue, child safety, hidden relationship review, enforcement, support coverage and appeals remain.
 
 ## WP-080 — Closed city pilot readiness
 
