@@ -30,7 +30,7 @@ Four controlled fuzzy variants delivered. Mobile attractiveness/privacy review r
 ## WP-018 — Product baseline and onboarding v1
 
 **Status:** complete  
-Open membership, student-first positioning, eligibility, life stage, family context, resumable onboarding, preview, community promise and opposite-sex community policy are merged and hosted.
+Open membership, student-first positioning, eligibility, life stage, family context, resumable local onboarding, preview, community promise and opposite-sex community policy are merged and hosted.
 
 ## WP-019 — Interaction and contact concept
 
@@ -45,7 +45,7 @@ DUO/RIO institution identity, independently evidenced student mailbox domains, e
 ## WP-021 — Feedback and behavioural standing
 
 **Status:** review for UX; production proof active  
-Structured private feedback is prototyped without ranking effect. The backend now fixes initial credibility weight and separates report escalation; retaliation, fairness, correction and appeal logic remain.
+Structured private feedback is prototyped without ranking effect. The backend fixes initial credibility weight and separates report escalation; retaliation, fairness, correction and appeal logic remain.
 
 ## WP-025 — Faith profile validation and legal basis
 
@@ -54,8 +54,13 @@ Target-user research, Article 9 basis, withdrawal/deletion and anti-discriminati
 
 ## WP-030 — Production account and eligibility stack
 
-**Status:** active  
-Auth-linked profiles, eligibility, life stage, family, faith, student verification and privacy portrait records are versioned, RLS-tested and concurrency-safe at the attraction boundary. Next: magic-link/OTP adapter, recovery, duplicate-account controls, onboarding persistence and provider-orchestrated account/media deletion.
+**Status:** active; persistence contract in review  
+Auth-linked account/profile domains, RLS, magic-link/session adapter, versioned onboarding progress, owner-derived stage writes, prompts/interests and server-side publication are implemented and validated in PR #20. Remaining: private EU project, real email callback, recovery, duplicate-account controls, abandonment retention and provider-orchestrated deletion.
+
+## WP-035 — Resumable onboarding persistence
+
+**Status:** review  
+Owner-only snapshot, stage allowlists, progress save, transactional personality save and publication gating passed 118 pgTAP assertions and client adapter tests. No remote account or real user is connected.
 
 ## WP-040 — Production liveness and privacy portrait
 
@@ -64,13 +69,13 @@ Randomized challenge analysis, replay threat model, short retention, fair portra
 
 ## WP-050 — Persistent application services
 
-**Status:** review for database foundation; integration active next  
-Server-authoritative attraction, reciprocal match, entitlement, conversation, message, block, feedback and report contracts are implemented. Private storage, Realtime publication, moderation/audit records, least-privilege grants and true parallel match/contact races passed local validation. Next: private preview client integration.
+**Status:** review for database foundation; private integration next  
+Server-authoritative attraction, match, entitlement, conversation, message, block, feedback and report contracts are implemented. Private storage, Realtime, moderation/audit, least-privilege grants and true parallel races passed local validation.
 
 ## WP-055 — Backend proof validation
 
 **Status:** active  
-CI proves empty-database migration replay, 90 pgTAP assertions, schema lint, two-account RLS isolation, retry idempotency, true parallel first-like and contact-opening races, block enforcement, report privacy, moderation escalation and relational deletion/anonymisation. Remaining: actual private object upload/signed delivery/deletion cleanup and private-preview evidence. Tracked in issue #18.
+CI proves empty-database replay, 118 pgTAP assertions, schema lint, cross-account draft/private-data isolation, publication gating, true parallel match/contact races, block enforcement, moderation escalation and relational deletion/anonymisation. Remaining: actual private object upload/signed delivery/deletion cleanup and private-preview evidence. Tracked in issue #18.
 
 ## WP-060 — Payments and entitlements
 
@@ -80,7 +85,7 @@ The contact-entitlement ledger contract exists, but no provider or money movemen
 ## WP-070 — Trust and safety operations
 
 **Status:** planned  
-The data contract contains controlled safety reports, automatic high-severity case creation and audit events. Operational queue, child safety, hidden relationship review, enforcement, support coverage and appeals remain.
+Controlled safety reports, automatic high-severity case creation and audit events exist. Operational queue, child safety, hidden relationship review, enforcement, support coverage and appeals remain.
 
 ## WP-080 — Closed city pilot readiness
 
