@@ -22,11 +22,15 @@ This register prevents prototype and backend-foundation behaviour from being ove
 | WC-016 | The prototype can resume local onboarding. | Implemented | schema-versioned local storage | Browser storage is not a secure persistent account. |
 | WC-017 | The product is safe or lawful for real users. | Not claimed | N/A | Authentication, age assurance, moderation, DPIA, security and retention remain incomplete. |
 | WC-018 | Payments or subscriptions are operational. | Not claimed | indicative mock-up only | No provider integration or money movement. |
-| WC-019 | Real-time multi-user chat is operational. | Not claimed | local synthetic chat only | Requires provisioned backend and authorization proof. |
-| WC-020 | A server-authoritative relational schema is versioned in GitHub. | Implemented on backend branch | Supabase migration and backend tests | Migration still requires clean database execution proof. |
-| WC-021 | Backend likes can create exactly one reciprocal match. | Implemented as SQL contract | `record_attraction_signal` function | Concurrency behaviour is not yet database-tested. |
-| WC-022 | A contact entitlement can create one conversation idempotently. | Implemented as SQL contract | `open_match_conversation` function | Transaction requires local and remote integration tests. |
-| WC-023 | Private domains use Row Level Security. | Implemented as migration contract | table RLS and policies | Cross-account isolation is not yet executed against a running database. |
-| WC-024 | Privacy portrait storage is private and owner-scoped. | Implemented as migration contract | private bucket and storage policies | Upload/download behaviour is not yet field-tested. |
-| WC-025 | Moderation and audit records are inaccessible to normal authenticated users. | Implemented as migration contract | revoked grants and absence of user policies | Operational moderator roles and console do not exist. |
+| WC-019 | Real-time multi-user chat is operational. | Not claimed | local synthetic chat only | Requires a provisioned private backend and client integration. |
+| WC-020 | A server-authoritative relational schema is versioned and replayable. | Demonstrated locally | empty-database reset, run `30579113891` | No remote project is provisioned. |
+| WC-021 | Backend likes create one normalized reciprocal match under retries. | Demonstrated locally | two-account pgTAP suite | True parallel race testing remains. |
+| WC-022 | One contact entitlement creates one conversation idempotently under retries. | Demonstrated locally | two-account pgTAP suite | True parallel entitlement-race testing remains. |
+| WC-023 | Private domains use RLS and isolate two authenticated accounts. | Demonstrated locally | eligibility/family/faith pgTAP assertions | Private preview and provider-hosted evidence remain. |
+| WC-024 | Privacy portrait storage is private and owner-scoped. | Demonstrated as schema/policy | private bucket and storage policies | Actual upload, signed delivery and provider-API deletion are not field-tested. |
+| WC-025 | Moderation and audit records are inaccessible to normal authenticated users. | Demonstrated locally | grants, RLS and privilege pgTAP tests | Operational moderator roles and console do not exist. |
 | WC-026 | A remote production backend is operational. | Not claimed | N/A | No project, region, DPA, secrets or real-user environment is provisioned. |
+| WC-027 | Blocking is server-authoritative and freezes active interaction. | Demonstrated locally | block RPC, two-account pgTAP suite | Unblock/rematch policy is not implemented. |
+| WC-028 | Users cannot choose feedback credibility or report moderation state. | Demonstrated locally | controlled RPCs and privilege tests | Credibility evolution and retaliation analysis remain. |
+| WC-029 | High-severity reports create a hidden moderation case. | Demonstrated locally | report RPC and two-account pgTAP suite | No operational review queue or response SLA exists. |
+| WC-030 | Account deletion cascades owned relational records and removes direct IDs from retained audit events. | Demonstrated locally | deletion pgTAP suite | Private object bytes still require provider-API cleanup orchestration. |
