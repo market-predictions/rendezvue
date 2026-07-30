@@ -25,6 +25,26 @@ jobs:
       - run: npm ci
       - run: npm run check
 
+  database:
+    name: Backend migration reset
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+      - uses: supabase/setup-cli@v2
+        with:
+          version: latest
+          github-token: ${{ github.token }}
+      - name: Start clean local database and apply migrations
+        run: supabase db start
+      - name: Replay migrations from an empty database
+        run: supabase db reset
+      - name: Lint local database schema
+        run: supabase db lint --local --level warning
+      - name: Stop local database
+        if: always()
+        run: supabase stop --no-backup
+
   docker:
     name: Retained Docker build
     runs-on: ubuntu-latest
