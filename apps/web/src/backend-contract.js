@@ -23,7 +23,8 @@ export const BACKEND_TABLES = Object.freeze({
 
 export const BACKEND_RPC = Object.freeze({
   RECORD_ATTRACTION_SIGNAL: 'record_attraction_signal',
-  OPEN_MATCH_CONVERSATION: 'open_match_conversation'
+  OPEN_MATCH_CONVERSATION: 'open_match_conversation',
+  BLOCK_USER: 'block_user'
 });
 
 export const BACKEND_EVENTS = Object.freeze({
@@ -73,9 +74,9 @@ export function assertServerAuthoritativeOperation(operation) {
   const prohibitedLocalOperations = new Set([
     BACKEND_RPC.RECORD_ATTRACTION_SIGNAL,
     BACKEND_RPC.OPEN_MATCH_CONVERSATION,
+    BACKEND_RPC.BLOCK_USER,
     'create-message',
-    'create-report',
-    'create-block'
+    'create-report'
   ]);
   if (prohibitedLocalOperations.has(operation)) {
     throw new Error(`${operation} must be executed by the server-authoritative backend`);
