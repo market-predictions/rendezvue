@@ -37,8 +37,14 @@ select is((select count(*) from public.family_contexts where user_id = '00000000
 select is((select count(*) from public.privacy_portraits where user_id = '00000000-0000-0000-0000-0000000000d4'), 0::bigint, 'portrait metadata cascades on account deletion');
 select is((select count(*) from public.audit_events where event_type = 'deletion-proof'), 1::bigint, 'security audit event is retained');
 select ok(
-  (select actor_user_id is null and subject_user_id is null from public.audit_events where event_type = 'deletion-proof'),
-  'retained audit event is anonymised'
+  (
+    select actor_user_id is null
+       and subject_user_id is null
+       and entity_id is null
+    from public.audit_events
+    where event_type = 'deletion-proof'
+  ),
+  'retained audit event removes direct account identifiers'
 );
 
 select * from finish();
