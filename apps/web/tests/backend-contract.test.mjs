@@ -44,7 +44,9 @@ test('security-sensitive mutations are server authoritative', () => {
   for (const operation of [
     BACKEND_RPC.RECORD_ATTRACTION_SIGNAL,
     BACKEND_RPC.OPEN_MATCH_CONVERSATION,
-    BACKEND_RPC.BLOCK_USER
+    BACKEND_RPC.BLOCK_USER,
+    BACKEND_RPC.SUBMIT_INTERACTION_FEEDBACK,
+    BACKEND_RPC.CREATE_SAFETY_REPORT
   ]) {
     assert.throws(
       () => assertServerAuthoritativeOperation(operation),
@@ -70,6 +72,8 @@ test('migrations contain required domain and RLS boundaries', () => {
     'create or replace function public.record_attraction_signal',
     'create or replace function public.open_match_conversation',
     'create or replace function public.block_user',
+    'create or replace function public.submit_interaction_feedback',
+    'create or replace function public.create_safety_report',
     'create or replace function public.is_conversation_available',
     "insert into storage.buckets (id, name, public"
   ];
@@ -90,4 +94,18 @@ test('blocking cannot bypass the server transaction', () => {
   assert.match(migration, /update public\.matches[\s\S]*status = 'blocked'/);
   assert.match(migration, /update public\.conversations[\s\S]*status = 'blocked'/);
   assert.match(migration, /set revoked_at = coalesce/);
+});
+
+test('feedback and reports cannot choose trust or moderation state directly', () => {
+  assert.match(migration, /drop policy if exists feedback_reviewer_insert/);
+  assert.match(migration, /drop policy if exists reports_reporter_insert/);
+  assert.match(migration, /credibility_weight = 0\.5000/);
+  assert.match(migration, /status, priority[\s\S]*'triage'/);
+});
+
+test('profile publication and portrait status are fail-closed', () => {
+  assert.match(migration, /publication_status <> 'published'/);
+  assert.match(migration, /pp\.status = 'pending'/);
+  assert.match(migration, /privacy_portraits_one_selected_idx/);
+  assert.match(migration, /actor_profile\.sex <> profiles\.sex/);
 });
