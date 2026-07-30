@@ -26,25 +26,40 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Added cross-account draft-isolation and publication-lifecycle tests.
 - Made database CI startup idempotent by removing a stale local stack before startup.
 
+### Private Supabase proof lane
+
+- Recorded owner evidence that `RendezvueProject` is Healthy on Nano compute in West EU (Ireland), with no remote migrations yet.
+- Added a separate `apps/private-preview` interface that is never copied into the public Hugging Face artifact.
+- Added controlled magic-link/session, synthetic onboarding, private portrait upload, publication, discovery, like and match-inspection flows.
+- Added a private artifact builder that embeds only the project URL, an `sb_publishable_...` key and the exact Auth redirect URL.
+- Added syntax checks and a credential-boundary scan that rejects `sb_secret_...`, service-role material, database URLs, access tokens, database passwords and private keys.
+- Added protected manual GitHub Actions deployment through environment `rendezvue-private-preview`.
+- The deployment workflow validates project-reference consistency, links migrations, optionally runs `supabase db push`, checks remote Auth/Data API health and publishes a three-day proof artifact.
+- Added `docs/PRIVATE-SUPABASE-PREVIEW.md` with provisioning, callback, deployment, two-account proof and rollback procedures.
+- Kept the public Hugging Face pilot in `local-demo` and excluded all private proof files from its build path.
+
 ### Validation
 
 - Backend foundation PR #17 merged as `8bbf1398`.
 - Concurrency proof PR #19 merged as `5976ddea`.
-- CI run `30581908986` passed for PR #20 implementation head `61bb93c6`.
-- Validation run `30581908380` passed application/artifact checks, auth/onboarding client tests, retained Docker build, empty-database migration replay, 118 pgTAP assertions, true parallel race tests and schema lint.
+- Auth/onboarding PR #20 merged as `1de81465`.
+- CI run `30581908986` and validation run `30581908380` passed for the PR #20 implementation head, including 118 pgTAP assertions and true parallel races.
+- PR #22 first technical head passed public app/artifact checks, retained Docker build and the new private artifact/credential-boundary job; final governance-head validation remains required before merge.
 
 ### Completed since 0.3.0-alpha.1
 
 - Merged product baseline PR #14 and marker-verified the hosted v1 pilot.
 - Fixed the Hugging Face v1 marker contract in PR #15.
 - Merged and hosted PR #16 with man/woman onboarding and derived opposite-sex discovery.
-- Merged the server-authoritative backend foundation and database concurrency proof.
+- Merged the server-authoritative backend foundation, concurrency proof and local auth/onboarding contracts.
+- Provisioned the private EU Supabase project.
 
 ### Pending review and proof
 
 - Desktop/mobile field review of the public pilot and camera/privacy portraits.
-- Approved private non-production Supabase project and EU region.
-- Real magic-link delivery, redirect and recovery tests.
+- Protected GitHub environment and secrets for the private Supabase project.
+- First repository-controlled remote migration deployment.
+- Real magic-link delivery, callback and recovery tests.
 - Actual private object upload, signed delivery and provider-API deletion cleanup.
 - Private multi-user preview with controlled synthetic accounts.
 - Legal, privacy, security and moderation gates before any real-user pilot.
