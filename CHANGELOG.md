@@ -4,12 +4,32 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
-### Pending review
+### Backend proof foundation
 
-- Owner review and merge of draft PR #14.
-- Hosted Hugging Face marker verification and mobile camera/swipe review after merge.
-- Select an external backend proof for persistent accounts, matching and realtime text chat.
-- Complete legal, privacy, security and moderation gates before any real-user pilot.
+- Added versioned Supabase local configuration and a PostgreSQL migration for the server-authoritative domain model.
+- Added separate account-linked records for profiles, eligibility, life stage, family context, faith profile, student verification and privacy portraits.
+- Added attraction signals, reciprocal match creation, contact entitlements, idempotent conversation opening, messages and blocks.
+- Added private interaction feedback, safety reports, moderation cases and audit events as separate domains.
+- Added private privacy-portrait storage policies and Row Level Security across exposed tables.
+- Added a fail-closed discovery projection that does not expose full family or faith records.
+- Added Realtime publication for matches and messages while retaining RLS as the access boundary.
+- Added a browser-safe backend contract with `local-demo` as the public default.
+- Added backend contract tests and `docs/BACKEND-PROOF.md`.
+- Activated WP-030, WP-050 and WP-055 in the roadmap and work packages.
+
+### Completed since 0.3.0-alpha.1
+
+- Merged product baseline PR #14 and marker-verified the hosted v1 pilot.
+- Fixed the v1 Hugging Face deployment marker contract in PR #15.
+- Merged PR #16 to replace gender-identity/seeking questions with man/woman sex selection and derived opposite-sex discovery.
+
+### Pending review and proof
+
+- Desktop/mobile field review of the public pilot and camera/privacy portraits.
+- Clean local Supabase database reset from migrations.
+- Two-account RLS, concurrency, idempotency, block and deletion tests.
+- Private non-production backend provisioning and provider/region/privacy approval.
+- Legal, privacy, security and moderation gates before any real-user pilot.
 
 ## [0.3.0-alpha.1] - 2026-07-29
 
