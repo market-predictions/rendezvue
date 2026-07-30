@@ -54,13 +54,18 @@ Target-user research, Article 9 basis, withdrawal/deletion and anti-discriminati
 
 ## WP-030 — Production account and eligibility stack
 
-**Status:** active; persistence contract in review  
-Auth-linked account/profile domains, RLS, magic-link/session adapter, versioned onboarding progress, owner-derived stage writes, prompts/interests and server-side publication are implemented and validated in PR #20. Remaining: private EU project, real email callback, recovery, duplicate-account controls, abandonment retention and provider-orchestrated deletion.
+**Status:** active  
+Auth-linked account/profile domains, RLS, magic-link/session adapter, versioned onboarding progress, owner-derived stage writes, prompts/interests and server-side publication are implemented. `RendezvueProject` is provisioned and Healthy in West EU (Ireland). Remaining: protected remote migration deployment, real callback proof, recovery, duplicate-account controls, abandonment retention and provider-orchestrated deletion.
 
 ## WP-035 — Resumable onboarding persistence
 
 **Status:** review  
-Owner-only snapshot, stage allowlists, progress save, transactional personality save and publication gating passed 118 pgTAP assertions and client adapter tests. No remote account or real user is connected.
+Owner-only snapshot, stage allowlists, progress save, transactional personality save and publication gating passed 118 pgTAP assertions and client adapter tests. Remote proof with controlled synthetic accounts remains.
+
+## WP-037 — Protected private Supabase preview
+
+**Status:** active; implementation in PR #22  
+Separate private proof harness, runtime-config builder, browser/server secret scan, protected manual migration workflow and runbook are implemented. The public Hugging Face lane remains `local-demo`. Next gate: create GitHub environment `rendezvue-private-preview`, add protected values and run the first migration deployment from `main`.
 
 ## WP-040 — Production liveness and privacy portrait
 
@@ -69,13 +74,13 @@ Randomized challenge analysis, replay threat model, short retention, fair portra
 
 ## WP-050 — Persistent application services
 
-**Status:** review for database foundation; private integration next  
-Server-authoritative attraction, match, entitlement, conversation, message, block, feedback and report contracts are implemented. Private storage, Realtime, moderation/audit, least-privilege grants and true parallel races passed local validation.
+**Status:** review for database foundation; private integration active next  
+Server-authoritative attraction, match, entitlement, conversation, message, block, feedback and report contracts are implemented. Private storage, Realtime, moderation/audit, least-privilege grants and true parallel races passed local validation. The private proof harness now exposes auth, onboarding, portrait upload, publication, discovery, like and match inspection paths.
 
 ## WP-055 — Backend proof validation
 
 **Status:** active  
-CI proves empty-database replay, 118 pgTAP assertions, schema lint, cross-account draft/private-data isolation, publication gating, true parallel match/contact races, block enforcement, moderation escalation and relational deletion/anonymisation. Remaining: actual private object upload/signed delivery/deletion cleanup and private-preview evidence. Tracked in issue #18.
+CI proves empty-database replay, 118 pgTAP assertions, schema lint, cross-account draft/private-data isolation, publication gating, true parallel match/contact races, block enforcement, moderation escalation and relational deletion/anonymisation. PR #22 adds a separate artifact build and credential-boundary scan. Remaining: remote migration evidence, actual private object access/deletion, callback proof and two-account private-preview evidence. Tracked in issues #18 and #21.
 
 ## WP-060 — Payments and entitlements
 
