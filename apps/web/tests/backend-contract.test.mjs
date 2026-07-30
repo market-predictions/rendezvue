@@ -40,8 +40,12 @@ test('remote backend proof requires URL and publishable key', () => {
   );
 });
 
-test('security-sensitive mutations are server authoritative', () => {
+test('security-sensitive operations are server authoritative', () => {
   for (const operation of [
+    BACKEND_RPC.LOAD_ONBOARDING_SNAPSHOT,
+    BACKEND_RPC.SAVE_ONBOARDING_PROGRESS,
+    BACKEND_RPC.SAVE_PROFILE_PERSONALITY,
+    BACKEND_RPC.PUBLISH_PROFILE,
     BACKEND_RPC.RECORD_ATTRACTION_SIGNAL,
     BACKEND_RPC.OPEN_MATCH_CONVERSATION,
     BACKEND_RPC.BLOCK_USER,
@@ -59,6 +63,9 @@ test('migrations contain required domain and RLS boundaries', () => {
   const requiredFragments = [
     'create table if not exists public.profiles',
     'create table if not exists public.eligibility',
+    'create table if not exists public.onboarding_progress',
+    'create table if not exists public.profile_prompts',
+    'create table if not exists public.profile_interests',
     'create table if not exists public.attraction_signals',
     'create table if not exists public.matches',
     'create table if not exists public.contact_entitlements',
@@ -68,7 +75,12 @@ test('migrations contain required domain and RLS boundaries', () => {
     'create table if not exists public.interaction_feedback',
     'create table if not exists public.safety_reports',
     'alter table public.messages enable row level security',
+    'alter table public.onboarding_progress enable row level security',
     'create policy messages_participants_insert',
+    'create or replace function public.save_onboarding_progress',
+    'create or replace function public.save_profile_personality',
+    'create or replace function public.load_onboarding_snapshot',
+    'create or replace function public.publish_profile',
     'create or replace function public.record_attraction_signal',
     'create or replace function public.open_match_conversation',
     'create or replace function public.block_user',
@@ -103,9 +115,11 @@ test('feedback and reports cannot choose trust or moderation state directly', ()
   assert.match(migration, /status, priority[\s\S]*'triage'/);
 });
 
-test('profile publication and portrait status are fail-closed', () => {
-  assert.match(migration, /publication_status <> 'published'/);
-  assert.match(migration, /pp\.status = 'pending'/);
+test('profile publication and onboarding are fail-closed', () => {
+  assert.match(migration, /profile_publication_requirements_met/);
+  assert.match(migration, /count\(\*\) from public\.profile_prompts[\s\S]*>= 2/);
+  assert.match(migration, /count\(\*\) from public\.profile_interests[\s\S]*>= 3/);
+  assert.match(migration, /profile publication requirements not met/);
   assert.match(migration, /privacy_portraits_one_selected_idx/);
-  assert.match(migration, /actor_profile\.sex <> profiles\.sex/);
+  assert.match(migration, /can_discover_profile/);
 });
