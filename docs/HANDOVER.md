@@ -1,17 +1,20 @@
 # Project handover
 
-**Updated:** 2026-07-29  
-**Milestone:** Product baseline v1 and full synthetic concept-pilot realization
+**Updated:** 2026-07-30  
+**Milestone:** Phase 2 backend-proof foundation
 
 ## GitHub state
 
-- Branch: `agent/product-baseline-v1-pilot`
-- Draft pull request: [#14 — Redefine product baseline and realize concept pilot v1](https://github.com/market-predictions/rendezvue/pull/14)
-- Status: implementation complete, independent CI green, owner and hosted review pending
+- Authority: `market-predictions/rendezvue` `main`.
+- Product baseline v1: merged through PR #14 and publicly deployed.
+- Hugging Face marker fix: merged through PR #15 and verified.
+- Binary sex onboarding policy: merged through PR #16; deployment verification follows the normal main workflow.
+- Active development branch: `agent/backend-proof-foundation`.
+- Public pilot: `https://solidprivacy-rendezvue.static.hf.space/`.
 
-## Strategic decisions implemented
+## Strategic baseline
 
-- student-only replaced by student-first open membership;
+- student-only is replaced by student-first open membership;
 - eligibility is adult, currently single and serious-intent based;
 - student status is an optional verified benefit layer;
 - life stage covers student, recent graduate, employed, self-employed, job-seeking and other;
@@ -21,68 +24,72 @@
 - registration, discovery and likes are free in the target model;
 - a contact entitlement opens a reciprocal match and both parties then reply freely;
 - likes, private feedback, safety reports and internal trust signals are separate;
-- public stars, downvotes and popularity counts are prohibited.
+- public stars, downvotes and popularity counts are prohibited;
+- this community onboarding uses only man/woman sex options and derives opposite-sex discovery automatically.
 
-## Implemented in the concept pilot
+## Current public concept pilot
 
-- ten-stage resumable Dutch/English onboarding;
+Implemented and hosted:
+
+- progressive resumable Dutch/English onboarding;
 - simulated private account and optional student verification;
+- life stage, family context, relationship intent and faith/lifestyle fields;
 - profile preview and field visibility controls;
 - live selfie flow and four privacy portrait variants;
-- five diverse synthetic profiles across life stages and family situations;
+- diverse synthetic profiles;
 - pass, direct like, contextual like and left/right swipe;
 - deterministic reciprocal match;
 - simulated regular/student contact pricing and one pilot contact right;
 - text chat, end-contact, structured private feedback, report and block;
 - local persistence with a versioned demo-state schema;
-- updated tests, build metadata, documentation and validation contract;
-- dedicated pull-request validation for application, generated artifacts and Docker checks.
+- no automatic feedback-based ranking effect.
 
-## Validation evidence
+## Backend-proof foundation on active branch
 
-### Local
+Added:
 
-- `npm run check` passed;
-- 44 required static and Hugging Face artifacts validated;
-- 10/10 Node tests passed;
-- JavaScript syntax checks passed.
-
-### GitHub Actions
-
-- Existing CI run `30475799061`: success;
-- application/artifact validation: success;
-- Python deployment-helper compilation/tests: success;
-- retained Docker build: success;
-- new validation run `30475799089`: both application/artifact and Docker jobs succeeded.
+- local Supabase CLI configuration;
+- environment contract that keeps the public build in `local-demo` by default;
+- versioned PostgreSQL migration;
+- Auth-linked profile creation;
+- separate eligibility, life stage, family, faith, student verification and privacy portrait records;
+- attraction signals and reciprocal match transaction;
+- contact entitlement and idempotent conversation transaction;
+- messages, blocks, feedback, safety reports, moderation cases and audit events;
+- private privacy-portrait storage;
+- Row Level Security and fail-closed sensitive domains;
+- Realtime publication for matches and messages;
+- browser-safe backend adapter contract;
+- repository tests for required tables, functions, RLS and secret boundaries;
+- `docs/BACKEND-PROOF.md` execution and acceptance plan.
 
 ## Explicit limitations
 
-- no real authentication or account recovery;
-- no authoritative age, single-status, student or liveness verification;
-- local deterministic matching, not multi-user discovery;
-- local chat, reports and feedback only;
+- no remote Supabase project is provisioned;
+- no real authentication, recovery or account deletion is integrated into the PWA;
+- migration has not yet been applied through a clean local `supabase db reset` in CI;
+- no two-account RLS test has been executed yet;
+- public pilot matching/chat remain deterministic and local;
 - no payment provider or money movement;
-- no moderation console or operational response coverage;
+- no operational moderation console or response coverage;
 - no production Article 9 basis or DPIA;
-- current branch is unsuitable for real-user admission.
+- no real-user admission is authorized.
 
-## Owner review journey after merge/deployment
+## Immediate next actions
 
-1. complete onboarding as a non-student;
-2. restart and test optional student verification with code `246810`;
-3. inspect family-context wording;
-4. test camera and all four portrait variants on mobile;
-5. use buttons and swipe gestures;
-6. send a direct or contextual like;
-7. open the match using the simulated contact right;
-8. exchange messages, end contact and leave feedback;
-9. test report, block, language switch, resume and local deletion.
+1. validate the backend branch in GitHub CI;
+2. apply the migration from an empty local Supabase stack;
+3. add SQL tests for cross-account isolation and transactional concurrency;
+4. merge the foundation only when static and database-contract checks are green;
+5. provision a private non-production EU test project after provider/region/privacy approval;
+6. integrate authentication and onboarding persistence in a private preview;
+7. replace deterministic likes/matches/chat one domain at a time;
+8. implement a minimal moderator workflow before controlled multi-user testing.
 
-## Next production work after owner acceptance
+## Owner review still required
 
-1. choose and provision the external backend proof;
-2. implement schema, row-level policies and authentication;
-3. replace deterministic matching/chat with persistent multi-user services;
-4. implement manual moderation operations;
-5. complete age, sensitive-data and legal readiness;
-6. integrate hosted checkout only after free-funnel value is demonstrated.
+- desktop and mobile field test of the public pilot;
+- mobile camera and all privacy portrait variants;
+- terminology for faith, marital history, children and community positioning;
+- swipe, contextual like, contact right, chat, feedback, report and block;
+- confirmation that the man/woman onboarding flow matches the intended community.
