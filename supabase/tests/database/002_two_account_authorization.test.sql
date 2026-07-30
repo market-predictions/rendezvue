@@ -1,6 +1,6 @@
 begin;
 
-select plan(29);
+select plan(32);
 
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -12,9 +12,9 @@ insert into auth.users (
 
 select is((select count(*) from public.profiles), 3::bigint, 'auth trigger creates one profile per account');
 
-update public.profiles set nickname = 'Amina', sex = 'woman', city_region = 'Rotterdam', publication_status = 'published', published_at = now() where user_id = '00000000-0000-0000-0000-0000000000a1';
-update public.profiles set nickname = 'Bilal', sex = 'man', city_region = 'Rotterdam', publication_status = 'published', published_at = now() where user_id = '00000000-0000-0000-0000-0000000000b2';
-update public.profiles set nickname = 'Control', sex = 'woman', city_region = 'Utrecht', publication_status = 'published', published_at = now() where user_id = '00000000-0000-0000-0000-0000000000c3';
+update public.profiles set nickname = 'Amina', sex = 'woman', city_region = 'Rotterdam', relationship_intent = 'marriage', publication_status = 'published', published_at = now() where user_id = '00000000-0000-0000-0000-0000000000a1';
+update public.profiles set nickname = 'Bilal', sex = 'man', city_region = 'Rotterdam', relationship_intent = 'marriage', publication_status = 'published', published_at = now() where user_id = '00000000-0000-0000-0000-0000000000b2';
+update public.profiles set nickname = 'Control', sex = 'woman', city_region = 'Utrecht', relationship_intent = 'serious', publication_status = 'published', published_at = now() where user_id = '00000000-0000-0000-0000-0000000000c3';
 
 insert into public.eligibility (user_id, current_relationship_state, adult_confirmed, serious_intent_confirmed, community_fit_confirmed)
 values
@@ -35,7 +35,7 @@ set local role authenticated;
 select is((select count(*) from public.eligibility), 1::bigint, 'A sees only A eligibility');
 select is((select count(*) from public.family_contexts), 1::bigint, 'A sees only A family context');
 select is((select count(*) from public.faith_profiles), 1::bigint, 'A sees only A faith profile');
-select is((select count(*) from public.profiles), 3::bigint, 'A sees own and published profiles before a block');
+select is((select count(*) from public.profiles), 2::bigint, 'A sees own profile and eligible opposite-sex B');
 update public.eligibility set serious_intent_confirmed = false where user_id = '00000000-0000-0000-0000-0000000000b2';
 select is(
   (select resulting_match_id from public.record_attraction_signal('00000000-0000-0000-0000-0000000000b2', 'like', null, null)),
@@ -82,10 +82,23 @@ select is(
 );
 insert into public.messages (conversation_id, sender_user_id, body)
 select id, '00000000-0000-0000-0000-0000000000a1', 'Assalamu alaikum' from public.conversations limit 1;
-insert into public.interaction_feedback (match_id, reviewer_user_id, subject_user_id, interaction_depth, positive_tags)
-select id, '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b2', 'messaged', array['respectful'] from public.matches limit 1;
-insert into public.safety_reports (reporter_user_id, subject_user_id, match_id, category, severity)
-select '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b2', id, 'profile_inaccuracy', 'low' from public.matches limit 1;
+select ok(
+  public.submit_interaction_feedback(
+    (select id from public.matches limit 1),
+    '00000000-0000-0000-0000-0000000000b2',
+    'messaged', array['respectful'], '{}'::text[], null
+  ) is not null,
+  'feedback is submitted through the controlled RPC'
+);
+select ok(
+  public.create_safety_report(
+    '00000000-0000-0000-0000-0000000000b2',
+    (select id from public.matches limit 1),
+    'hidden_relationship',
+    'synthetic proof report'
+  ) is not null,
+  'safety report is submitted through the controlled RPC'
+);
 select is((select count(*) from public.interaction_feedback), 1::bigint, 'A can read A private feedback');
 select is((select count(*) from public.safety_reports), 1::bigint, 'A can read A report');
 reset role;
@@ -93,6 +106,7 @@ reset role;
 select is((select count(*) from public.conversations), 1::bigint, 'exactly one conversation exists');
 select is((select count(*) from public.contact_entitlements where status = 'consumed'), 1::bigint, 'exactly one entitlement is consumed');
 select is((select count(*) from public.messages), 1::bigint, 'participant message insert succeeds');
+select is((select count(*) from public.moderation_cases), 1::bigint, 'high severity report creates a moderation case');
 
 set local "request.jwt.claims" = '{"sub":"00000000-0000-0000-0000-0000000000b2","role":"authenticated"}';
 set local role authenticated;
