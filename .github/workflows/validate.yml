@@ -26,7 +26,7 @@ jobs:
       - run: npm run check
 
   database:
-    name: Backend migration and pgTAP tests
+    name: Backend migration, pgTAP and race tests
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -41,6 +41,8 @@ jobs:
         run: supabase db reset
       - name: Run database contract tests
         run: supabase test db
+      - name: Run parallel match and entitlement race tests
+        run: bash supabase/tests/concurrency/run.sh
       - name: Lint local database schema
         run: supabase db lint --local --level warning
       - name: Stop local database
