@@ -15,6 +15,7 @@ The concept pilot demonstrates:
 - progressive Dutch/English onboarding;
 - adult, single and serious-intent eligibility;
 - open membership with optional student verification;
+- man/woman community onboarding with derived opposite-sex discovery;
 - life stage, marital history, children and child preferences;
 - live camera capture with browser-local fuzzy privacy portraits;
 - profile preview and visibility controls;
@@ -25,6 +26,21 @@ The concept pilot demonstrates:
 
 It does **not** provide production authentication, age assurance, marital-status verification, liveness classification, persistent multi-user data, real payments, moderation operations or legal readiness for real religious-profile data.
 
+## Backend proof
+
+Phase 2 has started on a separate development branch. The repository now contains:
+
+- a local Supabase configuration;
+- versioned PostgreSQL migrations;
+- Auth-linked account/profile boundaries;
+- Row Level Security;
+- private portrait storage;
+- server-authoritative likes, reciprocal matches and contact entitlements;
+- conversations, messages, blocks, feedback, reports, moderation and audit contracts;
+- a browser-safe backend adapter that defaults to `local-demo`.
+
+No remote backend or real-user environment is configured. See [Backend proof](docs/BACKEND-PROOF.md).
+
 ## Repository authority
 
 **GitHub is the sole source of truth.** Hugging Face is a one-way generated Static Space deployment target. Direct Space edits are unsupported and overwritten.
@@ -34,11 +50,13 @@ It does **not** provide production authentication, age assurance, marital-status
 ```text
 GitHub source and governance
         |
-        v
-Generated Hugging Face PWA
+        +--> Generated public Hugging Face PWA (synthetic local demo)
         |
-        v (next production proof)
-External authentication + PostgreSQL + realtime chat + private storage
+        +--> Versioned backend migrations
+                   |
+                   v
+             Private proof environment
+             Auth + PostgreSQL/RLS + Storage + Realtime
 ```
 
 Persistent state must never depend on Hugging Face. Real-user admission requires an external server-authoritative backend, row-level authorization, moderation and formal privacy/legal gates.
@@ -52,11 +70,19 @@ npm run dev
 
 Open `http://localhost:4173`.
 
+After installing the Supabase CLI, the backend proof is intended to be validated with:
+
+```bash
+supabase start
+supabase db reset
+```
+
 ## Governance and design
 
 - [Requirements](docs/REQUIREMENTS.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Architecture](docs/ARCHITECTURE.md)
+- [Backend proof](docs/BACKEND-PROOF.md)
 - [Data model](docs/DATA-MODEL.md)
 - [Onboarding](docs/ONBOARDING.md)
 - [Interaction and trust](docs/INTERACTION-AND-TRUST-MODEL.md)

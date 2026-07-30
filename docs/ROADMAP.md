@@ -1,7 +1,7 @@
 # Rendezvue roadmap
 
-**Version:** 1.0  
-**Updated:** 2026-07-29
+**Version:** 1.1  
+**Updated:** 2026-07-30
 
 ## Operating doctrine
 
@@ -10,6 +10,7 @@
 - Local marketplace density and safe interaction are validated before national expansion.
 - Privacy portraits are implementation-neutral; fuzzy browser portraits are the MVP baseline.
 - Safety, fairness, privacy and legal controls are product features.
+- The public concept pilot remains synthetic until a private backend, moderation and legal gates are approved.
 
 ## Phase 0 — Foundation and hosting
 
@@ -27,19 +28,19 @@ Camera demonstration, profile, discovery, contextual like, deterministic match, 
 
 ### 1B. Netherlands and faith model
 
-**Status:** complete; terminology review remains.
+**Status:** implementation complete; representative terminology review remains.
 
 Dutch/English, MBO/HBO/WO fixtures, descriptive faith fields and private practice visibility.
 
 ### 1C. Selectable privacy portraits
 
-**Status:** complete in code; mobile owner review remains.
+**Status:** implementation and hosted deployment complete; mobile owner review remains.
 
 Four browser-local fuzzy variants, no raw-selfie option and downsampling fallback.
 
 ### 1D. Product baseline v1 and onboarding redefinition
 
-**Status:** implementation and CI complete in draft PR #14; owner and hosted review pending.
+**Status:** complete and hosted.
 
 Delivered:
 
@@ -50,11 +51,12 @@ Delivered:
 - marital history, children, child wish and openness to a partner with children;
 - privacy portrait terminology and integrated filter grid;
 - profile preview and community promise;
-- synthetic profiles across student, graduate, employed and self-employed life stages.
+- synthetic profiles across student, graduate, employed and self-employed life stages;
+- binary sex selection for this community with opposite-sex discovery derived automatically.
 
 ### 1E. Interaction, contact and feedback concept
 
-**Status:** implementation and CI complete in draft PR #14; owner and hosted review pending.
+**Status:** complete and hosted; field review remains.
 
 Delivered:
 
@@ -66,41 +68,118 @@ Delivered:
 - end-contact flow and structured private feedback;
 - no public ratings and no automatic feedback-based visibility penalty.
 
-**Gate for Phase 1:** owner review, merge, Hugging Face marker verification, mobile camera/onboarding/swipe/chat review and logging of material defects.
+**Remaining Phase-1 gate:** desktop/mobile field review, mobile camera/privacy-portrait review, swipe/chat review, terminology review and logging of material defects in issue #2.
 
 ## Phase 2 — External backend proof
 
-### 2A. Authentication and resumable accounts
+**Status:** active.
 
-Email magic link or OTP, account recovery, duplicate-account controls, deletion and abandoned-onboarding retention.
+### 2A. Backend foundation and migration contract
 
-### 2B. Persistent domain model
+**Status:** implementation and independent CI complete in PR #17; merge review.
 
-PostgreSQL schema for Account, Eligibility, Profile, LifeStage, StudentVerification, FamilyContext, FaithProfile, PrivacyPortrait, AttractionSignal, Match, ContactEntitlement, Conversation, Feedback and ModerationCase.
+Delivered:
 
-### 2C. Authorization and realtime messaging
+- Supabase local configuration under version control;
+- PostgreSQL migrations for account, profile, eligibility, life stage, family, faith, student verification and privacy portrait domains;
+- server-authoritative attraction signals, reciprocal matches, contact entitlements, conversations and messages;
+- server-authoritative block, feedback and safety-report operations;
+- moderation cases, audit events and account-deletion anonymisation;
+- private portrait storage and Row Level Security;
+- fail-closed publication and opposite-sex discovery eligibility;
+- explicit table and function privileges;
+- browser-safe backend adapter contract while the public build stays in `local-demo` mode.
 
-Row-level policies, private storage, server-authoritative block enforcement and realtime text chat.
+Validation evidence on head `596f4546`:
 
-### 2D. Institution and student-benefit verification
+- existing CI run `30579113688`: success;
+- validation run `30579113891`: success;
+- clean local database start and migration replay: success;
+- 90 pgTAP assertions across structure, two-account authorization, function privileges and deletion: success;
+- schema lint, application/artifact checks and retained Docker build: success.
 
-DUO/RIO institution identity, separately evidenced mailbox domains, annual expiry, student discount entitlement and Campus Mode privacy.
+### 2B. Local schema and authorization proof
 
-### 2E. Age and liveness proofs
+**Status:** substantial proof complete; adversarial concurrency and storage cleanup remain.
 
-Privacy-preserving age assurance, replay threat model, randomized challenges, error thresholds and appeal paths.
+Demonstrated:
 
-### 2F. Sensitive-data and fairness proof
+- migrations replay from an empty local database;
+- cross-account isolation for eligibility, family and faith records;
+- incoming likes remain hidden from their target;
+- reciprocal calls create one normalized match under repeated retries;
+- one entitlement creates one conversation idempotently;
+- only conversation participants can read messages;
+- private feedback and reports are hidden from their subject;
+- high-severity reports create an inaccessible moderation case;
+- blocking freezes match and conversation, revokes signals and prevents further messaging;
+- account deletion cascades owned relational records and anonymises retained audit identifiers.
 
-DPIA/legal review for faith data, family-context minimisation, ranking fairness, explicit visibility and deletion controls.
+Still required in issue #18:
 
-### 2G. Contact and payment proof
+- true parallel/concurrent race tests rather than sequential retry tests;
+- actual private object upload and provider-API deletion cleanup;
+- negative publication-lifecycle tests through the client role;
+- controlled private preview evidence.
 
-Mollie-versus-Stripe decision, hosted checkout, webhook idempotency, refunds, online cancellation and entitlement ledger. No payment until the free funnel creates repeatable value.
+### 2C. Authentication and resumable accounts
 
-### 2H. Behavioural standing proof
+**Next implementation package.**
 
-Feedback credibility, retaliation resistance, positive badges, correction prompts, explainable limitations and human moderation.
+- email magic link or OTP;
+- account recovery;
+- duplicate-account controls;
+- account deletion orchestration, including object cleanup;
+- abandoned-onboarding retention;
+- onboarding state persisted per authenticated user.
+
+### 2D. Controlled multi-user interaction slice
+
+- private preview deployment, not the public Hugging Face pilot;
+- two controlled adult test accounts;
+- persistent profiles and discovery;
+- reciprocal likes and exactly one match;
+- server-issued pilot contact entitlement;
+- realtime text conversation;
+- block, report and end-contact enforcement.
+
+### 2E. Institution and student-benefit verification
+
+- DUO/RIO institution identity;
+- separately evidenced mailbox domains;
+- annual expiry and graduation transition;
+- student discount entitlement;
+- Campus Mode privacy.
+
+### 2F. Age and liveness proofs
+
+- privacy-preserving age assurance;
+- replay threat model;
+- randomized challenges;
+- error thresholds and appeal paths.
+
+### 2G. Sensitive-data and fairness proof
+
+- DPIA/legal review for faith data;
+- family-context minimisation;
+- approved discovery projection and visibility controls;
+- ranking fairness and deletion controls.
+
+### 2H. Contact and payment proof
+
+- Mollie-versus-Stripe decision;
+- hosted checkout;
+- webhook idempotency;
+- refunds and online cancellation;
+- entitlement ledger;
+- no payment until the free funnel creates repeatable value.
+
+### 2I. Behavioural standing and moderation proof
+
+- feedback credibility and retaliation resistance;
+- positive badges and correction prompts;
+- explainable limitations and appeals;
+- manual moderation console and audit workflow.
 
 ## Phase 3 — Closed city-based PWA pilot
 
@@ -116,7 +195,7 @@ Scope:
 - persistent discovery, matching, contact opening and text chat;
 - manual moderation console and support coverage;
 - deletion, retention and incident procedures;
-- initially free contact rights or clearly labelled pricing experiment.
+- initially free contact rights or a clearly labelled pricing experiment.
 
 **Gate:** privacy, security, legal and moderation readiness approved and real-user admission explicitly authorized.
 

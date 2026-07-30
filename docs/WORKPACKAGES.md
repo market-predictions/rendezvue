@@ -15,7 +15,7 @@ Camera flow, profile cards, likes, deterministic match, local chat, safety contr
 ## WP-015 — Hosted Hugging Face prototype
 
 **Status:** review  
-Generated free Static Space is reachable. Reverify marker and mobile camera after product-baseline PR #14 merges.
+The product-baseline v1 pilot and binary-sex onboarding policy are deployed. Desktop/mobile field evidence and mobile camera review remain in issue #2.
 
 ## WP-016 — Netherlands and faith foundation
 
@@ -29,13 +29,13 @@ Four controlled fuzzy variants delivered. Mobile attractiveness/privacy review r
 
 ## WP-018 — Product baseline and onboarding v1
 
-**Status:** review  
-Open membership, student-first positioning, eligibility, account simulation, life stage, family context, resumable onboarding, preview and community promise are implemented and CI-green in PR #14.
+**Status:** complete  
+Open membership, student-first positioning, eligibility, life stage, family context, resumable onboarding, preview, community promise and opposite-sex community policy are merged and hosted.
 
 ## WP-019 — Interaction and contact concept
 
-**Status:** review  
-Pass, direct/contextual like, swipe controls, reciprocal match, simulated contact entitlement, text chat and end-contact flow are implemented and CI-green in PR #14.
+**Status:** complete  
+Pass, direct/contextual like, swipe controls, reciprocal match, simulated contact entitlement, text chat and end-contact flow are merged and hosted.
 
 ## WP-020 — Institution registry and student benefits
 
@@ -44,8 +44,8 @@ DUO/RIO institution identity, independently evidenced student mailbox domains, e
 
 ## WP-021 — Feedback and behavioural standing
 
-**Status:** review for UX; production proof planned  
-Structured private feedback is prototyped without ranking effect. Credibility, retaliation, fairness, correction and appeal logic remain.
+**Status:** review for UX; production proof active  
+Structured private feedback is prototyped without ranking effect. The backend now fixes initial credibility weight and separates report escalation; retaliation, fairness, correction and appeal logic remain.
 
 ## WP-025 — Faith profile validation and legal basis
 
@@ -54,8 +54,8 @@ Target-user research, Article 9 basis, withdrawal/deletion and anti-discriminati
 
 ## WP-030 — Production account and eligibility stack
 
-**Status:** planned  
-Authentication, recovery, duplicate-account controls, age assurance, single-status reconfirmation and risk controls.
+**Status:** active  
+Auth-linked profiles, eligibility, life stage, family, faith, student verification and privacy portrait records are versioned and RLS-tested. Next: magic-link/OTP adapter, recovery, duplicate-account controls, onboarding persistence and provider-orchestrated account/media deletion.
 
 ## WP-040 — Production liveness and privacy portrait
 
@@ -64,18 +64,23 @@ Randomized challenge analysis, replay threat model, short retention, fair portra
 
 ## WP-050 — Persistent application services
 
-**Status:** planned  
-External PostgreSQL, row-level authorization, private storage, discovery, matching, contact ledger, realtime text chat and notifications.
+**Status:** review for foundation; integration active next  
+Server-authoritative attraction, reciprocal match, entitlement, conversation, message, block, feedback and report contracts are implemented. Private storage, Realtime publication, moderation/audit records and least-privilege grants passed local migration and pgTAP validation. Next: private preview client integration.
+
+## WP-055 — Backend proof validation
+
+**Status:** active  
+CI now proves empty-database migration replay, 90 pgTAP assertions, schema lint, two-account RLS isolation, sequential retry idempotency, block enforcement, report privacy, moderation escalation and relational deletion/anonymisation. Remaining: true parallel race tests, actual object upload/deletion cleanup and private-preview evidence. Tracked in issue #18.
 
 ## WP-060 — Payments and entitlements
 
 **Status:** planned  
-Mollie/Stripe decision, hosted checkout, webhooks, cancellation, refunds, regular pricing and verified-student discount.
+The contact-entitlement ledger contract exists, but no provider or money movement is configured. Later: Mollie/Stripe decision, hosted checkout, verified webhooks, cancellation, refunds, regular pricing and verified-student discount.
 
 ## WP-070 — Trust and safety operations
 
 **Status:** planned  
-Moderation queue, child safety, hidden relationship reports, audit, enforcement and appeals.
+The data contract contains controlled safety reports, automatic high-severity case creation and audit events. Operational queue, child safety, hidden relationship review, enforcement, support coverage and appeals remain.
 
 ## WP-080 — Closed city pilot readiness
 
