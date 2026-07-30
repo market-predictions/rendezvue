@@ -6,6 +6,7 @@ Thumbs.db
 node_modules/
 coverage/
 dist/
+dist-private-preview/
 .hf-deploy/
 *.log
 *.pem
