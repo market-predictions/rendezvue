@@ -1,7 +1,7 @@
 # Project handover
 
 **Updated:** 2026-07-31  
-**Milestone:** complete private Supabase harness deployed remotely; controlled two-account proof pending
+**Milestone:** private Supabase foundation deployed; dedicated private Hugging Face preview deployment prepared; controlled two-account proof pending
 
 ## GitHub state
 
@@ -15,7 +15,8 @@
 - Supported remote health checks: PR #24 merged as `9403330f`.
 - Contact/chat/safety proof harness: PR #25 merged as `11964e91`.
 - Provider-orchestrated account cleanup: PR #26 merged as `8400ebc7`.
-- Public pilot remains synthetic `local-demo` on Hugging Face and was marker-verified after PR #26.
+- Public pilot remains synthetic `local-demo` on Hugging Face.
+- No owner-local Git, Node, Python, Docker or webserver is part of the project workflow.
 
 ## Product baseline
 
@@ -43,7 +44,26 @@ Implemented and validated:
 - exact destructive confirmation with no client-supplied user ID;
 - storage-first deletion so object failure leaves the Auth account retryable.
 
-The local proof baseline passes 151 pgTAP assertions, true parallel race tests, schema lint, application/artifact checks, Deno Edge Function type checking, local Edge Runtime/CORS/auth-gate smoke testing and Docker validation.
+GitHub Actions validation passes 151 pgTAP assertions, true parallel race tests, schema lint, application/artifact checks, Deno Edge Function type checking, Edge Runtime/CORS/auth-gate smoke testing and Docker validation.
+
+## Hosted architecture
+
+Rendezvue has two separate generated Hugging Face lanes:
+
+1. public concept pilot: `solidprivacy/rendezvue`, always `local-demo`;
+2. private proof: `solidprivacy/rendezvue-private-preview`, private Static Space connected to `RendezvueProject`.
+
+The private Space deployment route:
+
+- is triggered only from the protected GitHub environment;
+- builds in GitHub Actions;
+- embeds only the Supabase URL and browser publishable key;
+- automatically configures the Supabase Auth HTTPS callback;
+- reasserts private Hugging Face visibility;
+- uploads the generated static application;
+- verifies repository metadata and build commit;
+- never publishes the private application through the public Space;
+- requires no downloaded artifact or localhost runtime.
 
 ## Remote Supabase evidence
 
@@ -56,44 +76,44 @@ Private non-production project:
 - protected GitHub environment: `rendezvue-private-preview`;
 - public application connection: none.
 
-Protected workflow run **#8** on `main` commit `8400ebc70d02dc6393e00d48a7b02c9f808559cf` succeeded:
+Protected workflow run **#8** on `main` commit `8400ebc70d02dc6393e00d48a7b02c9f808559cf` proved:
 
-- project migrations linked: yes;
-- pending migrations applied: true;
-- remote Auth health: passed;
-- remote Data API metadata: passed;
-- authenticated private account cleanup function deployed: yes;
-- unauthenticated cleanup rejection: passed;
-- browser artifact contains only the publishable key: validated;
-- one short-lived complete private proof artifact generated;
-- public Hugging Face pilot changed: no;
-- real-user admission authorized: no.
-
-The Node.js 20 annotation from `actions/upload-artifact@v4` is an upstream runner warning and did not affect the successful run.
+- project migrations linked;
+- pending migrations applied;
+- remote Auth health passed;
+- remote Data API metadata passed;
+- authenticated account cleanup deployed;
+- unauthenticated cleanup rejected;
+- browser artifact contained only the publishable key;
+- public Hugging Face pilot remained unchanged;
+- real-user admission remained unauthorized.
 
 ## Immediate next execution sequence
 
-1. download the single short-lived artifact from protected workflow run #8 before its three-day retention expires;
-2. extract it and serve `dist-private-preview` on `http://127.0.0.1:4174/`;
-3. use two controlled synthetic mailboxes in two isolated browser profiles;
-4. prove magic-link delivery, callback, session recovery and sign-out;
-5. persist and publish one synthetic woman and one synthetic man profile;
-6. prove cross-account draft/family/faith/object isolation;
-7. prove opposite-sex discovery and reciprocal likes create exactly one match;
-8. claim one contact right, open exactly one persistent conversation and exchange realtime messages;
-9. prove active-match signed portrait delivery and that access stops after end-contact or block;
-10. prove private feedback/reporting exposes no public rating or moderation case;
-11. invoke authenticated cleanup for both accounts and verify portrait bytes, Auth users and relational records are removed and retained audit identifiers are anonymised;
-12. retain only non-secret evidence in issue #21.
+1. merge the private Hugging Face hosting correction;
+2. run **Deploy private Supabase preview** from `main` with `apply_migrations=true`;
+3. verify the created Space is private and inaccessible to an unauthorized Hugging Face account;
+4. open the private Space in two isolated authorized browser profiles;
+5. use two controlled synthetic mailboxes;
+6. prove magic-link delivery, callback, session recovery and sign-out;
+7. persist and publish one synthetic woman and one synthetic man profile;
+8. prove cross-account draft/family/faith/object isolation;
+9. prove opposite-sex discovery and reciprocal likes create exactly one match;
+10. claim one contact right, open exactly one conversation and exchange realtime messages;
+11. prove active-match signed portrait delivery and that access stops after end-contact or block;
+12. prove private feedback/reporting exposes no public rating or moderation case;
+13. invoke authenticated cleanup for both accounts and verify portrait bytes, Auth users and relational records are removed and retained audit identifiers are anonymised;
+14. retain only non-secret evidence in issue #21.
 
 ## Explicit limitations
 
+- the dedicated private Hugging Face Space has not yet been created and verified by the protected workflow;
 - real magic-link delivery and callback are not yet proven;
 - the complete two-account remote journey has not yet been executed;
 - authenticated remote cleanup and actual object deletion have not yet been observed;
 - recovery and duplicate-account controls remain incomplete;
 - no payments, operational moderation, Article 9 production basis or real-user authorization;
-- the private artifact is short-lived and restricted to controlled synthetic adult proof accounts.
+- the private proof is restricted to controlled synthetic adult accounts.
 
 ## Owner review still required
 

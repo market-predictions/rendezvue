@@ -22,16 +22,20 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
       - run: npm ci
       - run: npm run check
+      - run: python -m py_compile scripts/huggingface_space.py scripts/huggingface_private_space.py
 
   private_preview:
-    name: Private preview and cleanup boundary
+    name: Hosted private preview and cleanup boundary
     runs-on: ubuntu-latest
     env:
       SUPABASE_URL: https://example.supabase.co
       SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_only_placeholder_00000000000000000000
-      RENDEZVUE_AUTH_REDIRECT_URL: http://127.0.0.1:4174/
+      RENDEZVUE_AUTH_REDIRECT_URL: https://solidprivacy-rendezvue-private-preview.static.hf.space/
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -73,7 +77,7 @@ jobs:
               --output /dev/null \
               --write-out '%{http_code}' \
               --request OPTIONS \
-              --header 'origin: http://127.0.0.1:4174' \
+              --header 'origin: https://solidprivacy-rendezvue-private-preview.static.hf.space' \
               --header 'access-control-request-method: POST' \
               "$endpoint" || true)"
             [[ "$options_status" == "200" || "$options_status" == "204" ]] && break

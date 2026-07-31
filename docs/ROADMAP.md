@@ -1,17 +1,18 @@
 # Rendezvue roadmap
 
-**Version:** 1.7  
+**Version:** 1.8  
 **Updated:** 2026-07-31
 
 ## Operating doctrine
 
-- GitHub is authoritative; Hugging Face is a generated public concept pilot.
+- GitHub is authoritative; Hugging Face hosts generated web applications.
+- Nothing is built, served or tested on the owner's computer.
 - Rendezvue is adult-only, currently-single and serious-intent, with a student-first community layer rather than student-only admission.
 - Local marketplace density and safe interaction are validated before national expansion.
 - Fuzzy browser-generated privacy portraits are the MVP baseline; AI portraits are optional.
 - Safety, fairness, privacy and legal controls are product features.
 - The public Hugging Face pilot remains synthetic `local-demo`.
-- The private Supabase proof lane is isolated from the public lane and restricted to controlled synthetic adult accounts.
+- The private Supabase proof is deployed to a separate private Hugging Face Static Space and restricted to controlled synthetic adult accounts.
 
 ## Phase 0 — Foundation and hosting
 
@@ -25,7 +26,7 @@ Governance, dependency-light PWA, CI, Static Space deployment, Docker fallback a
 
 **Status:** complete.
 
-Camera demonstration, profile, discovery, contextual like, deterministic match, local chat, report, block and PWA shell.
+Camera demonstration, profile, discovery, contextual like, deterministic match, local-demo chat, report, block and PWA shell.
 
 ### 1B. Netherlands and faith model
 
@@ -63,9 +64,9 @@ Pass, direct/contextual likes, swipes, reciprocal pilot match, simulated contact
 
 Versioned Supabase/PostgreSQL configuration, Auth-linked domain records, RLS, private portrait storage, server-authoritative likes/matches/contact/chat/block/feedback/reporting, moderation/audit contracts and account-deletion anonymisation are delivered.
 
-### 2B. Local schema, authorization and concurrency proof
+### 2B. Schema, authorization and concurrency proof
 
-**Status:** complete.
+**Status:** complete in GitHub Actions.
 
 Demonstrated:
 
@@ -80,9 +81,9 @@ Demonstrated:
 - block enforcement;
 - relational deletion and audit anonymisation.
 
-### 2C. Authentication, resumable onboarding and remote deployment
+### 2C. Authentication, resumable onboarding and hosted private deployment
 
-**Status:** implementation and remote deployment complete; controlled account execution next.
+**Status:** implementation complete; private Hugging Face deployment and controlled account execution next.
 
 Delivered and validated:
 
@@ -90,12 +91,15 @@ Delivered and validated:
 - one generated browser Auth client shared by callback, onboarding, interaction and cleanup modules;
 - owner-derived onboarding persistence with prompts/interests and sanitized snapshot;
 - server-side publication gate and cross-account draft isolation;
-- protected private preview artifact separated from the public Hugging Face build;
 - recursive credential scan rejecting service/secret keys, database URLs, access tokens, passwords and private keys;
 - authenticated provider-orchestrated private object and Auth-account cleanup;
 - exact destructive confirmation with account identity derived only from the JWT;
-- Deno type checking and local Edge Runtime/CORS/auth-gate smoke testing;
-- protected remote migration and function deployment.
+- Deno type checking and GitHub Actions Edge Runtime/CORS/auth-gate testing;
+- protected remote migration and function deployment;
+- a dedicated private Hugging Face Static Space deployment route;
+- automatic Supabase Auth Site URL and redirect allow-list configuration for the private HTTPS callback;
+- explicit private-visibility and deployed-artifact verification;
+- no local Git, Node, Python, Docker, webserver or localhost callback requirement.
 
 Remote provider evidence from workflow run **#8** on commit `8400ebc70d02dc6393e00d48a7b02c9f808559cf`:
 
@@ -105,12 +109,13 @@ Remote provider evidence from workflow run **#8** on commit `8400ebc70d02dc6393e
 - remote Data API metadata passed;
 - `delete-private-proof-account` deployed;
 - unauthenticated cleanup request rejected;
-- complete private artifact generated with only the browser publishable key;
+- browser artifact validated with only the publishable key;
 - public Hugging Face pilot unchanged in `local-demo`;
 - no real-user admission authorized.
 
 Still required:
 
+- execute and verify the new private Hugging Face deployment workflow;
 - real magic-link delivery, callback and session recovery with controlled synthetic mailboxes;
 - authenticated remote cleanup with actual object deletion evidence;
 - recovery and duplicate-account controls;
@@ -118,7 +123,7 @@ Still required:
 
 ### 2D. Controlled two-account interaction and cleanup slice
 
-**Status:** implementation, local proof and remote deployment complete; browser execution pending.
+**Status:** implementation and automated proof complete; hosted browser execution pending.
 
 Implemented and covered by the 151-assertion/backend/artifact/function suite:
 
@@ -137,8 +142,8 @@ Implemented and covered by the 151-assertion/backend/artifact/function suite:
 
 Current execution gate:
 
-- download and locally serve the short-lived artifact from workflow run #8;
-- create two isolated controlled adult synthetic accounts;
+- open the dedicated private Hugging Face Space in two isolated authorized browser profiles;
+- create two controlled adult synthetic accounts;
 - prove magic-link delivery, callback, session recovery and sign-out;
 - persist onboarding and publish one synthetic man and one synthetic woman profile;
 - upload private synthetic portraits;

@@ -5,7 +5,6 @@
   "type": "module",
   "scripts": {
     "dev": "python3 -m http.server 4173 --directory apps/web",
-    "dev:private-preview": "python3 -m http.server 4174 --directory dist-private-preview",
     "build:static": "node scripts/build-static.mjs",
     "build:hf": "npm run build:static && node scripts/build-hf-deploy.mjs",
     "build:private-preview": "node scripts/build-private-preview.mjs",

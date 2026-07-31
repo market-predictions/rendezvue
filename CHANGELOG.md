@@ -23,7 +23,7 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Publication requires eligible single/adult/serious/community state, family context, a selected privacy portrait, at least two prompts and at least three interests.
 - Added cross-account draft-isolation and publication-lifecycle tests.
 
-### Private Supabase proof lane
+### Private Supabase and Hugging Face proof lane
 
 - Provisioned non-production `RendezvueProject` in West EU (Ireland) on Nano compute.
 - Added a separate `apps/private-preview` interface that is never copied into the public Hugging Face artifact.
@@ -32,6 +32,10 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Added recursive credential scanning for secret/service-role material, database URLs, access tokens, passwords and private keys.
 - Added project Auth health and supported Data API metadata validation.
 - Added one shared browser Supabase Auth client for callback, onboarding, interaction and cleanup.
+- Replaced the incorrect localhost/download route with a dedicated private Hugging Face Static Space deployment.
+- Added automatic creation and verification of `solidprivacy/rendezvue-private-preview` with private visibility.
+- Added automatic Supabase Auth Site URL and redirect allow-list configuration for the private Hugging Face HTTPS callback.
+- Removed the temporary Windows/PowerShell launcher and all local-runtime assumptions.
 
 ### Private interaction harness
 
@@ -53,7 +57,7 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Uses existing foreign-key cascades and audit anonymisation after Auth deletion.
 - Returns only deletion status and object count; paths and credentials are never returned.
 - Added private-preview cleanup controls using the one shared browser client.
-- Added Deno type checking and local Edge Runtime tests for CORS and unauthenticated HTTP 401.
+- Added Deno type checking and Edge Runtime tests for CORS and unauthenticated HTTP 401.
 - Extended the protected workflow to deploy the cleanup function and verify unauthenticated rejection remotely.
 
 ### Validation and remote evidence
@@ -65,19 +69,19 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Supported health-check PR #24 merged as `9403330f`.
 - Contact/chat/safety harness PR #25 merged as `11964e91`.
 - Provider cleanup PR #26 merged as `8400ebc7`.
-- Local validation passes application/artifact checks, private shared-client and credential-boundary validation, Deno type checking, local Edge Runtime/CORS/auth-gate tests, Docker, clean migration replay, **151 pgTAP assertions**, true parallel match/contact races and schema lint.
-- Protected workflow run **#8** on `main` commit `8400ebc70d02dc6393e00d48a7b02c9f808559cf` succeeded.
-- Run #8 linked migrations, applied pending migrations, passed remote Auth and Data API metadata checks, deployed authenticated account cleanup, proved unauthenticated cleanup rejection, validated the publishable-key-only browser artifact and generated one short-lived complete private proof artifact.
+- CI validation passes application/artifact checks, private shared-client and credential-boundary validation, Deno type checking, Edge Runtime/CORS/auth-gate tests, Docker, clean migration replay, **151 pgTAP assertions**, true parallel match/contact races and schema lint.
+- Protected workflow run **#8** on `main` commit `8400ebc70d02dc6393e00d48a7b02c9f808559cf` linked migrations, passed remote health checks, deployed cleanup and validated the browser secret boundary.
 - Run #8 confirmed that the public Hugging Face pilot remained unchanged in `local-demo` and that real-user admission remained unauthorized.
 
 ### Pending review and proof
 
-- Desktop/mobile field review of the public pilot and camera/privacy portraits.
-- Download and locally serve the workflow run #8 artifact before expiry.
-- Real magic-link delivery, callback and session recovery using two controlled synthetic accounts.
+- Merge and execute the dedicated private Hugging Face Space deployment workflow.
+- Verify private visibility and deny access to an unauthorized Hugging Face account.
+- Real magic-link delivery, callback and session recovery using two controlled synthetic accounts in two isolated browser profiles.
 - Persistent two-account onboarding, publication, reciprocal discovery/likes and exactly one match.
 - Remote one-time entitlement, realtime chat, signed portrait, end-contact, block/report and private feedback execution.
 - Remote authenticated deletion of private objects and both proof accounts, including relational cascades and retained audit anonymisation.
+- Desktop/mobile field review of the public pilot and camera/privacy portraits.
 - Legal, privacy, security and moderation gates before any real-user pilot.
 
 ## [0.3.0-alpha.1] - 2026-07-29
