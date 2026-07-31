@@ -1,6 +1,6 @@
 begin;
 
-select plan(29);
+select plan(33);
 
 select ok(to_regprocedure('public.claim_private_proof_entitlement()') is not null, 'private proof entitlement RPC exists');
 select ok(to_regprocedure('public.end_match_contact(uuid)') is not null, 'end contact RPC exists');
@@ -76,6 +76,8 @@ select ok(public.open_match_conversation('00000000-0000-0000-0000-00000000d404',
 select is((select status::text from public.contact_entitlements limit 1), 'consumed', 'opening consumes entitlement');
 select is((select count(*) from public.conversations), 1::bigint, 'exactly one conversation exists');
 select is((select status::text from public.conversations limit 1), 'open', 'conversation is open');
+select is(public.claim_private_proof_entitlement(), (select id from public.contact_entitlements limit 1), 'claim after consumption returns the original proof entitlement');
+select is((select count(*) from public.contact_entitlements), 1::bigint, 'claim after consumption cannot mint another proof entitlement');
 select lives_ok(
   $$ insert into public.messages (conversation_id, sender_user_id, body)
      select id, '00000000-0000-0000-0000-00000000a101', 'bericht van A' from public.conversations limit 1 $$,
@@ -93,7 +95,7 @@ select lives_ok(
   'B can insert a reply'
 );
 select is((select count(*) from public.messages), 2::bigint, 'B sees both messages');
-select is(public.get_matched_portrait_path('00000000-0000-0000-0000-00000000a101'), '00000000-0000-0000-0000-00000000a101/a.webp', 'matched participant receives selected portrait path');
+select is(public.get_matched_portrait_path('00000000-0000-0000-0000-00000000a101'), '00000000-0000-0000-0000-00000000a101/a.webp', 'active matched participant receives selected portrait path');
 reset role;
 
 set local "request.jwt.claims" = '{"sub":"00000000-0000-0000-0000-00000000c303","role":"authenticated"}';
@@ -106,9 +108,12 @@ set local role authenticated;
 select is(public.end_match_contact('00000000-0000-0000-0000-00000000d404'), '00000000-0000-0000-0000-00000000d404'::uuid, 'participant can end contact');
 select is((select status::text from public.matches limit 1), 'ended', 'match becomes ended');
 select is((select status::text from public.conversations limit 1), 'ended', 'conversation becomes ended');
-select is((select count(*) from public.attraction_signals where revoked_at is not null), 2::bigint, 'both attraction signals are revoked');
+select is((select count(*) from public.attraction_signals where revoked_at is not null), 1::bigint, 'A sees only A own revoked attraction signal through RLS');
+select is(public.get_matched_portrait_path('00000000-0000-0000-0000-00000000b202'), null::text, 'ended contact no longer exposes matched portrait path');
 select ok(not public.is_conversation_available((select id from public.conversations limit 1), auth.uid()), 'ended conversation rejects new messages');
 reset role;
+
+select is((select count(*) from public.attraction_signals where revoked_at is not null), 2::bigint, 'both underlying attraction signals are revoked');
 
 select * from finish();
 rollback;
