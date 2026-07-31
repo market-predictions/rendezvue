@@ -80,7 +80,7 @@ begin
       p#>>'{family_context,marital_history_visibility}',p#>>'{family_context,children_visibility}'
     ) on conflict (user_id) do update set
       marital_history=excluded.marital_history,has_children=excluded.has_children,child_count_band=excluded.child_count_band,
-      wants_children=excluded.wants_children,accepts_partner_with_children}excluded.accepts_partner_with_children,
+      wants_children=excluded.wants_children,accepts_partner_with_children=excluded.accepts_partner_with_children,
       marital_history_visibility=excluded.marital_history_visibility,children_visibility=excluded.children_visibility,
       updated_at=timezone('utc',now());
 
