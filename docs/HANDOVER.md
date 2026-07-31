@@ -1,61 +1,51 @@
 # Project handover
 
 **Updated:** 2026-07-31  
-**Milestone:** remote Supabase foundation proven; complete synthetic interaction and cleanup harness validated locally
+**Milestone:** complete private Supabase harness deployed remotely; controlled two-account proof pending
 
 ## GitHub state
 
 - Authority: `market-predictions/rendezvue` `main`.
 - Product baseline v1: PR #14 merged and publicly deployed.
-- Deployment marker fix: PR #15 merged and verified.
 - Man/woman onboarding policy: PR #16 merged and hosted.
 - Backend foundation: PR #17 merged as `8bbf1398`.
 - True parallel race proof: PR #19 merged as `5976ddea`.
 - Auth/onboarding persistence: PR #20 merged as `1de81465`.
 - Protected private Supabase lane: PR #22 merged as `5a532629`.
-- Missing-setting diagnostics: PR #23 merged as `ecae0b48`.
 - Supported remote health checks: PR #24 merged as `9403330f`.
 - Contact/chat/safety proof harness: PR #25 merged as `11964e91`.
-- Provider-orchestrated account cleanup: PR #26 in validation.
-- Public pilot remains synthetic `local-demo` on Hugging Face and was marker-verified after PR #25.
+- Provider-orchestrated account cleanup: PR #26 merged as `8400ebc7`.
+- Public pilot remains synthetic `local-demo` on Hugging Face and was marker-verified after PR #26.
 
 ## Product baseline
 
 Rendezvue is adult, currently-single and serious-intent, with student-first open membership. Student verification is optional. Life stage, marital history, children, child wish, faith/lifestyle, fuzzy privacy portraits, free discovery/likes and paid conversation opening remain separate product domains. Public stars, downvotes and popularity counts are prohibited. The community flow uses man/woman sex options and derives opposite-sex discovery.
 
-## Public concept pilot
-
-The public PWA demonstrates progressive Dutch/English onboarding, simulated student verification, live selfie/privacy portraits, synthetic discovery, pass/direct/contextual likes, swipe, deterministic match, simulated contact right, local text chat, feedback, report and block. It is not a real multi-user service and receives no private Supabase runtime configuration.
-
-## Backend, interaction and cleanup foundation
+## Implemented backend and private proof harness
 
 Implemented and validated:
 
 - versioned Supabase/PostgreSQL migrations;
 - RLS and least-privilege grants;
-- private portrait-storage contract;
-- server-authoritative attraction, match, contact, conversation, messaging, block, feedback and report operations;
+- private portrait storage;
+- server-authoritative attraction, matching, contact entitlement, conversation, message, block, feedback and report operations;
 - hidden moderation/audit domains and high-severity escalation;
-- relational deletion and audit anonymisation;
 - true parallel first-like and contact-opening race protection;
-- provider-injectable magic-link/session adapter;
-- owner-derived onboarding persistence;
-- first-class prompts/interests and transactional personality save;
-- owner-only sanitized onboarding snapshot;
-- server-side publication gate and cross-account draft isolation;
+- magic-link/session adapter and one shared browser Auth client;
+- owner-scoped resumable onboarding, prompts/interests and sanitized snapshot;
+- server-side profile publication and opposite-sex discovery;
 - one-time synthetic proof entitlement that cannot be reissued after consumption;
 - participant-controlled contact ending;
 - active-match-only selected portrait access;
-- private conversation and message Realtime publication;
-- authenticated Edge Function for private-object and Auth-account cleanup;
+- Realtime conversation/message publication;
+- authenticated Edge Function for UUID-scoped portrait deletion followed by Auth-account deletion;
+- relational cascades and retained audit-ID anonymisation;
 - exact destructive confirmation with no client-supplied user ID;
-- storage-first deletion so object failure leaves the Auth account retryable;
-- local browser control using the one shared Supabase client;
-- protected deployment and anonymous-request rejection check.
+- storage-first deletion so object failure leaves the Auth account retryable.
 
-The current local proof baseline passes 151 pgTAP assertions, true parallel race tests, schema lint, client/artifact checks, Deno Edge Function type checking, function runtime/auth-gate smoke testing and Docker validation.
+The local proof baseline passes 151 pgTAP assertions, true parallel race tests, schema lint, application/artifact checks, Deno Edge Function type checking, local Edge Runtime/CORS/auth-gate smoke testing and Docker validation.
 
-## Supabase project and remote proof evidence
+## Remote Supabase evidence
 
 Private non-production project:
 
@@ -66,63 +56,44 @@ Private non-production project:
 - protected GitHub environment: `rendezvue-private-preview`;
 - public application connection: none.
 
-Private preview workflow run #7 succeeded on commit `9403330f`:
+Protected workflow run **#8** on `main` commit `8400ebc70d02dc6393e00d48a7b02c9f808559cf` succeeded:
 
-- repository migrations linked: yes;
+- project migrations linked: yes;
 - pending migrations applied: true;
 - remote Auth health: passed;
 - remote Data API metadata: passed;
-- browser artifact publishable-key boundary: validated;
-- generated artifacts: one short-lived private proof artifact;
+- authenticated private account cleanup function deployed: yes;
+- unauthenticated cleanup rejection: passed;
+- browser artifact contains only the publishable key: validated;
+- one short-lived complete private proof artifact generated;
 - public Hugging Face pilot changed: no;
 - real-user admission authorized: no.
 
-This proves remote deployment and browser/server credential separation for migrations through `9403330f`. PR #25 adds the interaction migration; PR #26 adds the cleanup function. Both require a fresh protected workflow run after PR #26 is merged.
-
-## Private proof lane
-
-Implemented and validated in the generated artifact:
-
-- separate `apps/private-preview` source tree, excluded from the public build;
-- one shared browser Auth client for PKCE callback, onboarding, interaction and cleanup operations;
-- magic-link Auth, synthetic onboarding, owner snapshot and private portrait upload;
-- server-side publication, opposite-sex discovery, like and match inspection;
-- one-time synthetic proof contact entitlement;
-- idempotent conversation opening;
-- participant-only realtime text messaging;
-- short-lived signed matched-portrait delivery;
-- normal end-contact, block, safety report and private feedback controls;
-- authenticated provider cleanup of private portraits and Auth user;
-- runtime builder accepting only project URL, `sb_publishable_...` key and exact callback URL;
-- syntax validation and recursive artifact scan for server secrets;
-- protected manual workflow using GitHub environment `rendezvue-private-preview`;
-- migration push, Edge Function deploy, platform health and unauthenticated cleanup rejection checks;
-- three-day private workflow artifact;
-- complete two-account proof protocol in `docs/PRIVATE-SUPABASE-PREVIEW.md` and issue #21.
+The Node.js 20 annotation from `actions/upload-artifact@v4` is an upstream runner warning and did not affect the successful run.
 
 ## Immediate next execution sequence
 
-1. merge PR #26 after final CI is green;
-2. start `Deploy private Supabase preview` from `main` with `apply_migrations: true`;
-3. verify the interaction migration and `delete-private-proof-account` function deploy;
-4. verify remote Auth/Data API health and unauthenticated cleanup HTTP 401;
-5. download the newly generated short-lived artifact rather than run #7;
-6. serve `dist-private-preview` on `http://127.0.0.1:4174/`;
-7. use two controlled synthetic mailboxes in two isolated browser profiles;
-8. prove Auth, session recovery, onboarding, publication, discovery and exactly one match;
-9. prove one contact right, one persistent conversation, realtime messages and active-match portrait delivery;
-10. prove end-contact, block, private report and private feedback enforcement;
-11. invoke provider cleanup for both accounts and verify private object, relational, Auth and anonymised-audit outcomes;
-12. retain evidence without tokens, magic links, signed URLs, keys or object paths.
+1. download the single short-lived artifact from protected workflow run #8 before its three-day retention expires;
+2. extract it and serve `dist-private-preview` on `http://127.0.0.1:4174/`;
+3. use two controlled synthetic mailboxes in two isolated browser profiles;
+4. prove magic-link delivery, callback, session recovery and sign-out;
+5. persist and publish one synthetic woman and one synthetic man profile;
+6. prove cross-account draft/family/faith/object isolation;
+7. prove opposite-sex discovery and reciprocal likes create exactly one match;
+8. claim one contact right, open exactly one persistent conversation and exchange realtime messages;
+9. prove active-match signed portrait delivery and that access stops after end-contact or block;
+10. prove private feedback/reporting exposes no public rating or moderation case;
+11. invoke authenticated cleanup for both accounts and verify portrait bytes, Auth users and relational records are removed and retained audit identifiers are anonymised;
+12. retain only non-secret evidence in issue #21.
 
 ## Explicit limitations
 
 - real magic-link delivery and callback are not yet proven;
-- recovery and duplicate-account handling are incomplete;
-- remote signed delivery and provider cleanup are not yet executed;
-- no private two-account interaction proof has yet completed;
+- the complete two-account remote journey has not yet been executed;
+- authenticated remote cleanup and actual object deletion have not yet been observed;
+- recovery and duplicate-account controls remain incomplete;
 - no payments, operational moderation, Article 9 production basis or real-user authorization;
-- the workflow artifact is short-lived and intended only for controlled synthetic proof accounts.
+- the private artifact is short-lived and restricted to controlled synthetic adult proof accounts.
 
 ## Owner review still required
 

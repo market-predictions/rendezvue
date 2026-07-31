@@ -1,6 +1,6 @@
 # Private Supabase preview runbook
 
-**Status:** remote foundation proven; complete interaction artifact implemented; controlled two-account execution pending.  
+**Status:** complete private harness deployed and packaged by workflow run #8; controlled two-account execution pending.  
 **Scope:** synthetic adult proof accounts only. No real-user admission.
 
 ## 1. Environment boundary
@@ -20,12 +20,12 @@ Private non-production project:
 - status: Healthy;
 - region: West EU (Ireland);
 - compute: Nano;
-- repository migrations through commit `9403330f`: applied by protected workflow run #7;
+- complete repository migration set through commit `8400ebc70d02dc6393e00d48a7b02c9f808559cf`: applied by protected workflow run #8;
 - remote Auth health: passed;
 - remote Data API metadata: passed;
+- authenticated cleanup Edge Function: deployed;
+- unauthenticated cleanup rejection: passed;
 - public Hugging Face connection: none.
-
-PR #25 adds a later synthetic-interaction migration. Generate a fresh protected artifact and apply migrations again after that PR is merged. Do not use the older run #7 artifact for the full interaction protocol.
 
 ## 3. Protected environment
 
@@ -49,7 +49,7 @@ The exact callback URL must also exist in Supabase Authentication → URL Config
 
 ## 4. Successful protected deployment evidence
 
-Workflow run #7 on commit `9403330f` proved:
+Workflow run **#8** on `main` commit `8400ebc70d02dc6393e00d48a7b02c9f808559cf` proved:
 
 1. protected configuration validation passed;
 2. repository migrations linked successfully;
@@ -57,24 +57,19 @@ Workflow run #7 on commit `9403330f` proved:
 4. remote migration state matched GitHub history;
 5. Auth health passed;
 6. Data API metadata passed;
-7. the private proof artifact built successfully;
-8. the artifact scan found no server credential material;
-9. one short-lived GitHub Actions artifact was uploaded;
-10. the public Hugging Face pilot remained unchanged;
-11. real-user admission remained unauthorized.
+7. `delete-private-proof-account` deployed;
+8. unauthenticated cleanup requests were rejected;
+9. the complete private proof artifact built successfully;
+10. the artifact scan found no server credential material;
+11. one short-lived GitHub Actions artifact was uploaded;
+12. the public Hugging Face pilot remained unchanged;
+13. real-user admission remained unauthorized.
 
-The Node.js deprecation annotation from `actions/upload-artifact@v4` is an upstream runner warning and did not affect the successful proof.
+The Node.js 20 annotation from `actions/upload-artifact@v4` is an upstream runner warning and did not affect the successful proof.
 
-## 5. Generate the current artifact
+## 5. Download the current artifact
 
-After PR #25 is merged:
-
-1. open GitHub Actions;
-2. select `Deploy private Supabase preview`;
-3. choose `Run workflow` on `main`;
-4. keep `apply_migrations` set to `true`;
-5. wait until configuration, link, migration, Auth/Data API health, build, credential scan and artifact upload are green;
-6. download the single artifact before its three-day retention expires.
+Open protected workflow run #8 and download its single artifact before the three-day retention expires. Do not use the older run #7 artifact.
 
 The generated artifact must report:
 
@@ -95,7 +90,7 @@ Open:
 
 `http://127.0.0.1:4174/`
 
-The current proof harness supports:
+The harness supports:
 
 - requesting a magic link;
 - restoring and ending a session;
@@ -114,9 +109,10 @@ The current proof harness supports:
 - ending contact normally;
 - blocking the other proof participant;
 - submitting a private safety report;
-- submitting private structured feedback without a public rating.
+- submitting private structured feedback without a public rating;
+- authenticated account cleanup after exact confirmation.
 
-The generated `app.js` owns the single Supabase Auth client. The interaction module imports that same client so the PKCE callback is processed exactly once.
+The generated `app.js` owns the single Supabase Auth client. Onboarding, interaction and cleanup modules reuse that client so the PKCE callback is processed exactly once.
 
 ## 7. Two-account proof protocol
 
@@ -138,7 +134,7 @@ Use two controlled mailboxes and two isolated browser profiles. Do not use real 
 9. Upload distinct synthetic privacy portraits.
 10. Resume each onboarding snapshot after a reload.
 11. Before publication, confirm neither account can discover the other draft.
-12. Attempt no direct access to the other account's private family, faith or portrait object path; any accidental visibility is a stop condition.
+12. Stop immediately if private family, faith, onboarding or object-path data becomes visible cross-account.
 13. Publish both profiles through the server-side publication action.
 14. Confirm each account sees only the derived opposite-sex eligible discovery candidate.
 
@@ -166,51 +162,44 @@ Use two controlled mailboxes and two isolated browser profiles. Do not use real 
 
 29. Submit private structured feedback and confirm no public star/count is created.
 30. Submit a synthetic safety report and confirm moderation details remain hidden from ordinary accounts.
-31. End contact normally and confirm:
-    - match status becomes `ended`;
-    - conversation status becomes `ended`;
-    - both attraction signals are revoked in underlying state;
-    - each user sees only its own attraction signal through RLS;
-    - new messages are rejected;
-    - matched portrait access stops.
-32. Repeat the proof with a fresh pair or reset data, then block one participant and confirm match/conversation are frozen and portrait access stops.
-
-Stop immediately if any private draft data, moderation data or unauthorized storage object is visible cross-account.
+31. End contact normally and confirm match/conversation end, both signals are revoked, new messages fail and matched portrait access stops.
+32. Repeat with a fresh pair or reset data, then block one participant and confirm match/conversation are frozen and portrait access stops.
 
 ## 8. Account and object cleanup proof
 
-The relational deletion trigger is locally validated, but provider object deletion still requires an orchestrated cleanup path. Until that code exists:
+Perform cleanup only after all other evidence is retained.
 
-- do not treat deleting the Auth user alone as complete erasure evidence;
-- manually record the private object paths used by the two synthetic accounts without exposing signed URLs;
-- verify relational rows disappear after controlled account deletion;
-- verify retained audit identifiers are anonymised;
-- verify private storage objects are deleted through the approved provider cleanup operation;
-- record the result in issue #21.
+For each authenticated proof account:
 
-A later reviewed slice should automate object cleanup before the closed city pilot.
+1. use the cleanup control in its own browser profile;
+2. enter exact confirmation `DELETE_SYNTHETIC_ACCOUNT`;
+3. confirm the request is made through the current authenticated session without a client-supplied user ID;
+4. confirm the function reports success and an object count only, never paths or credentials;
+5. confirm the local session is cleared;
+6. confirm the account can no longer authenticate;
+7. confirm UUID-scoped portrait objects are gone;
+8. confirm profile, onboarding, match, conversation and message rows have cascaded;
+9. confirm retained audit identifiers are anonymised.
+
+If object deletion fails, the Auth account must remain intact and retryable. Do not manually delete the Auth account first, because that would undermine provider-cleanup evidence.
 
 ## 9. Evidence to retain
 
 Record in issue #21 and governance documents:
 
 - workflow run number and commit SHA;
-- migration result;
-- Auth/Data API health result;
+- migration, function deploy and platform-health result;
 - shared-client and private artifact credential-scan result;
-- magic-link delivery and callback result;
-- session recovery result;
-- two-account publication result;
-- RLS negative checks;
+- magic-link delivery, callback and session recovery result;
+- two-account publication and RLS negative checks;
 - match count of exactly one;
 - entitlement count of exactly one before and after consumption;
 - conversation ID stability on retry;
-- realtime message result;
-- signed private object access result;
+- realtime message and signed private object result;
 - end-contact/block/report/feedback result;
-- deletion cleanup result.
+- authenticated object/Auth/relational/audit cleanup result.
 
-Do not paste email magic links, JWTs, access tokens, database passwords, publishable keys, signed portrait URLs or API secret keys into issues, screenshots or chat.
+Do not paste email magic links, JWTs, access tokens, database passwords, publishable keys, signed portrait URLs, private object paths or API secret keys into issues, screenshots or chat.
 
 ## 10. Rollback and stop conditions
 
@@ -223,6 +212,8 @@ Stop the proof immediately if:
 - storage objects are accessible without ownership or an active match;
 - ended or blocked matches retain portrait or message access;
 - a proof account can mint more than one proof contact entitlement;
+- cleanup can target a user ID supplied by the browser;
+- cleanup deletes the Auth account before failed object deletion is resolved;
 - migrations diverge from GitHub history;
 - the public Hugging Face pilot switches away from `local-demo`.
 

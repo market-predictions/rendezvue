@@ -55,17 +55,17 @@ Target-user research, Article 9 basis, withdrawal/deletion and anti-discriminati
 ## WP-030 — Production account and eligibility stack
 
 **Status:** active  
-Auth-linked account/profile domains, RLS, magic-link/session adapter, versioned onboarding progress, owner-derived stage writes, prompts/interests and server-side publication are implemented. Remote migrations through commit `9403330f` are applied to `RendezvueProject` in West EU (Ireland), and remote Auth/Data API checks pass. Provider-orchestrated private-object and Auth-account cleanup is implemented in PR #26. Remaining: execute real callback/session/deletion proof, recovery, duplicate-account controls and abandonment retention.
+Auth-linked account/profile domains, RLS, magic-link/session adapter, versioned onboarding progress, owner-derived stage writes, prompts/interests and server-side publication are implemented. Workflow run #8 applied the complete migration set on `8400ebc`, passed remote Auth/Data API checks and deployed authenticated provider cleanup. Remaining: controlled callback/session/deletion proof, recovery, duplicate-account controls and abandonment retention.
 
 ## WP-035 — Resumable onboarding persistence
 
 **Status:** review  
-Owner-only snapshot, stage allowlists, progress save, transactional personality save and publication gating are covered by the 151-assertion backend suite and client adapter tests. Remote two-account proof with controlled synthetic accounts remains.
+Owner-only snapshot, stage allowlists, progress save, transactional personality save and publication gating are covered by the 151-assertion backend suite and client adapter tests. Remote two-account browser evidence remains.
 
 ## WP-037 — Protected private Supabase preview
 
-**Status:** complete for implementation and deployment foundation  
-The separate private proof harness, runtime-config builder, shared browser Auth client, browser/server secret scan, protected migration/function workflow and runbook are implemented. Workflow run #7 successfully linked and applied repository migrations, passed remote Auth and Data API metadata checks, validated the publishable-key-only browser artifact and generated one short-lived proof artifact. A fresh protected run after PR #26 is required for the expanded interaction and cleanup artifact. The public Hugging Face lane remains `local-demo`.
+**Status:** complete for implementation and remote deployment  
+The separate private proof harness, runtime-config builder, shared browser Auth client, browser/server secret scan, protected migration/function workflow and runbook are implemented. Workflow run #8 on `8400ebc` applied pending migrations, passed remote Auth and Data API metadata checks, deployed the cleanup function, proved unauthenticated rejection, validated the publishable-key-only artifact and generated one short-lived complete proof artifact. The public Hugging Face lane remains `local-demo`.
 
 ## WP-040 — Production liveness and privacy portrait
 
@@ -75,22 +75,22 @@ Randomized challenge analysis, replay threat model, short retention, fair portra
 ## WP-050 — Persistent application services
 
 **Status:** active  
-Server-authoritative attraction, match, one-time synthetic proof entitlement, conversation, message, end-contact, block, feedback and report contracts are implemented. Private storage, active-match portrait access, Realtime publication, moderation/audit, least-privilege grants and true parallel races pass local validation. The private proof harness exposes the complete interaction journey and provider account cleanup. Next: execute the controlled two-account remote slice.
+Server-authoritative attraction, match, one-time synthetic proof entitlement, conversation, message, end-contact, block, feedback and report contracts are implemented. Private storage, active-match portrait access, Realtime publication, moderation/audit, least-privilege grants and true parallel races pass local validation. The complete private harness is remotely deployed. Next: execute the controlled two-account browser slice.
 
 ## WP-055 — Backend proof validation
 
 **Status:** active  
-CI proves empty-database replay, 151 pgTAP assertions, schema lint, cross-account isolation, publication gating, one-time proof entitlement, active-match portrait access, contact ending, true parallel races, block enforcement, moderation escalation and relational deletion/anonymisation. Private artifact checks and Deno type checking cover the cleanup Edge Function, while a local runtime smoke test verifies CORS and unauthenticated HTTP 401. Remote migration deployment, Auth health, Data API metadata and browser/server credential separation are proven. Remaining: real Auth callback/session, signed object access, authenticated cleanup and full two-account evidence. Tracked in issues #18 and #21.
+CI proves empty-database replay, 151 pgTAP assertions, schema lint, cross-account isolation, publication gating, one-time proof entitlement, active-match portrait access, contact ending, true parallel races, block enforcement, moderation escalation and relational deletion/anonymisation. Private artifact checks and Deno/local Edge Runtime tests cover the cleanup function. Workflow run #8 proves complete remote migration deployment, Auth/Data API health, cleanup-function deployment, unauthenticated HTTP rejection and browser/server credential separation. Remaining: real Auth callback/session, signed object access, authenticated cleanup and full two-account evidence. Tracked in issues #18 and #21.
 
 ## WP-057 — Controlled two-account remote proof
 
-**Status:** active; implementation complete after PR #26, execution pending  
-Generate a fresh protected artifact after PR #26 and use two controlled synthetic adult accounts to prove magic-link delivery, session restore, persistent onboarding, publication, opposite-sex discovery, reciprocal likes, exactly one match, one-time contact entitlement, realtime chat, signed matched portrait, normal end-contact, block/report/private feedback and cross-account privacy isolation. Finish by invoking provider cleanup and proving object, Auth, relational and anonymised-audit outcomes.
+**Status:** active; implementation and deployment complete, execution pending  
+Use the workflow run #8 artifact with two controlled synthetic adult accounts to prove magic-link delivery, session restore, persistent onboarding, publication, opposite-sex discovery, reciprocal likes, exactly one match, one-time contact entitlement, realtime chat, signed matched portrait, normal end-contact, block/report/private feedback and cross-account privacy isolation. Finish by invoking provider cleanup and proving object, Auth, relational and anonymised-audit outcomes.
 
 ## WP-058 — Provider account and object cleanup
 
-**Status:** review  
-Authenticated Edge Function accepts no user ID, requires exact confirmation, removes flat UUID-scoped private portrait objects first, then deletes the Supabase Auth user so existing cascades/anonymisation run. Browser UI, artifact assertions, Deno type checking, local CORS/auth-gate smoke testing and protected remote deployment are implemented. Remote authenticated cleanup remains the acceptance gate.
+**Status:** review; remote deployment complete  
+The authenticated Edge Function accepts no user ID, requires exact confirmation, removes UUID-scoped private portrait objects first, then deletes the Supabase Auth user so existing cascades/anonymisation run. Browser UI, artifact assertions, Deno type checking, local CORS/auth-gate smoke testing and protected remote deployment are proven. Workflow run #8 also proves unauthenticated requests are rejected. Remote authenticated cleanup remains the acceptance gate.
 
 ## WP-060 — Payments and entitlements
 
