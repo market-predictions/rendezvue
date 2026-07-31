@@ -1,6 +1,6 @@
 begin;
 
-select plan(12);
+select plan(11);
 
 select has_column('public', 'profiles', 'synthetic_id', 'profiles exposes a synthetic id');
 select has_column('public', 'profiles', 'is_synthetic', 'profiles exposes an explicit synthetic marker');
