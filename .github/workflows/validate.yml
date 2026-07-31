@@ -26,8 +26,12 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm ci
+      - name: Generate reproducible synthetic portraits
+        run: |
+          python -m pip install 'Pillow==11.3.0'
+          python scripts/generate-synthetic-portraits.py
       - run: npm run check
-      - run: python -m py_compile scripts/huggingface_space.py scripts/huggingface_private_space.py
+      - run: python -m py_compile scripts/huggingface_space.py scripts/huggingface_private_space.py scripts/generate-synthetic-portraits.py
 
   private_preview:
     name: Hosted private preview and cleanup boundary
