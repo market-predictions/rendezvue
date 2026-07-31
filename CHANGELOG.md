@@ -28,23 +28,28 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ### Private Supabase proof lane
 
-- Recorded owner evidence that `RendezvueProject` is Healthy on Nano compute in West EU (Ireland), with no remote migrations yet.
+- Provisioned `RendezvueProject` in West EU (Ireland) on Nano compute as a non-production proof project.
 - Added a separate `apps/private-preview` interface that is never copied into the public Hugging Face artifact.
 - Added controlled magic-link/session, synthetic onboarding, private portrait upload, publication, discovery, like and match-inspection flows.
 - Added a private artifact builder that embeds only the project URL, an `sb_publishable_...` key and the exact Auth redirect URL.
 - Added syntax checks and a credential-boundary scan that rejects `sb_secret_...`, service-role material, database URLs, access tokens, database passwords and private keys.
 - Added protected manual GitHub Actions deployment through environment `rendezvue-private-preview`.
-- The deployment workflow validates project-reference consistency, links migrations, optionally runs `supabase db push`, checks remote Auth/Data API health and publishes a three-day proof artifact.
-- Added `docs/PRIVATE-SUPABASE-PREVIEW.md` with provisioning, callback, deployment, two-account proof and rollback procedures.
-- Kept the public Hugging Face pilot in `local-demo` and excluded all private proof files from its build path.
+- Added complete protected configuration diagnostics that report all missing values in one run.
+- Replaced the unreliable direct `/rest/v1/` root probe with project Auth health plus supported Supabase Management API OpenAPI metadata validation.
+- Protected workflow run #7 on commit `9403330f` successfully linked and applied repository migrations, passed remote Auth and Data API metadata checks, validated the browser/server credential boundary and uploaded one short-lived private proof artifact.
+- Confirmed that the public Hugging Face pilot remained unchanged in `local-demo` and that real-user admission remained unauthorized.
+- Advanced `docs/PRIVATE-SUPABASE-PREVIEW.md` to the controlled two-account proof protocol.
 
 ### Validation
 
 - Backend foundation PR #17 merged as `8bbf1398`.
 - Concurrency proof PR #19 merged as `5976ddea`.
 - Auth/onboarding PR #20 merged as `1de81465`.
-- CI run `30581908986` and validation run `30581908380` passed for the PR #20 implementation head, including 118 pgTAP assertions and true parallel races.
-- PR #22 first technical head passed public app/artifact checks, retained Docker build and the new private artifact/credential-boundary job; final governance-head validation remains required before merge.
+- Protected private proof lane PR #22 merged as `5a532629`.
+- Configuration diagnostics PR #23 merged as `ecae0b48`.
+- Supported health-check PR #24 merged as `9403330f`.
+- Local validation continues to pass 118 pgTAP assertions, true parallel match/contact races, schema lint, client tests, app/artifact checks and Docker validation.
+- Remote workflow run #7 completed successfully and generated one three-day private proof artifact.
 
 ### Completed since 0.3.0-alpha.1
 
@@ -52,16 +57,16 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Fixed the Hugging Face v1 marker contract in PR #15.
 - Merged and hosted PR #16 with man/woman onboarding and derived opposite-sex discovery.
 - Merged the server-authoritative backend foundation, concurrency proof and local auth/onboarding contracts.
-- Provisioned the private EU Supabase project.
+- Provisioned and migrated the private EU Supabase proof project.
+- Proved remote Auth/Data API availability and the browser/server credential boundary.
 
 ### Pending review and proof
 
 - Desktop/mobile field review of the public pilot and camera/privacy portraits.
-- Protected GitHub environment and secrets for the private Supabase project.
-- First repository-controlled remote migration deployment.
-- Real magic-link delivery, callback and recovery tests.
-- Actual private object upload, signed delivery and provider-API deletion cleanup.
-- Private multi-user preview with controlled synthetic accounts.
+- Real magic-link delivery, callback and session recovery using two controlled synthetic accounts.
+- Persistent two-account onboarding, publication, reciprocal discovery/likes and exactly one match.
+- Actual private object access, signed delivery and provider-API deletion cleanup.
+- Administrative synthetic contact-entitlement orchestration, realtime chat, block/report and end-contact proof.
 - Legal, privacy, security and moderation gates before any real-user pilot.
 
 ## [0.3.0-alpha.1] - 2026-07-29
