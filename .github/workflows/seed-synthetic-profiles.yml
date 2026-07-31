@@ -38,6 +38,10 @@ jobs:
           node-version: 22
           cache: npm
 
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
       - uses: supabase/setup-cli@v2
         with:
           version: latest
@@ -63,8 +67,11 @@ jobs:
 
       - run: npm ci
 
-      - name: Validate seed package
-        run: npm run validate:synthetic-seed
+      - name: Generate and validate seed package
+        run: |
+          python -m pip install 'Pillow==11.3.0'
+          python scripts/generate-synthetic-portraits.py
+          npm run validate:synthetic-seed
 
       - name: Ensure repository migrations are applied
         run: |
