@@ -65,21 +65,30 @@ jobs:
           set -euo pipefail
           endpoint="http://127.0.0.1:54321/functions/v1/delete-private-proof-account"
           options_status=""
+          options_headers="$RUNNER_TEMP/cleanup-options-headers.txt"
 
           for _ in {1..45}; do
-            options_status="$(curl --silent --output /dev/null --write-out '%{http_code}' \
+            options_status="$(curl --silent \
+              --dump-header "$options_headers" \
+              --output /dev/null \
+              --write-out '%{http_code}' \
               --request OPTIONS \
               --header 'origin: http://127.0.0.1:4174' \
               --header 'access-control-request-method: POST' \
               "$endpoint" || true)"
-            [[ "$options_status" == "204" ]] && break
+            [[ "$options_status" == "200" || "$options_status" == "204" ]] && break
             sleep 1
           done
 
-          if [[ "$options_status" != "204" ]]; then
+          if [[ "$options_status" != "200" && "$options_status" != "204" ]]; then
             supabase status || true
             docker ps --format 'table {{.Names}}\t{{.Status}}' || true
-            echo "Expected cleanup function CORS preflight HTTP 204, received $options_status"
+            echo "Expected cleanup function CORS preflight HTTP 200 or 204, received $options_status"
+            exit 1
+          fi
+          if ! grep -Eiq '^access-control-allow-origin:[[:space:]]*\*' "$options_headers"; then
+            cat "$options_headers"
+            echo 'Cleanup function CORS preflight omitted Access-Control-Allow-Origin: *'
             exit 1
           fi
 
