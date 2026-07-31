@@ -57,30 +57,28 @@ jobs:
           github-token: ${{ github.token }}
       - name: Remove any stale local stack
         run: supabase stop --no-backup || true
-      - name: Start clean local database and apply migrations
-        run: supabase db start
+      - name: Start clean local Supabase stack and apply migrations
+        run: supabase start
       - name: Smoke-test cleanup Edge Function auth gate
         shell: bash
         run: |
           set -euo pipefail
-          log_file="$RUNNER_TEMP/delete-private-proof-account.log"
-          supabase functions serve delete-private-proof-account --no-verify-jwt >"$log_file" 2>&1 &
-          function_pid=$!
-          cleanup() { kill "$function_pid" 2>/dev/null || true; }
-          trap cleanup EXIT
-
+          endpoint="http://127.0.0.1:54321/functions/v1/delete-private-proof-account"
           options_status=""
-          for _ in {1..30}; do
+
+          for _ in {1..45}; do
             options_status="$(curl --silent --output /dev/null --write-out '%{http_code}' \
               --request OPTIONS \
               --header 'origin: http://127.0.0.1:4174' \
               --header 'access-control-request-method: POST' \
-              http://127.0.0.1:54321/functions/v1/delete-private-proof-account || true)"
+              "$endpoint" || true)"
             [[ "$options_status" == "204" ]] && break
             sleep 1
           done
+
           if [[ "$options_status" != "204" ]]; then
-            cat "$log_file"
+            supabase status || true
+            docker ps --format 'table {{.Names}}\t{{.Status}}' || true
             echo "Expected cleanup function CORS preflight HTTP 204, received $options_status"
             exit 1
           fi
@@ -89,14 +87,14 @@ jobs:
             --request POST \
             --header 'content-type: application/json' \
             --data '{"confirmation":"DELETE_SYNTHETIC_ACCOUNT"}' \
-            http://127.0.0.1:54321/functions/v1/delete-private-proof-account)"
+            "$endpoint")"
           if [[ "$post_status" != "401" ]]; then
-            cat "$log_file"
+            supabase status || true
             cat "$RUNNER_TEMP/cleanup-unauth.json"
             echo "Expected unauthenticated cleanup HTTP 401, received $post_status"
             exit 1
           fi
-          echo "Cleanup function runtime and user-auth gate passed."
+          echo "Cleanup function runtime, CORS and user-auth gate passed."
       - name: Replay migrations from an empty database
         run: supabase db reset
       - name: Run database contract tests
