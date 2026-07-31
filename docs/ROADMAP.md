@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 1.4  
+**Version:** 1.5  
 **Updated:** 2026-07-31
 
 ## Operating doctrine
@@ -82,7 +82,7 @@ Demonstrated:
 
 ### 2C. Authentication, resumable onboarding and remote deployment
 
-**Status:** remote foundation complete; controlled account proof next.
+**Status:** remote foundation complete; controlled account execution next.
 
 Delivered and independently validated:
 
@@ -96,13 +96,14 @@ Delivered and independently validated:
 - server-side publication gate requiring eligibility, family context, selected portrait, two prompts and three interests;
 - cross-account draft isolation;
 - protected private preview artifact separated from the public Hugging Face build;
-- recursive artifact scan rejecting service/secret keys, database URLs, access tokens, passwords and private keys.
+- recursive artifact scan rejecting service/secret keys, database URLs, access tokens, passwords and private keys;
+- one generated browser Auth client shared by callback, onboarding and interaction modules.
 
 Remote provider evidence:
 
 - `RendezvueProject` is Healthy in West EU (Ireland) on Nano compute;
 - protected GitHub environment `rendezvue-private-preview` is configured;
-- repository migrations were linked and applied successfully in private preview workflow run #7;
+- repository migrations through commit `9403330f` were linked and applied in private preview workflow run #7;
 - remote Auth health passed;
 - remote Data API metadata passed;
 - one short-lived private proof artifact was generated;
@@ -120,19 +121,36 @@ Still required:
 
 ### 2D. Controlled two-account interaction slice
 
-**Status:** next active execution package.
+**Status:** implementation and local proof complete; remote execution pending.
 
-- download and locally serve the private proof artifact;
+Implemented and covered by the 151-assertion backend suite:
+
+- one-time synthetic proof contact entitlement that cannot be reissued after consumption;
+- idempotent participant conversation opening;
+- participant-only text messages and Realtime publication;
+- active-match-only selected portrait access;
+- short-lived signed portrait UI;
+- normal end-contact closing match/conversation and revoking both signals;
+- block, private safety report and private structured feedback controls;
+- artifact controls for match, entitlement, conversation, messages, portrait and safety actions;
+- no second Auth client in the generated browser artifact.
+
+Next execution gate:
+
+- merge PR #25;
+- apply its new migration through a fresh protected workflow run;
+- generate and download the fresh private artifact;
 - create two isolated controlled adult synthetic accounts;
+- prove magic-link delivery, callback and session recovery;
 - persist onboarding and publish one synthetic man and one synthetic woman profile;
 - upload private synthetic portraits;
 - prove opposite-sex eligible discovery;
 - record reciprocal likes and exactly one match;
 - prove draft/family/faith data remains inaccessible cross-account;
-- add administrative pilot-entitlement orchestration;
-- validate realtime text conversation;
-- validate block, report and end-contact enforcement;
-- validate signed portrait delivery and provider-side deletion cleanup;
+- claim one proof contact right and open exactly one conversation;
+- exchange realtime synthetic text messages;
+- validate signed portrait delivery, end-contact, block, report and feedback enforcement;
+- validate provider-side deletion cleanup;
 - delete both accounts and retain relational/object cleanup evidence.
 
 ### 2E. Institution and student-benefit verification
@@ -163,8 +181,9 @@ Still required:
 - hosted checkout;
 - webhook idempotency;
 - refunds and online cancellation;
-- entitlement ledger;
-- no payment until the free funnel creates repeatable value.
+- production entitlement ledger;
+- no payment until the free funnel creates repeatable value;
+- remove or permanently isolate the synthetic proof entitlement issuer before any real-user environment.
 
 ### 2I. Behavioural standing and moderation proof
 
