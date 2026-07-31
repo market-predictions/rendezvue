@@ -5,6 +5,13 @@
 
 begin;
 
+create temporary table rendezvue_synthetic_seed_input (
+  payload jsonb not null
+) on commit drop;
+
+insert into rendezvue_synthetic_seed_input (payload)
+values (:'profiles_json'::jsonb);
+
 do $seed$
 declare
   p jsonb;
@@ -14,7 +21,10 @@ declare
   published_ts timestamptz;
 begin
   n := 0;
-  for p in select value from jsonb_array_elements(:'profiles_json'::jsonb)
+  for p in
+    select item.value
+    from rendezvue_synthetic_seed_input input
+    cross join lateral jsonb_array_elements(input.payload) item
   loop
     n := n + 1;
     uid := (p->>'local_user_id')::uuid;
