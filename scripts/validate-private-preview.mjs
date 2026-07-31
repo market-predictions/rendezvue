@@ -24,6 +24,8 @@ const required = [
   'styles.css',
   'runtime-config.js',
   'deployment.json',
+  'Start-Rendezvue-Preview.cmd',
+  'Start-Rendezvue-Preview.ps1',
   'src/auth-session.js',
   'src/backend-contract.js',
   'src/onboarding-repository.js'
@@ -92,15 +94,40 @@ if (cleanup.includes('createClient(') || cleanup.includes('sb_secret_')) {
 const edgeFunction = await readFile(resolve(root, 'supabase/functions/delete-private-proof-account/index.ts'), 'utf8');
 for (const contract of [
   "createSupabaseContext(request, { auth: 'user' })",
-  ".from(BUCKET)",
+  '.from(BUCKET)',
   '.remove(objectPaths)',
   '.auth.admin.deleteUser(userId, false)',
-  "payload.confirmation !== CONFIRMATION"
+  'payload.confirmation !== CONFIRMATION'
 ]) {
   if (!edgeFunction.includes(contract)) throw new Error(`Cleanup Edge Function is missing contract: ${contract}`);
 }
 if (edgeFunction.includes('SUPABASE_SERVICE_ROLE_KEY') || edgeFunction.includes('sb_secret_')) {
   throw new Error('Cleanup Edge Function may use platform context but may not hardcode secret material');
+}
+
+const launcher = await readFile(resolve(target, 'Start-Rendezvue-Preview.cmd'), 'utf8');
+if (!launcher.includes('Start-Rendezvue-Preview.ps1')) {
+  throw new Error('Windows launcher does not invoke the bundled PowerShell server');
+}
+if (!launcher.includes('-ExecutionPolicy Bypass')) {
+  throw new Error('Windows launcher does not provide a no-install execution route');
+}
+
+const windowsServer = await readFile(resolve(target, 'Start-Rendezvue-Preview.ps1'), 'utf8');
+for (const contract of [
+  '[System.Net.IPAddress]::Loopback',
+  '$port = 4174',
+  '[System.Net.Sockets.TcpListener]',
+  "Start-Process $url",
+  "'Cache-Control: no-store, max-age=0'",
+  '[System.IO.Path]::GetFullPath'
+]) {
+  if (!windowsServer.includes(contract)) throw new Error(`Windows preview server is missing contract: ${contract}`);
+}
+for (const unsafeBinding of ['IPAddress]::Any', '0.0.0.0', 'IPAddress]::IPv6Any']) {
+  if (windowsServer.includes(unsafeBinding)) {
+    throw new Error(`Windows preview server may not expose the proof beyond loopback: ${unsafeBinding}`);
+  }
 }
 
 const prohibitedPatterns = [
