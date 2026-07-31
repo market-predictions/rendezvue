@@ -24,8 +24,6 @@ const required = [
   'styles.css',
   'runtime-config.js',
   'deployment.json',
-  'Start-Rendezvue-Preview.cmd',
-  'Start-Rendezvue-Preview.ps1',
   'src/auth-session.js',
   'src/backend-contract.js',
   'src/onboarding-repository.js'
@@ -41,10 +39,17 @@ if (deployment.publicPilotChanged !== false) throw new Error('Private preview mu
 if (deployment.containsServerSecrets !== false) throw new Error('Private preview secret boundary is not asserted');
 if (deployment.sharedBrowserAuthClient !== true) throw new Error('Private preview does not assert one shared browser Auth client');
 if (deployment.providerAccountCleanup !== true) throw new Error('Private preview does not assert provider account cleanup');
+const redirect = new URL(deployment.authRedirectUrl);
+if (redirect.protocol !== 'https:' || !redirect.hostname.endsWith('.static.hf.space')) {
+  throw new Error('Private preview callback must use a hosted Hugging Face HTTPS URL');
+}
 
 const runtime = await readFile(resolve(target, 'runtime-config.js'), 'utf8');
 if (!runtime.includes('sb_publishable_')) throw new Error('Private artifact does not contain a publishable browser key');
 if (!runtime.includes('supabase-proof')) throw new Error('Runtime config is not in supabase-proof mode');
+if (runtime.includes('127.0.0.1') || runtime.includes('localhost')) {
+  throw new Error('Private artifact may not depend on a local runtime');
+}
 
 const index = await readFile(resolve(target, 'index.html'), 'utf8');
 if (!index.includes('interaction-proof.js')) throw new Error('Private interaction proof module is not loaded');
@@ -105,31 +110,6 @@ if (edgeFunction.includes('SUPABASE_SERVICE_ROLE_KEY') || edgeFunction.includes(
   throw new Error('Cleanup Edge Function may use platform context but may not hardcode secret material');
 }
 
-const launcher = await readFile(resolve(target, 'Start-Rendezvue-Preview.cmd'), 'utf8');
-if (!launcher.includes('Start-Rendezvue-Preview.ps1')) {
-  throw new Error('Windows launcher does not invoke the bundled PowerShell server');
-}
-if (!launcher.includes('-ExecutionPolicy Bypass')) {
-  throw new Error('Windows launcher does not provide a no-install execution route');
-}
-
-const windowsServer = await readFile(resolve(target, 'Start-Rendezvue-Preview.ps1'), 'utf8');
-for (const contract of [
-  '[System.Net.IPAddress]::Loopback',
-  '$port = 4174',
-  '[System.Net.Sockets.TcpListener]',
-  "Start-Process $url",
-  "'Cache-Control: no-store, max-age=0'",
-  '[System.IO.Path]::GetFullPath'
-]) {
-  if (!windowsServer.includes(contract)) throw new Error(`Windows preview server is missing contract: ${contract}`);
-}
-for (const unsafeBinding of ['IPAddress]::Any', '0.0.0.0', 'IPAddress]::IPv6Any']) {
-  if (windowsServer.includes(unsafeBinding)) {
-    throw new Error(`Windows preview server may not expose the proof beyond loopback: ${unsafeBinding}`);
-  }
-}
-
 const prohibitedPatterns = [
   /sb_secret_/i,
   /service_role/i,
@@ -148,4 +128,4 @@ for (const file of await collectFiles(target)) {
   }
 }
 
-console.log(`Private preview artifact validation passed (${required.length} required files).`);
+console.log(`Private hosted preview artifact validation passed (${required.length} required files).`);
