@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 SPACE_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*$")
+DEPLOYMENT_CONTRACT_VERSION = "private-hf-v1"
 
 
 def require_environment() -> tuple[str, str, str]:
@@ -36,7 +37,7 @@ def ensure(api, repo_id: str) -> None:
     info = api.space_info(repo_id)
     if not getattr(info, "private", False):
         raise SystemExit("Private preview Space exists but is not private.")
-    print(f"Private Static Space confirmed at {url}.")
+    print(f"Private Static Space confirmed at {url} ({DEPLOYMENT_CONTRACT_VERSION}).")
 
 
 def verify(api, repo_id: str, token: str, expected_commit: str) -> None:
@@ -72,7 +73,10 @@ def verify(api, repo_id: str, token: str, expected_commit: str) -> None:
     if "Rendezvue" not in index:
         raise SystemExit("Private Space index does not contain the Rendezvue application marker.")
 
-    print(f"Private Space repository artifact verified for commit {deployment.get('buildCommit')}.")
+    print(
+        "Private Space repository artifact verified "
+        f"for commit {deployment.get('buildCommit')} ({DEPLOYMENT_CONTRACT_VERSION})."
+    )
 
 
 def main() -> int:
