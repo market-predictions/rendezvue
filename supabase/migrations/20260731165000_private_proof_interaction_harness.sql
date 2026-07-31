@@ -29,10 +29,25 @@ begin
     raise exception 'published synthetic proof profile required';
   end if;
 
-  select id into v_entitlement_id
-  from public.contact_entitlements
-  where owner_user_id = v_actor
-    and idempotency_key = 'private-proof-one-time';
+  -- The conversation-opening RPC replaces the entitlement idempotency key.
+  -- Therefore the durable proof marker is the immutable audit event, not the
+  -- mutable entitlement row key. This prevents claiming a second proof right
+  -- after the first one is consumed.
+  select ce.id into v_entitlement_id
+  from public.contact_entitlements ce
+  where ce.owner_user_id = v_actor
+    and ce.source_type = 'pilot'
+    and exists (
+      select 1
+      from public.audit_events ae
+      where ae.actor_user_id = v_actor
+        and ae.event_type = 'private_proof_entitlement_claimed'
+        and ae.entity_type = 'contact_entitlement'
+        and ae.entity_id = ce.id::text
+        and ae.payload ->> 'scope' = 'synthetic-private-proof'
+    )
+  order by ce.created_at
+  limit 1;
 
   if v_entitlement_id is null then
     insert into public.contact_entitlements (
@@ -133,7 +148,7 @@ begin
     from public.matches m
     where m.user_a_id = least(v_actor, p_other_user_id)
       and m.user_b_id = greatest(v_actor, p_other_user_id)
-      and m.status in ('active', 'ended')
+      and m.status = 'active'
       and not exists (
         select 1 from public.blocks b
         where (b.blocker_user_id = v_actor and b.blocked_user_id = p_other_user_id)
@@ -155,8 +170,9 @@ begin
 end;
 $$;
 
--- Matched users may request a short-lived signed URL for the other selected
--- derivative. The bucket remains private and non-matches cannot select it.
+-- Active matched users may request a short-lived signed URL for the other
+-- selected derivative. The bucket remains private and access ends immediately
+-- when contact is ended or blocked.
 drop policy if exists portrait_objects_read_matched on storage.objects;
 create policy portrait_objects_read_matched on storage.objects for select to authenticated
 using (
@@ -167,7 +183,7 @@ using (
     join public.matches m
       on m.user_a_id = least(auth.uid(), pp.user_id)
      and m.user_b_id = greatest(auth.uid(), pp.user_id)
-     and m.status in ('active', 'ended')
+     and m.status = 'active'
     where pp.object_path = name
       and pp.user_id <> auth.uid()
       and pp.is_public_profile_portrait
