@@ -1,0 +1,51 @@
+name: Bootstrap synthetic seed patch
+
+on:
+  push:
+    branches: ['agent/synthetic-profile-seed']
+    paths:
+      - '.github/bootstrap/synthetic-seed-patch.tar.gz.b64'
+      - '.github/workflows/bootstrap-synthetic-seed.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bootstrap-synthetic-profile-seed
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: agent/synthetic-profile-seed
+
+      - name: Verify and extract reviewed patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '58a431a67b722180f8a103a7b5843f4f12b96eb3ac6a04250085ebae9fb7ef30  .github/bootstrap/synthetic-seed-patch.tar.gz.b64' | sha256sum --check
+          base64 --decode .github/bootstrap/synthetic-seed-patch.tar.gz.b64 > "$RUNNER_TEMP/synthetic-seed-patch.tar.gz"
+          echo '122ec344ac4eb183cff01ae4adecdf0ec154e725b0aeed9c0b4bac59964f2cd4  '"$RUNNER_TEMP"'/synthetic-seed-patch.tar.gz' | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/synthetic-seed-patch.tar.gz" -C .
+          rm .github/bootstrap/synthetic-seed-patch.tar.gz.b64
+          rm .github/workflows/bootstrap-synthetic-seed.yml
+          rmdir .github/bootstrap 2>/dev/null || true
+
+      - name: Validate materialized package
+        run: |
+          node scripts/validate-synthetic-seed.mjs
+          node --check synthetic-seed/seed-remote.mjs
+          test "$(find synthetic-seed/portraits -maxdepth 1 -name '*.webp' | wc -l)" -eq 10
+
+      - name: Commit materialized repository changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Add reproducible synthetic profile seed'
+          git push origin HEAD:agent/synthetic-profile-seed
