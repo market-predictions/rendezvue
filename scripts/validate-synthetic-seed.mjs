@@ -148,7 +148,7 @@ for (const table of [
 ]) {
   assert(sql.includes(`public.${table}`), `seed.sql does not populate public.${table}`);
 }
-assert((sql.match(/synthetic_profile_seeded/g) ?? []).length === 10, 'seed.sql must create one seed audit event per profile');
+assert(sql.includes("event_type='synthetic_profile_seeded'") && sql.includes("'synthetic_profile_seeded',uid"), 'seed.sql must idempotently audit each seeded profile');
 
 console.log(JSON.stringify({
   valid: true,

@@ -1,7 +1,6 @@
 -- Rendezvue deterministic local synthetic seed.
 -- Run from the repository root with psql so the profiles JSON can be loaded.
 -- Managed/private projects must use seed-remote.mjs instead.
--- Audit validation markers: synthetic_profile_seeded synthetic_profile_seeded synthetic_profile_seeded synthetic_profile_seeded synthetic_profile_seeded synthetic_profile_seeded synthetic_profile_seeded synthetic_profile_seeded
 \set profiles_json `cat synthetic-seed/profiles.json`
 
 begin;
@@ -64,7 +63,7 @@ begin
       user_id,primary_status,education_level,institution_id,study_field,occupation_category,institution_visible
     ) values (
       uid,(p#>>'{life_stage,primary_status}')::public.life_stage_type,p#>>'{life_stage,education_level}',
-      nullif(p#>>'{life_stage,institution_id}','')::uuid,p#>>'{life_stage,study_field}',p#>>'{life_stage,occupation_category}',
+      nullif(p#>>'{life_stage,institution_id}',''),p#>>'{life_stage,study_field}',p#>>'{life_stage,occupation_category}',
       coalesce((p#>>'{life_stage,institution_visible}')::boolean,false)
     ) on conflict (user_id) do update set
       primary_status=excluded.primary_status,education_level=excluded.education_level,institution_id=excluded.institution_id,
@@ -81,7 +80,7 @@ begin
       p#>>'{family_context,marital_history_visibility}',p#>>'{family_context,children_visibility}'
     ) on conflict (user_id) do update set
       marital_history=excluded.marital_history,has_children=excluded.has_children,child_count_band=excluded.child_count_band,
-      wants_children=excluded.wants_children,accepts_partner_with_children=excluded.accepts_partner_with_children,
+      wants_children=excluded.wants_children,accepts_partner_with_children}excluded.accepts_partner_with_children,
       marital_history_visibility=excluded.marital_history_visibility,children_visibility=excluded.children_visibility,
       updated_at=timezone('utc',now());
 

@@ -118,6 +118,32 @@ jobs:
         run: supabase test db
       - name: Run parallel match and entitlement race tests
         run: bash supabase/tests/concurrency/run.sh
+      - name: Execute and verify deterministic synthetic SQL seed
+        shell: bash
+        run: |
+          set -euo pipefail
+          db_container="$(docker ps --filter 'name=supabase_db_' --format '{{.Names}}' | head -n 1)"
+          if [[ -z "$db_container" ]]; then
+            echo 'No running local Supabase database container found.'
+            exit 1
+          fi
+          docker exec "$db_container" rm -rf /tmp/synthetic-seed
+          docker cp synthetic-seed "$db_container:/tmp/synthetic-seed"
+          docker exec -w /tmp "$db_container" \
+            psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f synthetic-seed/seed.sql
+          counts="$(docker exec "$db_container" psql -U postgres -d postgres -Atc \
+            "select concat_ws('|',
+              (select count(*) from public.profiles where is_synthetic),
+              (select count(*) from public.profiles where is_synthetic and publication_status='published'),
+              (select count(*) from public.profile_interests pi join public.profiles p on p.user_id=pi.user_id where p.is_synthetic),
+              (select count(*) from public.profile_prompts pp join public.profiles p on p.user_id=pp.user_id where p.is_synthetic),
+              (select count(*) from public.privacy_portraits pp join public.profiles p on p.user_id=pp.user_id where p.is_synthetic and pp.is_public_profile_portrait)
+            );")"
+          if [[ "$counts" != '10|10|50|20|10' ]]; then
+            echo "Unexpected synthetic seed counts: $counts"
+            exit 1
+          fi
+          echo "Synthetic seed counts verified: $counts"
       - name: Lint local database schema
         run: supabase db lint --local --level warning
       - name: Stop local database
