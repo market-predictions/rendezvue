@@ -61,6 +61,20 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Generated one shared browser Supabase Auth client so PKCE callback, onboarding and interaction modules cannot race separate clients.
 - Added artifact assertions that reject a second `createClient`, server credentials or missing interaction controls.
 
+### Provider-orchestrated account cleanup
+
+- Added authenticated Edge Function `delete-private-proof-account`.
+- Requires exact confirmation `DELETE_SYNTHETIC_ACCOUNT` and derives the account ID only from the authenticated JWT.
+- Lists only private portrait objects under the caller's UUID prefix.
+- Deletes object bytes before deleting the Auth account so a storage failure leaves the account intact and retryable.
+- Uses existing foreign-key cascades and audit anonymisation after Auth deletion.
+- Returns only deletion status and object count; object paths and credentials are never returned.
+- Added a private-preview deletion control using the one shared Supabase client and local-only sign-out after successful deletion.
+- Added artifact assertions for the cleanup UI, function invocation, exact confirmation and absence of a second client or secret material.
+- Added Deno type checking for the Edge Function.
+- Added local function runtime tests for CORS preflight and unauthenticated HTTP 401.
+- Extended the protected workflow to deploy the cleanup function and remotely verify unauthenticated requests are rejected.
+
 ### Validation
 
 - Backend foundation PR #17 merged as `8bbf1398`.
@@ -69,8 +83,10 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Protected private proof lane PR #22 merged as `5a532629`.
 - Configuration diagnostics PR #23 merged as `ecae0b48`.
 - Supported health-check PR #24 merged as `9403330f`.
-- PR #25 final technical head passed application/artifact checks, private artifact and shared-client validation, Docker, clean migration replay, **151 pgTAP assertions**, true parallel match/contact races and schema lint.
-- Remote workflow run #7 completed successfully and generated one three-day private proof artifact; a fresh protected run is required after PR #25 to apply the new interaction migration and build the expanded artifact.
+- Contact/chat/safety harness PR #25 merged as `11964e91`.
+- PR #25 passed application/artifact checks, private artifact and shared-client validation, Docker, clean migration replay, **151 pgTAP assertions**, true parallel match/contact races and schema lint.
+- PR #26 adds provider cleanup validation: browser artifact checks, Deno type checking, local Edge Function runtime/auth-gate smoke test, Docker and the unchanged 151-assertion database/race/lint suite.
+- Remote workflow run #7 completed successfully and generated one three-day private proof artifact; a fresh protected run is required after PR #26 to apply the interaction migration, deploy cleanup and build the complete artifact.
 
 ### Completed since 0.3.0-alpha.1
 
@@ -81,15 +97,16 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Provisioned and migrated the private EU Supabase proof project.
 - Proved remote Auth/Data API availability and the browser/server credential boundary.
 - Implemented and locally proved the complete synthetic interaction harness through match, contact right, conversation, realtime message, matched portrait and safety actions.
+- Implemented authenticated provider cleanup of private portrait objects, relational data and the Auth account.
 
 ### Pending review and proof
 
 - Desktop/mobile field review of the public pilot and camera/privacy portraits.
-- Merge PR #25 and generate a fresh protected private artifact.
+- Merge PR #26 and generate a fresh protected private artifact.
 - Real magic-link delivery, callback and session recovery using two controlled synthetic accounts.
 - Persistent two-account onboarding, publication, reciprocal discovery/likes and exactly one match.
 - Remote one-time entitlement, realtime chat, signed portrait, end-contact, block/report and private feedback execution.
-- Provider-API private object deletion cleanup.
+- Remote authenticated provider deletion of private objects and both proof accounts.
 - Legal, privacy, security and moderation gates before any real-user pilot.
 
 ## [0.3.0-alpha.1] - 2026-07-29
