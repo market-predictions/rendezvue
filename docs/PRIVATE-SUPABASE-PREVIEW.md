@@ -1,6 +1,6 @@
 # Private Supabase preview runbook
 
-**Status:** project provisioned; protected configuration and first remote migration run pending.  
+**Status:** remote migrations and platform health proven; controlled two-account proof pending.  
 **Scope:** synthetic adult proof accounts only. No real-user admission.
 
 ## 1. Environment boundary
@@ -14,94 +14,62 @@ The public build does not receive the Supabase URL or publishable key. The priva
 
 ## 2. Supabase project state
 
-Owner evidence received on 2026-07-31:
+Private non-production project:
 
 - project name: `RendezvueProject`;
 - status: Healthy;
 - region: West EU (Ireland);
 - compute: Nano;
-- no migrations applied yet;
-- no repository connected in the Supabase dashboard.
+- repository migrations: applied through protected workflow run #7;
+- remote Auth health: passed;
+- remote Data API metadata: passed;
+- public Hugging Face connection: none.
 
-The repository uses its own protected GitHub Actions deployment workflow. A direct Supabase GitHub production integration is therefore not required for this proof and should not be enabled casually.
+The repository uses its own protected GitHub Actions deployment workflow. A direct Supabase GitHub production integration is not required for this proof.
 
-## 3. GitHub protected environment
+## 3. Protected environment
 
-Create a repository environment named exactly:
+GitHub environment:
 
 `rendezvue-private-preview`
 
-Recommended protection:
+Configured environment secrets:
 
-- required reviewer: repository owner;
-- deployment branches: `main` only;
-- prevent self-approval where available;
-- no broad organization access.
+- `SUPABASE_PROJECT_REF`;
+- `SUPABASE_ACCESS_TOKEN`;
+- `SUPABASE_DB_PASSWORD`;
+- `SUPABASE_URL`;
+- `SUPABASE_PUBLISHABLE_KEY` using `sb_publishable_...`.
 
-Add these **environment secrets**:
+Configured environment variable:
 
-| Name | Value | Browser-safe? |
-|---|---|---:|
-| `SUPABASE_PROJECT_REF` | project reference from the project URL or Connect dialog | no need to publish |
-| `SUPABASE_ACCESS_TOKEN` | personal/organization access token for Supabase CLI deployment | no |
-| `SUPABASE_DB_PASSWORD` | project database password | no |
-| `SUPABASE_URL` | `https://<project-ref>.supabase.co` | yes, but kept private to this lane |
-| `SUPABASE_PUBLISHABLE_KEY` | new `sb_publishable_...` key | yes |
+- `RENDEZVUE_AUTH_REDIRECT_URL` = `http://127.0.0.1:4174/` for the first local proof.
 
-Add this **environment variable**:
+The exact callback URL must also exist in Supabase Authentication → URL Configuration. Never place protected values in source, issues, screenshots or chat.
 
-| Name | Initial controlled-proof value |
-|---|---|
-| `RENDEZVUE_AUTH_REDIRECT_URL` | `http://127.0.0.1:4174/` |
+## 4. Successful protected deployment evidence
 
-Never configure `SUPABASE_PUBLISHABLE_KEY` with `sb_secret_...`, a service-role key, database URL or access token. The workflow and build both reject server-secret material.
+Workflow run #7 on commit `9403330f` proved:
 
-## 4. Supabase dashboard configuration
+1. protected configuration validation passed;
+2. repository migrations linked successfully;
+3. pending migrations were applied;
+4. remote migration state matched GitHub history;
+5. Auth health passed;
+6. Data API metadata passed;
+7. the private proof artifact built successfully;
+8. the artifact scan found no server credential material;
+9. one short-lived GitHub Actions artifact was uploaded;
+10. the public Hugging Face pilot remained unchanged;
+11. real-user admission remained unauthorized.
 
-### API key
+The Node.js deprecation annotation from `actions/upload-artifact@v4` is an upstream runner warning and did not affect the successful proof.
 
-Use Settings → API Keys and create/copy a new publishable key with the `sb_publishable_` prefix. Do not use a secret key in the browser.
+## 5. Download and run the private proof interface
 
-### Auth URL configuration
+Open successful workflow run #7 and download its single artifact before the three-day retention expires. Extract it locally.
 
-In Authentication → URL Configuration:
-
-- Site URL for the first local proof: `http://127.0.0.1:4174/`;
-- Redirect URLs: add the exact same URL;
-- do not use a broad production wildcard for this proof.
-
-The redirect must exactly match `RENDEZVUE_AUTH_REDIRECT_URL` used by the workflow artifact.
-
-### Email delivery
-
-Default Supabase email delivery may be used only for the first two controlled proof accounts. Before a wider pilot, configure a verified domain/custom SMTP, rate-limit expectations, abuse controls and operational monitoring.
-
-## 5. First protected deployment
-
-After PR merge, open GitHub → Actions → **Deploy private Supabase preview** → Run workflow.
-
-Choose:
-
-- branch: `main`;
-- `apply_migrations`: true.
-
-The workflow:
-
-1. validates all protected values without printing them;
-2. rejects secret keys in the browser-key slot;
-3. confirms the project URL matches the project reference;
-4. links the repository to the private project;
-5. lists migration state;
-6. applies pending migrations with `supabase db push`;
-7. re-lists migration state;
-8. checks remote Auth and Data API health;
-9. builds the separate private proof interface;
-10. scans the artifact for server credentials;
-11. uploads a three-day GitHub Actions artifact.
-
-## 6. Run the private proof interface
-
-Download the workflow artifact and extract it locally. From the directory containing `dist-private-preview` run:
+From the directory containing `dist-private-preview` run:
 
 ```bash
 python3 -m http.server 4174 --directory dist-private-preview
@@ -124,33 +92,57 @@ The proof harness supports:
 - recording a server-authoritative like;
 - loading participant-visible matches.
 
-## 7. Two-account proof protocol
+## 6. Two-account proof protocol
 
-Use two controlled mailboxes and two isolated browser profiles.
+Use two controlled mailboxes and two isolated browser profiles. Do not use real dating-profile data.
 
-1. Create account A and B through magic links.
-2. Save a synthetic woman profile for one account and a synthetic man profile for the other.
-3. Upload synthetic privacy portraits.
-4. Publish both profiles.
-5. Confirm each account sees only the derived opposite-sex discovery candidate.
-6. Like reciprocally.
-7. Confirm one match exists for both accounts.
-8. Confirm neither account can read the other account's draft/private domains.
-9. Continue with entitlement, realtime messaging, block/report and deletion proofs only after the required administrative seed/orchestration path is added.
+1. Open the private preview in browser profile A and request a magic link for controlled mailbox A.
+2. Open the private preview in browser profile B and request a magic link for controlled mailbox B.
+3. Complete each callback in its corresponding browser profile.
+4. Reload both sessions and confirm session recovery.
+5. Save a synthetic woman profile for one account and a synthetic man profile for the other.
+6. Save eligibility, life stage, family context, faith/lifestyle, two prompts and at least three interests.
+7. Upload synthetic privacy portraits.
+8. Resume each onboarding snapshot after a reload.
+9. Publish both profiles through the server-side publication action.
+10. Confirm each account sees only the derived opposite-sex eligible discovery candidate.
+11. Confirm neither account can read the other account's draft eligibility, family, faith or object path data.
+12. Like reciprocally.
+13. Confirm exactly one match exists for both accounts.
+14. Sign out and sign back in to confirm the match remains persistent.
+
+Stop immediately if any private draft data or storage object is visible cross-account.
+
+## 7. Follow-on interaction proof
+
+The current harness proves through match inspection. The next repository slice must add or expose:
+
+- administrative creation of synthetic pilot contact entitlements;
+- participant-only conversation opening;
+- realtime text messaging between the two controlled accounts;
+- block and report actions;
+- end-contact private feedback;
+- signed portrait delivery;
+- provider-side portrait deletion;
+- account deletion and relational/object cleanup evidence.
+
+No payment provider is involved in this proof.
 
 ## 8. Evidence to retain
 
-Record in issue #18 or #21:
+Record in issue #21 and the governance documents:
 
-- workflow run ID and commit SHA;
-- migration list before and after;
+- workflow run number and commit SHA;
+- migration result;
 - Auth/Data API health result;
-- two-account session and publication result;
+- private artifact credential-scan result;
+- magic-link delivery and callback result;
+- session recovery result;
+- two-account publication result;
 - RLS negative checks;
-- match ID count (exactly one);
-- private object upload and access result;
-- deletion cleanup result;
-- confirmation that no secret key appeared in the browser artifact.
+- match count of exactly one;
+- private object upload/access result;
+- deletion cleanup result.
 
 Do not paste email magic links, JWTs, access tokens, database passwords or API secret keys into issues, screenshots or chat.
 
