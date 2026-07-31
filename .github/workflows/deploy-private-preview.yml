@@ -1,6 +1,20 @@
 name: Deploy private Supabase preview
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/deploy-private-preview.yml'
+      - 'apps/private-preview/**'
+      - 'apps/web/src/auth-session.js'
+      - 'apps/web/src/backend-contract.js'
+      - 'apps/web/src/onboarding-repository.js'
+      - 'scripts/build-private-preview.mjs'
+      - 'scripts/validate-private-preview.mjs'
+      - 'scripts/huggingface_private_space.py'
+      - 'supabase/**'
+      - 'package.json'
+      - 'package-lock.json'
   workflow_dispatch:
     inputs:
       apply_migrations:
@@ -104,7 +118,7 @@ jobs:
         run: supabase migration list --linked
 
       - name: Apply pending migrations
-        if: ${{ inputs.apply_migrations }}
+        if: ${{ github.event_name == 'push' || inputs.apply_migrations }}
         run: supabase db push
 
       - name: Show migration state after deployment
@@ -230,7 +244,7 @@ jobs:
           ## Rendezvue private Supabase proof
 
           - Project migrations linked: yes
-          - Pending migrations applied: ${{ inputs.apply_migrations }}
+          - Pending migrations applied: ${{ github.event_name == 'push' || inputs.apply_migrations }}
           - Remote Auth and Data API: passed
           - Auth callback: private Hugging Face HTTPS URL
           - Authenticated account cleanup deployed: yes
