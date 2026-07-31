@@ -1,4 +1,4 @@
-import { withSupabase } from 'npm:@supabase/server';
+import { createSupabaseContext } from 'npm:@supabase/server';
 
 const BUCKET = 'privacy-portraits';
 const CONFIRMATION = 'DELETE_SYNTHETIC_ACCOUNT';
@@ -55,12 +55,20 @@ async function listOwnedPortraits(
 }
 
 export default {
-  fetch: withSupabase({ auth: 'user' }, async (request, context) => {
+  fetch: async (request: Request): Promise<Response> => {
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: corsHeaders });
     }
     if (request.method !== 'POST') {
       return json({ error: 'method_not_allowed' }, 405);
+    }
+
+    const { data: context, error: authError } = await createSupabaseContext(request, { auth: 'user' });
+    if (authError || !context) {
+      return json({
+        error: 'authenticated_user_required',
+        code: authError?.code ?? null,
+      }, authError?.status ?? 401);
     }
 
     const userId = String(context.jwtClaims?.sub ?? '');
@@ -104,5 +112,5 @@ export default {
       });
       return json({ error: 'account_cleanup_failed' }, 500);
     }
-  }),
+  },
 };
