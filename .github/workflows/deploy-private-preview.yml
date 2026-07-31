@@ -115,13 +115,39 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl --fail --silent --show-error \
+
+          auth_body="$RUNNER_TEMP/supabase-auth-health.json"
+          auth_status="$(curl --silent --show-error \
+            --output "$auth_body" \
+            --write-out '%{http_code}' \
             --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
-            "$SUPABASE_URL/auth/v1/health" >/dev/null
-          curl --fail --silent --show-error \
-            --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
-            "$SUPABASE_URL/rest/v1/" >/dev/null
-          echo "Remote Auth and Data API health checks passed."
+            "$SUPABASE_URL/auth/v1/health")"
+          if [[ "$auth_status" != "200" ]]; then
+            echo "::error title=Remote Auth health failed::Auth health returned HTTP $auth_status. Verify that SUPABASE_PUBLISHABLE_KEY belongs to SUPABASE_PROJECT_REF."
+            cat "$auth_body"
+            exit 1
+          fi
+          echo "Remote Auth health passed."
+
+          openapi_body="$RUNNER_TEMP/supabase-openapi.json"
+          openapi_status="$(curl --silent --show-error \
+            --output "$openapi_body" \
+            --write-out '%{http_code}' \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/openapi?schema=public")"
+          if [[ "$openapi_status" != "200" ]]; then
+            echo "::error title=Remote Data API metadata failed::Management API OpenAPI retrieval returned HTTP $openapi_status. Verify that SUPABASE_ACCESS_TOKEN can read this project."
+            cat "$openapi_body"
+            exit 1
+          fi
+          node --input-type=module - "$openapi_body" <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const document = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+          if (!document || typeof document !== 'object') {
+            throw new Error('Data API OpenAPI response is not a JSON object');
+          }
+          console.log(`Remote Data API metadata passed (${Object.keys(document.paths ?? {}).length} paths).`);
+          NODE
 
       - name: Build synthetic-only private proof artifact
         run: npm run build:private-preview
@@ -145,7 +171,7 @@ jobs:
           - Project migrations linked: yes
           - Pending migrations applied: ${{ inputs.apply_migrations }}
           - Remote Auth health: passed
-          - Remote Data API health: passed
+          - Remote Data API metadata: passed
           - Browser artifact contains only the publishable key: validated
           - Public Hugging Face pilot changed: no
           - Real-user admission authorized: no
