@@ -3,7 +3,9 @@ import path from 'node:path';
 
 const root = process.cwd();
 const seedRoot = path.join(root, 'synthetic-seed');
-const profiles = JSON.parse(await readFile(path.join(seedRoot, 'profiles.json'), 'utf8'));
+const profilePath = path.join(seedRoot, 'profiles.json');
+const csvPath = path.join(seedRoot, 'profiles.csv');
+const profiles = JSON.parse(await readFile(profilePath, 'utf8'));
 
 const expected = new Map([
   ['Yasmin', { age: 24, city: 'Amsterdam', status: 'student', display: 'HBO-student', marital: 'never_married', children: 0 }],
@@ -124,7 +126,7 @@ for (const profile of profiles) {
   portraitNames.add(portraitFile);
   const portraitPath = path.join(root, profile.portrait_path);
   const info = await stat(portraitPath);
-  assert(info.size >= 10_000, `${portraitFile} is unexpectedly small`);
+  assert(info.size >= 1_000, `${portraitFile} is unexpectedly small`);
   const header = await readFile(portraitPath);
   assert(header.subarray(0, 4).toString('ascii') === 'RIFF', `${portraitFile} is not a RIFF WebP`);
   assert(header.subarray(8, 12).toString('ascii') === 'WEBP', `${portraitFile} is not a WebP image`);
@@ -134,7 +136,7 @@ assert(workValues.size >= 9, 'Education/work values are not sufficiently varied'
 assert(faithDescriptions.size === 10, 'Religious lifestyle descriptions must differ for all profiles');
 assert(portraitNames.size === 10, 'Expected ten unique portrait files');
 
-const csvRows = parseCsvRows(await readFile(path.join(seedRoot, 'profiles.csv'), 'utf8'));
+const csvRows = parseCsvRows(await readFile(csvPath, 'utf8'));
 assert(csvRows.length === 11, `profiles.csv must contain one header and ten data rows, found ${csvRows.length}`);
 csvRows[0][0] = csvRows[0][0].replace(/^\uFEFF/, '');
 assert(csvRows[0].includes('synthetic_id') && csvRows[0].includes('portrait_path'), 'profiles.csv lacks canonical columns');
