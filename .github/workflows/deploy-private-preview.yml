@@ -56,12 +56,18 @@ jobs:
             SUPABASE_PUBLISHABLE_KEY
             RENDEZVUE_AUTH_REDIRECT_URL
           )
+          missing=()
           for name in "${required[@]}"; do
             if [[ -z "${!name:-}" ]]; then
               echo "::error title=Missing protected configuration::$name is not configured in environment rendezvue-private-preview"
-              exit 1
+              missing+=("$name")
             fi
           done
+          if (( ${#missing[@]} > 0 )); then
+            printf 'Missing protected configuration values: %s\n' "${missing[*]}"
+            echo 'Add them under Settings > Environments > rendezvue-private-preview before rerunning this workflow.'
+            exit 1
+          fi
           if [[ ! "$SUPABASE_PROJECT_REF" =~ ^[a-z0-9]{15,30}$ ]]; then
             echo "::error title=Invalid project reference::SUPABASE_PROJECT_REF has an unexpected format"
             exit 1
