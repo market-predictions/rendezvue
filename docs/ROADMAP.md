@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 1.8  
+**Version:** 1.9  
 **Updated:** 2026-07-31
 
 ## Operating doctrine
@@ -83,7 +83,7 @@ Demonstrated:
 
 ### 2C. Authentication, resumable onboarding and hosted private deployment
 
-**Status:** implementation complete; private Hugging Face deployment and controlled account execution next.
+**Status:** hosted private deployment complete; controlled account execution next.
 
 Delivered and validated:
 
@@ -96,26 +96,22 @@ Delivered and validated:
 - exact destructive confirmation with account identity derived only from the JWT;
 - Deno type checking and GitHub Actions Edge Runtime/CORS/auth-gate testing;
 - protected remote migration and function deployment;
-- a dedicated private Hugging Face Static Space deployment route;
+- a dedicated private Hugging Face Static Space;
 - automatic Supabase Auth Site URL and redirect allow-list configuration for the private HTTPS callback;
 - explicit private-visibility and deployed-artifact verification;
-- no local Git, Node, Python, Docker, webserver or localhost callback requirement.
+- automatic non-secret success/failure evidence in issue #21;
+- no local Git, Node, Python, Docker, webserver, downloaded artifact or localhost callback requirement.
 
-Remote provider evidence from workflow run **#8** on commit `8400ebc70d02dc6393e00d48a7b02c9f808559cf`:
+Remote provider evidence:
 
-- `RendezvueProject` Healthy in West EU (Ireland), Nano compute;
-- repository migrations linked and pending migrations applied;
-- remote Auth health passed;
-- remote Data API metadata passed;
-- `delete-private-proof-account` deployed;
-- unauthenticated cleanup request rejected;
-- browser artifact validated with only the publishable key;
-- public Hugging Face pilot unchanged in `local-demo`;
-- no real-user admission authorized.
+- workflow run #8 on `8400ebc70d02dc6393e00d48a7b02c9f808559cf` linked migrations, applied pending migrations, passed remote Auth/Data API health, deployed `delete-private-proof-account`, rejected unauthenticated cleanup and validated the browser/server credential boundary;
+- automatic private deployment run `30657471168` on `3dc37be154d27502cf9c04d4df186040254f73ec` deployed `solidprivacy/rendezvue-private-preview`, verified private visibility and deployed repository metadata, configured the dedicated Hugging Face HTTPS callback and left the public pilot unchanged;
+- `RendezvueProject` remains Healthy in West EU (Ireland), Nano compute;
+- no real-user admission is authorized.
 
 Still required:
 
-- execute and verify the new private Hugging Face deployment workflow;
+- unauthorized Hugging Face access-denial browser check;
 - real magic-link delivery, callback and session recovery with controlled synthetic mailboxes;
 - authenticated remote cleanup with actual object deletion evidence;
 - recovery and duplicate-account controls;
@@ -143,6 +139,7 @@ Implemented and covered by the 151-assertion/backend/artifact/function suite:
 Current execution gate:
 
 - open the dedicated private Hugging Face Space in two isolated authorized browser profiles;
+- prove a non-authorized Hugging Face session cannot access the Space;
 - create two controlled adult synthetic accounts;
 - prove magic-link delivery, callback, session recovery and sign-out;
 - persist onboarding and publish one synthetic man and one synthetic woman profile;

@@ -36,6 +36,8 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Added automatic creation and verification of `solidprivacy/rendezvue-private-preview` with private visibility.
 - Added automatic Supabase Auth Site URL and redirect allow-list configuration for the private Hugging Face HTTPS callback.
 - Removed the temporary Windows/PowerShell launcher and all local-runtime assumptions.
+- Added automatic deployment from relevant accepted changes on `main`.
+- Added a non-secret success/failure evidence workflow for issue #21.
 
 ### Private interaction harness
 
@@ -69,15 +71,18 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Supported health-check PR #24 merged as `9403330f`.
 - Contact/chat/safety harness PR #25 merged as `11964e91`.
 - Provider cleanup PR #26 merged as `8400ebc7`.
+- Private Hugging Face architecture correction PR #29 merged as `37420b21`.
+- Private deployment evidence PR #30 merged as `3dc37be1`.
 - CI validation passes application/artifact checks, private shared-client and credential-boundary validation, Deno type checking, Edge Runtime/CORS/auth-gate tests, Docker, clean migration replay, **151 pgTAP assertions**, true parallel match/contact races and schema lint.
 - Protected workflow run **#8** on `main` commit `8400ebc70d02dc6393e00d48a7b02c9f808559cf` linked migrations, passed remote health checks, deployed cleanup and validated the browser secret boundary.
-- Run #8 confirmed that the public Hugging Face pilot remained unchanged in `local-demo` and that real-user admission remained unauthorized.
+- Automatic private deployment run `30657471168` on commit `3dc37be154d27502cf9c04d4df186040254f73ec` deployed `solidprivacy/rendezvue-private-preview`, verified private visibility and the commit-matched repository artifact, configured the hosted Supabase Auth callback and left the public pilot unchanged.
+- The private deployment requires no owner-local Git, Node, Python, Docker, server or downloaded artifact.
+- Real-user admission remains unauthorized.
 
 ### Pending review and proof
 
-- Merge and execute the dedicated private Hugging Face Space deployment workflow.
-- Verify private visibility and deny access to an unauthorized Hugging Face account.
-- Real magic-link delivery, callback and session recovery using two controlled synthetic accounts in two isolated browser profiles.
+- Verify an unauthorized Hugging Face account cannot access the private Space.
+- Real magic-link delivery, callback and session recovery using two controlled synthetic accounts in two isolated authorized browser profiles.
 - Persistent two-account onboarding, publication, reciprocal discovery/likes and exactly one match.
 - Remote one-time entitlement, realtime chat, signed portrait, end-contact, block/report and private feedback execution.
 - Remote authenticated deletion of private objects and both proof accounts, including relational cascades and retained audit anonymisation.

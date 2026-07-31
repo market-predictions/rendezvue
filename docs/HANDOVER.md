@@ -1,7 +1,7 @@
 # Project handover
 
 **Updated:** 2026-07-31  
-**Milestone:** private Supabase foundation deployed; dedicated private Hugging Face preview deployment prepared; controlled two-account proof pending
+**Milestone:** private Supabase foundation and private Hugging Face preview deployed; controlled two-account browser proof pending
 
 ## GitHub state
 
@@ -15,6 +15,8 @@
 - Supported remote health checks: PR #24 merged as `9403330f`.
 - Contact/chat/safety proof harness: PR #25 merged as `11964e91`.
 - Provider-orchestrated account cleanup: PR #26 merged as `8400ebc7`.
+- Private Hugging Face architecture correction: PR #29 merged as `37420b21`.
+- Private deployment evidence workflow: PR #30 merged as `3dc37be1`.
 - Public pilot remains synthetic `local-demo` on Hugging Face.
 - No owner-local Git, Node, Python, Docker or webserver is part of the project workflow.
 
@@ -55,17 +57,18 @@ Rendezvue has two separate generated Hugging Face lanes:
 
 The private Space deployment route:
 
-- is triggered only from the protected GitHub environment;
+- is triggered from accepted relevant changes on `main` or a protected manual run;
 - builds in GitHub Actions;
 - embeds only the Supabase URL and browser publishable key;
 - automatically configures the Supabase Auth HTTPS callback;
 - reasserts private Hugging Face visibility;
 - uploads the generated static application;
 - verifies repository metadata and build commit;
+- records non-secret success/failure evidence in issue #21;
 - never publishes the private application through the public Space;
 - requires no downloaded artifact or localhost runtime.
 
-## Remote Supabase evidence
+## Remote provider evidence
 
 Private non-production project:
 
@@ -74,40 +77,39 @@ Private non-production project:
 - region: West EU (Ireland);
 - compute: Nano;
 - protected GitHub environment: `rendezvue-private-preview`;
+- private Space: `solidprivacy/rendezvue-private-preview`;
 - public application connection: none.
 
-Protected workflow run **#8** on `main` commit `8400ebc70d02dc6393e00d48a7b02c9f808559cf` proved:
+Protected workflow run **#8** on `main` commit `8400ebc70d02dc6393e00d48a7b02c9f808559cf` proved migrations, remote platform health, cleanup deployment, unauthenticated cleanup rejection and browser/server credential separation.
 
-- project migrations linked;
-- pending migrations applied;
-- remote Auth health passed;
-- remote Data API metadata passed;
-- authenticated account cleanup deployed;
-- unauthenticated cleanup rejected;
-- browser artifact contained only the publishable key;
+Automatic private deployment run `30657471168` on `main` commit `3dc37be154d27502cf9c04d4df186040254f73ec` additionally proved:
+
+- dedicated private Hugging Face Static Space deployed;
+- private visibility verified by the deployment workflow;
+- deployed repository artifact matched the GitHub commit;
+- Supabase Auth callback configured to the dedicated Hugging Face HTTPS URL;
 - public Hugging Face pilot remained unchanged;
+- no owner-local runtime was required;
 - real-user admission remained unauthorized.
 
 ## Immediate next execution sequence
 
-1. merge the private Hugging Face hosting correction;
-2. run **Deploy private Supabase preview** from `main` with `apply_migrations=true`;
-3. verify the created Space is private and inaccessible to an unauthorized Hugging Face account;
-4. open the private Space in two isolated authorized browser profiles;
-5. use two controlled synthetic mailboxes;
-6. prove magic-link delivery, callback, session recovery and sign-out;
-7. persist and publish one synthetic woman and one synthetic man profile;
-8. prove cross-account draft/family/faith/object isolation;
-9. prove opposite-sex discovery and reciprocal likes create exactly one match;
-10. claim one contact right, open exactly one conversation and exchange realtime messages;
-11. prove active-match signed portrait delivery and that access stops after end-contact or block;
-12. prove private feedback/reporting exposes no public rating or moderation case;
-13. invoke authenticated cleanup for both accounts and verify portrait bytes, Auth users and relational records are removed and retained audit identifiers are anonymised;
-14. retain only non-secret evidence in issue #21.
+1. confirm an unauthorized Hugging Face account cannot open the private Space;
+2. open the private Space in two isolated authorized browser profiles;
+3. use two controlled synthetic mailboxes;
+4. prove magic-link delivery, callback, session recovery and sign-out;
+5. persist and publish one synthetic woman and one synthetic man profile;
+6. prove cross-account draft/family/faith/object isolation;
+7. prove opposite-sex discovery and reciprocal likes create exactly one match;
+8. claim one contact right, open exactly one conversation and exchange realtime messages;
+9. prove active-match signed portrait delivery and that access stops after end-contact or block;
+10. prove private feedback/reporting exposes no public rating or moderation case;
+11. invoke authenticated cleanup for both accounts and verify portrait bytes, Auth users and relational records are removed and retained audit identifiers are anonymised;
+12. retain only non-secret evidence in issue #21.
 
 ## Explicit limitations
 
-- the dedicated private Hugging Face Space has not yet been created and verified by the protected workflow;
+- unauthorized-browser access denial has not yet been manually demonstrated;
 - real magic-link delivery and callback are not yet proven;
 - the complete two-account remote journey has not yet been executed;
 - authenticated remote cleanup and actual object deletion have not yet been observed;
@@ -117,6 +119,7 @@ Protected workflow run **#8** on `main` commit `8400ebc70d02dc6393e00d48a7b02c9f
 
 ## Owner review still required
 
+- private Space access-denial and two-account browser proof;
 - desktop/mobile field test of the public pilot;
 - mobile camera and all privacy portrait variants;
 - terminology for faith, marital history, children and community positioning;
