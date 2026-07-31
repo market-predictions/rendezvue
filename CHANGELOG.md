@@ -8,105 +8,76 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 - Added versioned Supabase/PostgreSQL migrations, Row Level Security, least-privilege grants and private portrait-storage contracts.
 - Added server-authoritative attraction signals, reciprocal matches, contact entitlements, conversations, messages, blocking, private feedback, safety reports, moderation cases and audit events.
-- Added account-deletion cascades and audit-identifier anonymisation.
+- Added account-deletion cascades and retained audit-identifier anonymisation.
 - Added fail-closed publication and eligibility/opposite-sex discovery rules.
 - Added true parallel race protection for simultaneous first likes and contact-opening requests.
-- Added CI database startup, empty-database replay, pgTAP, race tests and schema lint.
+- Added empty-database replay, pgTAP, race tests and schema lint.
 
 ### Auth and resumable onboarding contracts
 
-- Added an injectable magic-link/session adapter with email normalization, session restore, current-user lookup, auth-state subscription and local sign-out.
+- Added an injectable magic-link/session adapter with email normalization, session restore, current-user lookup, auth-state subscription and sign-out.
 - Added owner-derived stage persistence with strict per-domain field allowlists.
-- Added versioned `onboarding_progress`.
-- Added first-class `profile_prompts` and `profile_interests` records.
-- Added transactional `save_profile_personality(...)`.
-- Added owner-only `load_onboarding_snapshot()` that excludes evidence references and private portrait object paths.
+- Added versioned `onboarding_progress`, first-class prompts/interests and transactional personality save.
+- Added owner-only sanitized onboarding snapshots.
 - Added `publish_profile()` as the only server-side publication action.
-- Publication now requires eligible single/adult/serious/community state, family context, a selected pending/verified privacy portrait, at least two prompts and at least three interests.
+- Publication requires eligible single/adult/serious/community state, family context, a selected privacy portrait, at least two prompts and at least three interests.
 - Added cross-account draft-isolation and publication-lifecycle tests.
-- Made database CI startup idempotent by removing a stale local stack before startup.
 
 ### Private Supabase proof lane
 
-- Provisioned `RendezvueProject` in West EU (Ireland) on Nano compute as a non-production proof project.
+- Provisioned non-production `RendezvueProject` in West EU (Ireland) on Nano compute.
 - Added a separate `apps/private-preview` interface that is never copied into the public Hugging Face artifact.
-- Added controlled magic-link/session, synthetic onboarding, private portrait upload, publication, discovery, like and match-inspection flows.
+- Added protected GitHub Actions deployment through environment `rendezvue-private-preview`.
 - Added a private artifact builder that embeds only the project URL, an `sb_publishable_...` key and the exact Auth redirect URL.
-- Added syntax checks and a credential-boundary scan that rejects `sb_secret_...`, service-role material, database URLs, access tokens, database passwords and private keys.
-- Added protected manual GitHub Actions deployment through environment `rendezvue-private-preview`.
-- Added complete protected configuration diagnostics that report all missing values in one run.
-- Replaced the unreliable direct `/rest/v1/` root probe with project Auth health plus supported Supabase Management API OpenAPI metadata validation.
-- Protected workflow run #7 on commit `9403330f` successfully linked and applied repository migrations, passed remote Auth and Data API metadata checks, validated the browser/server credential boundary and uploaded one short-lived private proof artifact.
-- Confirmed that the public Hugging Face pilot remained unchanged in `local-demo` and that real-user admission remained unauthorized.
-- Advanced `docs/PRIVATE-SUPABASE-PREVIEW.md` to the complete controlled two-account interaction protocol.
+- Added recursive credential scanning for secret/service-role material, database URLs, access tokens, passwords and private keys.
+- Added project Auth health and supported Data API metadata validation.
+- Added one shared browser Supabase Auth client for callback, onboarding, interaction and cleanup.
 
 ### Private interaction harness
 
 - Added `claim_private_proof_entitlement()` for exactly one synthetic proof contact right per eligible published proof account.
-- Prevented a second proof right from being issued after the original entitlement is consumed.
+- Prevented a second proof right after consumption.
+- Added idempotent conversation opening and participant-only Realtime messages.
 - Added `end_match_contact(...)` to close match/conversation state and revoke both attraction signals.
-- Added active-match-only portrait-path access and matched private-storage read policy.
-- Stopped matched portrait access immediately after contact ending or blocking.
-- Added conversation state to Supabase Realtime publication.
-- Extended the private proof interface with:
-  - match and conversation refresh;
-  - proof entitlement claim;
-  - idempotent conversation opening;
-  - participant-only realtime text messages;
-  - five-minute signed matched-portrait delivery;
-  - normal end-contact;
-  - block;
-  - private safety report;
-  - private structured feedback without public rating.
-- Generated one shared browser Supabase Auth client so PKCE callback, onboarding and interaction modules cannot race separate clients.
-- Added artifact assertions that reject a second `createClient`, server credentials or missing interaction controls.
+- Added active-match-only portrait-path access and five-minute signed matched-portrait delivery.
+- Stopped portrait and message access after contact ending or blocking.
+- Added private safety-report and structured-feedback controls without public ratings.
+- Added artifact assertions rejecting a second `createClient`, missing controls or server credentials.
 
 ### Provider-orchestrated account cleanup
 
 - Added authenticated Edge Function `delete-private-proof-account`.
 - Requires exact confirmation `DELETE_SYNTHETIC_ACCOUNT` and derives the account ID only from the authenticated JWT.
-- Lists only private portrait objects under the caller's UUID prefix.
-- Deletes object bytes before deleting the Auth account so a storage failure leaves the account intact and retryable.
+- Lists only private portrait objects below the caller's UUID prefix.
+- Deletes object bytes before deleting the Auth account so storage failure leaves the account intact and retryable.
 - Uses existing foreign-key cascades and audit anonymisation after Auth deletion.
-- Returns only deletion status and object count; object paths and credentials are never returned.
-- Added a private-preview deletion control using the one shared Supabase client and local-only sign-out after successful deletion.
-- Added artifact assertions for the cleanup UI, function invocation, exact confirmation and absence of a second client or secret material.
-- Added Deno type checking for the Edge Function.
-- Added local function runtime tests for CORS preflight and unauthenticated HTTP 401.
-- Extended the protected workflow to deploy the cleanup function and remotely verify unauthenticated requests are rejected.
+- Returns only deletion status and object count; paths and credentials are never returned.
+- Added private-preview cleanup controls using the one shared browser client.
+- Added Deno type checking and local Edge Runtime tests for CORS and unauthenticated HTTP 401.
+- Extended the protected workflow to deploy the cleanup function and verify unauthenticated rejection remotely.
 
-### Validation
+### Validation and remote evidence
 
 - Backend foundation PR #17 merged as `8bbf1398`.
 - Concurrency proof PR #19 merged as `5976ddea`.
 - Auth/onboarding PR #20 merged as `1de81465`.
 - Protected private proof lane PR #22 merged as `5a532629`.
-- Configuration diagnostics PR #23 merged as `ecae0b48`.
 - Supported health-check PR #24 merged as `9403330f`.
 - Contact/chat/safety harness PR #25 merged as `11964e91`.
-- PR #25 passed application/artifact checks, private artifact and shared-client validation, Docker, clean migration replay, **151 pgTAP assertions**, true parallel match/contact races and schema lint.
-- PR #26 adds provider cleanup validation: browser artifact checks, Deno type checking, local Edge Function runtime/auth-gate smoke test, Docker and the unchanged 151-assertion database/race/lint suite.
-- Remote workflow run #7 completed successfully and generated one three-day private proof artifact; a fresh protected run is required after PR #26 to apply the interaction migration, deploy cleanup and build the complete artifact.
-
-### Completed since 0.3.0-alpha.1
-
-- Merged product baseline PR #14 and marker-verified the hosted v1 pilot.
-- Fixed the Hugging Face v1 marker contract in PR #15.
-- Merged and hosted PR #16 with man/woman onboarding and derived opposite-sex discovery.
-- Merged the server-authoritative backend foundation, concurrency proof and local auth/onboarding contracts.
-- Provisioned and migrated the private EU Supabase proof project.
-- Proved remote Auth/Data API availability and the browser/server credential boundary.
-- Implemented and locally proved the complete synthetic interaction harness through match, contact right, conversation, realtime message, matched portrait and safety actions.
-- Implemented authenticated provider cleanup of private portrait objects, relational data and the Auth account.
+- Provider cleanup PR #26 merged as `8400ebc7`.
+- Local validation passes application/artifact checks, private shared-client and credential-boundary validation, Deno type checking, local Edge Runtime/CORS/auth-gate tests, Docker, clean migration replay, **151 pgTAP assertions**, true parallel match/contact races and schema lint.
+- Protected workflow run **#8** on `main` commit `8400ebc70d02dc6393e00d48a7b02c9f808559cf` succeeded.
+- Run #8 linked migrations, applied pending migrations, passed remote Auth and Data API metadata checks, deployed authenticated account cleanup, proved unauthenticated cleanup rejection, validated the publishable-key-only browser artifact and generated one short-lived complete private proof artifact.
+- Run #8 confirmed that the public Hugging Face pilot remained unchanged in `local-demo` and that real-user admission remained unauthorized.
 
 ### Pending review and proof
 
 - Desktop/mobile field review of the public pilot and camera/privacy portraits.
-- Merge PR #26 and generate a fresh protected private artifact.
+- Download and locally serve the workflow run #8 artifact before expiry.
 - Real magic-link delivery, callback and session recovery using two controlled synthetic accounts.
 - Persistent two-account onboarding, publication, reciprocal discovery/likes and exactly one match.
 - Remote one-time entitlement, realtime chat, signed portrait, end-contact, block/report and private feedback execution.
-- Remote authenticated provider deletion of private objects and both proof accounts.
+- Remote authenticated deletion of private objects and both proof accounts, including relational cascades and retained audit anonymisation.
 - Legal, privacy, security and moderation gates before any real-user pilot.
 
 ## [0.3.0-alpha.1] - 2026-07-29
@@ -115,8 +86,7 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 - Replaced student-only eligibility with adult, single, serious-intent open membership.
 - Retained students as a priority community with optional verification, Campus Mode, events and reduced contact pricing.
-- Added life stage for students, recent graduates, employees, self-employed users, job seekers and others.
-- Added marital history, children, child-count band, future child preference and openness to a partner with children.
+- Added life stage, marital history, children, child preference and openness to a partner with children.
 - Made fuzzy browser-local privacy portraits the MVP baseline; AI portraits are no longer a dependency.
 - Defined free discovery/likes plus paid conversation opening with free replies after contact is opened.
 - Separated attraction signals, private experience feedback, safety reports and internal trust signals.
@@ -124,23 +94,10 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ### Pilot implementation
 
-- Rebuilt onboarding as a progressive ten-stage Dutch/English flow with versioned local resume.
+- Rebuilt onboarding as a progressive Dutch/English flow with versioned local resume.
 - Added simulated private account creation and optional student verification.
-- Added public-profile preview and community promise.
-- Added diverse synthetic profiles, direct/contextual likes, swipes, deterministic match, simulated contact entitlement and local text chat.
+- Added profile preview, community promise, diverse synthetic profiles, direct/contextual likes, swipes, deterministic match, simulated contact entitlement and local text chat.
 - Added end-contact and private feedback without ranking effect.
-- Integrated privacy portraits directly in source and added product/data/governance documentation.
-
-### Validation
-
-- Local `npm run check` passed with 44 required artifacts and 10/10 tests.
-- CI runs `30475799061` and `30475799089` passed.
-
-### Safety and claims
-
-- Kept the repository synthetic-only and unsuitable for real-user admission.
-- Prohibited identifiable child data and clarified that eligibility/student/camera claims are not production verification.
-- Kept payment and reputation enforcement non-operational.
 
 ## [0.2.0-alpha.4] - 2026-07-28
 
@@ -164,26 +121,6 @@ All notable project changes are recorded here. The project uses pre-release sema
 ## [0.1.0-alpha.7] - 2026-07-27
 
 - Published the first verified hosted prototype.
-
-## [0.1.0-alpha.6] - 2026-07-27
-
-- Replaced remote building with direct upload of a GitHub-built Static Space artifact.
-
-## [0.1.0-alpha.5] - 2026-07-27
-
-- Added automatic deployment status reporting.
-
-## [0.1.0-alpha.4] - 2026-07-27
-
-- Corrected Static Space public URL verification.
-
-## [0.1.0-alpha.3] - 2026-07-27
-
-- Switched to a free Static Space while retaining Docker CI validation.
-
-## [0.1.0-alpha.2] - 2026-07-27
-
-- Added automated Hugging Face Space creation and deployment polling.
 
 ## [0.1.0-alpha.1] - 2026-07-27
 
