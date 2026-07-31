@@ -38,7 +38,28 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Replaced the unreliable direct `/rest/v1/` root probe with project Auth health plus supported Supabase Management API OpenAPI metadata validation.
 - Protected workflow run #7 on commit `9403330f` successfully linked and applied repository migrations, passed remote Auth and Data API metadata checks, validated the browser/server credential boundary and uploaded one short-lived private proof artifact.
 - Confirmed that the public Hugging Face pilot remained unchanged in `local-demo` and that real-user admission remained unauthorized.
-- Advanced `docs/PRIVATE-SUPABASE-PREVIEW.md` to the controlled two-account proof protocol.
+- Advanced `docs/PRIVATE-SUPABASE-PREVIEW.md` to the complete controlled two-account interaction protocol.
+
+### Private interaction harness
+
+- Added `claim_private_proof_entitlement()` for exactly one synthetic proof contact right per eligible published proof account.
+- Prevented a second proof right from being issued after the original entitlement is consumed.
+- Added `end_match_contact(...)` to close match/conversation state and revoke both attraction signals.
+- Added active-match-only portrait-path access and matched private-storage read policy.
+- Stopped matched portrait access immediately after contact ending or blocking.
+- Added conversation state to Supabase Realtime publication.
+- Extended the private proof interface with:
+  - match and conversation refresh;
+  - proof entitlement claim;
+  - idempotent conversation opening;
+  - participant-only realtime text messages;
+  - five-minute signed matched-portrait delivery;
+  - normal end-contact;
+  - block;
+  - private safety report;
+  - private structured feedback without public rating.
+- Generated one shared browser Supabase Auth client so PKCE callback, onboarding and interaction modules cannot race separate clients.
+- Added artifact assertions that reject a second `createClient`, server credentials or missing interaction controls.
 
 ### Validation
 
@@ -48,8 +69,8 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Protected private proof lane PR #22 merged as `5a532629`.
 - Configuration diagnostics PR #23 merged as `ecae0b48`.
 - Supported health-check PR #24 merged as `9403330f`.
-- Local validation continues to pass 118 pgTAP assertions, true parallel match/contact races, schema lint, client tests, app/artifact checks and Docker validation.
-- Remote workflow run #7 completed successfully and generated one three-day private proof artifact.
+- PR #25 final technical head passed application/artifact checks, private artifact and shared-client validation, Docker, clean migration replay, **151 pgTAP assertions**, true parallel match/contact races and schema lint.
+- Remote workflow run #7 completed successfully and generated one three-day private proof artifact; a fresh protected run is required after PR #25 to apply the new interaction migration and build the expanded artifact.
 
 ### Completed since 0.3.0-alpha.1
 
@@ -59,14 +80,16 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Merged the server-authoritative backend foundation, concurrency proof and local auth/onboarding contracts.
 - Provisioned and migrated the private EU Supabase proof project.
 - Proved remote Auth/Data API availability and the browser/server credential boundary.
+- Implemented and locally proved the complete synthetic interaction harness through match, contact right, conversation, realtime message, matched portrait and safety actions.
 
 ### Pending review and proof
 
 - Desktop/mobile field review of the public pilot and camera/privacy portraits.
+- Merge PR #25 and generate a fresh protected private artifact.
 - Real magic-link delivery, callback and session recovery using two controlled synthetic accounts.
 - Persistent two-account onboarding, publication, reciprocal discovery/likes and exactly one match.
-- Actual private object access, signed delivery and provider-API deletion cleanup.
-- Administrative synthetic contact-entitlement orchestration, realtime chat, block/report and end-contact proof.
+- Remote one-time entitlement, realtime chat, signed portrait, end-contact, block/report and private feedback execution.
+- Provider-API private object deletion cleanup.
 - Legal, privacy, security and moderation gates before any real-user pilot.
 
 ## [0.3.0-alpha.1] - 2026-07-29
