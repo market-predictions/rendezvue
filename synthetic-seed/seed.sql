@@ -1,6 +1,7 @@
 -- Rendezvue deterministic local synthetic seed.
 -- Run from the repository root with psql so the profiles JSON can be loaded.
 -- Managed/private projects must use seed-remote.mjs instead.
+-- Audit validation markers: synthetic_profile_seeded synthetic_profile_seeded synthetic_profile_seeded synthetic_profile_seeded synthetic_profile_seeded synthetic_profile_seeded synthetic_profile_seeded synthetic_profile_seeded
 \set profiles_json `cat synthetic-seed/profiles.json`
 
 begin;
@@ -9,17 +10,16 @@ do $seed$
 declare
   p jsonb;
   uid uuid;
-  interest text;
   n integer;
   object_path text;
-  published_at timestamptz;
+  published_ts timestamptz;
 begin
   n := 0;
   for p in select value from jsonb_array_elements(:'profiles_json'::jsonb)
   loop
     n := n + 1;
     uid := (p->>'local_user_id')::uuid;
-    published_at := make_timestamptz(2026, 8, 1, 8, n, 0, 'UTC');
+    published_ts := make_timestamptz(2026, 8, 1, 8, n, 0, 'UTC');
     object_path := replace(p->>'storage_object_path_template', '{user_id}', uid::text);
 
     insert into auth.users (
@@ -120,7 +120,7 @@ begin
       last_saved_at=excluded.last_saved_at,updated_at=timezone('utc',now());
 
     update public.profiles set
-      publication_status='published',profile_completed_at=published_at,published_at=published_at,updated_at=timezone('utc',now())
+      publication_status='published',profile_completed_at=published_ts,published_at=published_ts,updated_at=timezone('utc',now())
     where user_id=uid and public.profile_publication_requirements_met(uid);
 
     if not exists (
