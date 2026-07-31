@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 1.6  
+**Version:** 1.7  
 **Updated:** 2026-07-31
 
 ## Operating doctrine
@@ -11,7 +11,7 @@
 - Fuzzy browser-generated privacy portraits are the MVP baseline; AI portraits are optional.
 - Safety, fairness, privacy and legal controls are product features.
 - The public Hugging Face pilot remains synthetic `local-demo`.
-- The private Supabase proof lane is isolated from the public lane and is restricted to controlled synthetic accounts.
+- The private Supabase proof lane is isolated from the public lane and restricted to controlled synthetic adult accounts.
 
 ## Phase 0 — Foundation and hosting
 
@@ -59,13 +59,13 @@ Pass, direct/contextual likes, swipes, reciprocal pilot match, simulated contact
 
 ### 2A. Backend foundation and migration contract
 
-**Status:** complete; merged through PR #17.
+**Status:** complete.
 
 Versioned Supabase/PostgreSQL configuration, Auth-linked domain records, RLS, private portrait storage, server-authoritative likes/matches/contact/chat/block/feedback/reporting, moderation/audit contracts and account-deletion anonymisation are delivered.
 
 ### 2B. Local schema, authorization and concurrency proof
 
-**Status:** complete; merged through PR #19.
+**Status:** complete.
 
 Demonstrated:
 
@@ -82,50 +82,43 @@ Demonstrated:
 
 ### 2C. Authentication, resumable onboarding and remote deployment
 
-**Status:** remote foundation complete; controlled account execution next.
+**Status:** implementation and remote deployment complete; controlled account execution next.
 
-Delivered and independently validated:
+Delivered and validated:
 
 - injectable magic-link/session adapter;
-- email normalization, session restore, current-user lookup, auth-state subscription and sign-out;
-- owner-derived stage persistence with field allowlists;
-- versioned `onboarding_progress`;
-- first-class profile prompts and interests;
-- transactional personality save;
-- owner-only onboarding snapshot without evidence references or private object paths;
-- server-side publication gate requiring eligibility, family context, selected portrait, two prompts and three interests;
-- cross-account draft isolation;
-- protected private preview artifact separated from the public Hugging Face build;
-- recursive artifact scan rejecting service/secret keys, database URLs, access tokens, passwords and private keys;
 - one generated browser Auth client shared by callback, onboarding, interaction and cleanup modules;
+- owner-derived onboarding persistence with prompts/interests and sanitized snapshot;
+- server-side publication gate and cross-account draft isolation;
+- protected private preview artifact separated from the public Hugging Face build;
+- recursive credential scan rejecting service/secret keys, database URLs, access tokens, passwords and private keys;
 - authenticated provider-orchestrated private object and Auth-account cleanup;
 - exact destructive confirmation with account identity derived only from the JWT;
-- local Edge Function type check and runtime/auth-gate smoke test;
-- protected remote function deployment and unauthenticated rejection check.
+- Deno type checking and local Edge Runtime/CORS/auth-gate smoke testing;
+- protected remote migration and function deployment.
 
-Remote provider evidence:
+Remote provider evidence from workflow run **#8** on commit `8400ebc70d02dc6393e00d48a7b02c9f808559cf`:
 
-- `RendezvueProject` is Healthy in West EU (Ireland) on Nano compute;
-- protected GitHub environment `rendezvue-private-preview` is configured;
-- repository migrations through commit `9403330f` were linked and applied in private preview workflow run #7;
+- `RendezvueProject` Healthy in West EU (Ireland), Nano compute;
+- repository migrations linked and pending migrations applied;
 - remote Auth health passed;
 - remote Data API metadata passed;
-- one short-lived private proof artifact was generated;
-- the artifact contains only the browser publishable key;
-- the public Hugging Face pilot remained unchanged in `local-demo`;
-- no real-user admission was authorized.
+- `delete-private-proof-account` deployed;
+- unauthenticated cleanup request rejected;
+- complete private artifact generated with only the browser publishable key;
+- public Hugging Face pilot unchanged in `local-demo`;
+- no real-user admission authorized.
 
 Still required:
 
-- run real magic-link delivery and callback with controlled synthetic mailboxes;
-- prove session recovery in isolated browser profiles;
-- execute authenticated object/Auth deletion remotely;
-- complete recovery and duplicate-account controls;
-- define abandonment retention policy and cleanup job.
+- real magic-link delivery, callback and session recovery with controlled synthetic mailboxes;
+- authenticated remote cleanup with actual object deletion evidence;
+- recovery and duplicate-account controls;
+- abandonment retention policy and cleanup job.
 
 ### 2D. Controlled two-account interaction and cleanup slice
 
-**Status:** implementation and local proof complete after PR #26; remote execution pending.
+**Status:** implementation, local proof and remote deployment complete; browser execution pending.
 
 Implemented and covered by the 151-assertion/backend/artifact/function suite:
 
@@ -142,20 +135,15 @@ Implemented and covered by the 151-assertion/backend/artifact/function suite:
 - no second Auth client or server credential in the generated artifact;
 - CORS preflight and unauthenticated cleanup rejection.
 
-Next execution gate:
+Current execution gate:
 
-- merge PR #26;
-- run the protected workflow from `main` with migrations enabled;
-- apply the interaction migration and deploy `delete-private-proof-account`;
-- verify remote platform health and unauthenticated cleanup HTTP 401;
-- generate and download the fresh private artifact;
+- download and locally serve the short-lived artifact from workflow run #8;
 - create two isolated controlled adult synthetic accounts;
-- prove magic-link delivery, callback and session recovery;
+- prove magic-link delivery, callback, session recovery and sign-out;
 - persist onboarding and publish one synthetic man and one synthetic woman profile;
 - upload private synthetic portraits;
-- prove opposite-sex eligible discovery;
-- record reciprocal likes and exactly one match;
-- prove draft/family/faith data remains inaccessible cross-account;
+- prove opposite-sex eligible discovery and exactly one reciprocal match;
+- prove draft/family/faith/object isolation cross-account;
 - claim one proof contact right and open exactly one conversation;
 - exchange realtime synthetic text messages;
 - validate signed portrait delivery, end-contact, block, report and feedback enforcement;
