@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://esm.sh; style-src 'self'; img-src 'self' blob: data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://esm.sh; base-uri 'none'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://esm.sh; style-src 'self'; img-src 'self' blob: data: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://esm.sh; base-uri 'none'; form-action 'self'">
   <title>Rendezvue private backend proof</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
@@ -14,7 +14,7 @@
       <div>
         <p class="eyebrow">PRIVATE · SYNTHETIC PROOF ONLY</p>
         <h1>Rendezvue backend preview</h1>
-        <p>Deze afzonderlijke testinterface valideert authenticatie, hervatbare onboarding, profielpublicatie, discovery en likes tegen de private Supabase-omgeving.</p>
+        <p>Deze afzonderlijke testinterface valideert authenticatie, hervatbare onboarding, profielpublicatie, discovery, matching, contactrechten, realtime chat en veiligheidsacties tegen de private Supabase-omgeving.</p>
       </div>
       <div class="status-stack" aria-live="polite">
         <span id="config-status" class="badge">Configuratie controleren…</span>
@@ -24,7 +24,7 @@
 
     <section class="warning">
       <strong>Geen echte persoonsgegevens.</strong>
-      Gebruik uitsluitend gecontroleerde synthetische volwassen testaccounts en synthetische profielinformatie. Dit is geen publieke of productieomgeving.
+      Gebruik uitsluitend gecontroleerde synthetische volwassen testaccounts, synthetische portretten en synthetische gespreksinhoud. Dit is geen publieke of productieomgeving.
     </section>
 
     <section class="panel" id="auth-panel">
@@ -132,6 +132,82 @@
       </section>
 
       <section class="panel">
+        <h2>Match, contactrecht en gesprek</h2>
+        <p id="interaction-match-summary" class="hint">Meld je aan en laad daarna de matchstatus.</p>
+        <p id="conversation-summary" class="hint">Nog geen gesprek geladen.</p>
+        <div class="action-grid compact-actions">
+          <button id="refresh-interaction" class="secondary" type="button">Matchstatus vernieuwen</button>
+          <button id="claim-proof-entitlement" type="button">Proof-contactrecht claimen</button>
+          <button id="open-conversation" type="button">Gesprek openen</button>
+          <button id="load-matched-portrait" class="secondary" type="button">Matched portret laden</button>
+        </div>
+        <img id="matched-portrait" class="matched-portrait" alt="Tijdelijk geladen matched privacyportret" hidden>
+      </section>
+
+      <section class="panel">
+        <h2>Realtime tekstgesprek</h2>
+        <div id="message-list" class="message-list empty">Nog geen berichten.</div>
+        <form id="message-form" class="message-form">
+          <label>
+            Synthetisch testbericht
+            <input id="message-body" maxlength="4000" required placeholder="Schrijf uitsluitend synthetische testinhoud">
+          </label>
+          <button type="submit">Bericht versturen</button>
+        </form>
+      </section>
+
+      <section class="panel danger-zone">
+        <h2>Contact beëindigen en veiligheid</h2>
+        <div class="action-grid compact-actions">
+          <button id="end-contact" class="secondary" type="button">Contact normaal beëindigen</button>
+          <button id="block-proof-user" class="danger" type="button">Andere proofaccount blokkeren</button>
+        </div>
+
+        <form id="report-form" class="grid-form separated-form">
+          <label>
+            Rapportcategorie
+            <select id="report-category">
+              <option value="hidden_relationship">Mogelijk verborgen relatie</option>
+              <option value="scam_money">Geldvraag of scam</option>
+              <option value="harassment">Ongepaste druk of intimidatie</option>
+              <option value="other_proof">Andere synthetische proofmelding</option>
+            </select>
+          </label>
+          <label>
+            Toelichting
+            <input id="report-description" maxlength="4000" value="Synthetische veiligheidsmelding voor de private proof.">
+          </label>
+          <button class="wide" type="submit">Private rapportage indienen</button>
+        </form>
+
+        <form id="feedback-form" class="grid-form separated-form">
+          <label>
+            Positief signaal
+            <select id="feedback-positive">
+              <option value="respectful">Respectvol</option>
+              <option value="honest_profile">Profiel leek eerlijk</option>
+              <option value="serious_intent">Intentie leek serieus</option>
+              <option value="">Geen positief label</option>
+            </select>
+          </label>
+          <label>
+            Zorgsignaal
+            <select id="feedback-concern">
+              <option value="">Geen zorgsignaal</option>
+              <option value="low_response">Reageerde nauwelijks</option>
+              <option value="pressure">Zette druk</option>
+              <option value="possibly_not_single">Leek mogelijk niet single</option>
+            </select>
+          </label>
+          <label class="wide">
+            Private toelichting
+            <input id="feedback-comment" maxlength="2000" value="Synthetische private feedback; geen publieke rating.">
+          </label>
+          <button class="wide" type="submit">Private feedback opslaan</button>
+        </form>
+      </section>
+
+      <section class="panel">
         <h2>Sanitized proofresultaat</h2>
         <pre id="result-output">Nog geen bewerking uitgevoerd.</pre>
       </section>
@@ -145,5 +221,6 @@
 
   <script src="./runtime-config.js"></script>
   <script type="module" src="./app.js"></script>
+  <script type="module" src="./interaction-proof.js"></script>
 </body>
 </html>

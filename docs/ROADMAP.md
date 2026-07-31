@@ -1,17 +1,17 @@
 # Rendezvue roadmap
 
-**Version:** 1.3  
+**Version:** 1.5  
 **Updated:** 2026-07-31
 
 ## Operating doctrine
 
-- GitHub is authoritative; Hugging Face is a generated web-facing pilot.
-- Rendezvue is open-membership, adult-only and serious-intent, with a student-first community layer.
+- GitHub is authoritative; Hugging Face is a generated public concept pilot.
+- Rendezvue is adult-only, currently-single and serious-intent, with a student-first community layer rather than student-only admission.
 - Local marketplace density and safe interaction are validated before national expansion.
-- Privacy portraits are implementation-neutral; fuzzy browser portraits are the MVP baseline.
+- Fuzzy browser-generated privacy portraits are the MVP baseline; AI portraits are optional.
 - Safety, fairness, privacy and legal controls are product features.
-- The public concept pilot remains synthetic until a private backend, moderation and legal gates are approved.
-- The private Supabase proof lane is isolated from the public Hugging Face lane.
+- The public Hugging Face pilot remains synthetic `local-demo`.
+- The private Supabase proof lane is isolated from the public lane and is restricted to controlled synthetic accounts.
 
 ## Phase 0 — Foundation and hosting
 
@@ -65,7 +65,7 @@ Versioned Supabase/PostgreSQL configuration, Auth-linked domain records, RLS, pr
 
 ### 2B. Local schema, authorization and concurrency proof
 
-**Status:** core database proof complete; merged through PR #19.
+**Status:** complete; merged through PR #19.
 
 Demonstrated:
 
@@ -80,62 +80,78 @@ Demonstrated:
 - block enforcement;
 - relational deletion and audit anonymisation.
 
-### 2C. Authentication and resumable accounts
+### 2C. Authentication, resumable onboarding and remote deployment
 
-**Status:** local contracts complete through PR #20; private project provisioned; protected remote deployment foundation in PR #22.
+**Status:** remote foundation complete; controlled account execution next.
 
 Delivered and independently validated:
 
 - injectable magic-link/session adapter;
-- email normalization, session restore, current-user lookup, auth-state subscription and local sign-out;
+- email normalization, session restore, current-user lookup, auth-state subscription and sign-out;
 - owner-derived stage persistence with field allowlists;
 - versioned `onboarding_progress`;
 - first-class profile prompts and interests;
 - transactional personality save;
-- owner-only onboarding snapshot without evidence references or private portrait object paths;
+- owner-only onboarding snapshot without evidence references or private object paths;
 - server-side publication gate requiring eligibility, family context, selected portrait, two prompts and three interests;
 - cross-account draft isolation;
-- idempotent CI startup after stale local-stack cleanup.
+- protected private preview artifact separated from the public Hugging Face build;
+- recursive artifact scan rejecting service/secret keys, database URLs, access tokens, passwords and private keys;
+- one generated browser Auth client shared by callback, onboarding and interaction modules.
 
-Provider progress:
+Remote provider evidence:
 
-- `RendezvueProject` provisioned and Healthy;
-- West EU (Ireland) selected;
-- Nano compute active;
-- project currently contains no remote migrations;
-- public Hugging Face pilot remains `local-demo`;
-- separate private proof harness and protected migration workflow prepared in PR #22;
-- browser artifact build rejects Supabase secret/service keys, database URLs, access tokens, passwords and private keys.
-
-Validation before the first remote run:
-
-- PR #20 implementation validation: 118 pgTAP assertions, true parallel race proof, schema lint, client tests and Docker build succeeded;
-- PR #22 private artifact build and server-secret boundary validation succeeded on its first technical head;
-- final PR #22 governance head must remain green before merge.
+- `RendezvueProject` is Healthy in West EU (Ireland) on Nano compute;
+- protected GitHub environment `rendezvue-private-preview` is configured;
+- repository migrations through commit `9403330f` were linked and applied in private preview workflow run #7;
+- remote Auth health passed;
+- remote Data API metadata passed;
+- one short-lived private proof artifact was generated;
+- the artifact contains only the browser publishable key;
+- the public Hugging Face pilot remained unchanged in `local-demo`;
+- no real-user admission was authorized.
 
 Still required:
 
-- create protected GitHub environment `rendezvue-private-preview`;
-- add project reference, deployment token, database password, project URL and publishable key as protected environment secrets;
-- configure the exact magic-link callback URL in GitHub and Supabase Auth;
-- run the first protected `supabase db push` from `main`;
-- validate real magic-link delivery and callback with controlled synthetic accounts;
-- implement recovery and duplicate-account controls;
+- run real magic-link delivery and callback with controlled synthetic mailboxes;
+- prove session recovery in isolated browser profiles;
+- complete recovery and duplicate-account controls;
 - implement provider-orchestrated account deletion including private object cleanup;
-- define abandonment retention policy and job.
+- define abandonment retention policy and cleanup job.
 
-### 2D. Controlled multi-user interaction slice
+### 2D. Controlled two-account interaction slice
 
-**Next after the first protected migration and magic-link run.**
+**Status:** implementation and local proof complete; remote execution pending.
 
-- two isolated controlled adult synthetic accounts;
-- persistent onboarding and profile publication;
-- opposite-sex eligible discovery;
-- reciprocal likes and exactly one match;
-- server-issued pilot contact entitlement;
-- realtime text conversation;
-- block, report and end-contact enforcement;
-- private object upload, signed delivery and deletion cleanup evidence.
+Implemented and covered by the 151-assertion backend suite:
+
+- one-time synthetic proof contact entitlement that cannot be reissued after consumption;
+- idempotent participant conversation opening;
+- participant-only text messages and Realtime publication;
+- active-match-only selected portrait access;
+- short-lived signed portrait UI;
+- normal end-contact closing match/conversation and revoking both signals;
+- block, private safety report and private structured feedback controls;
+- artifact controls for match, entitlement, conversation, messages, portrait and safety actions;
+- no second Auth client in the generated browser artifact.
+
+Next execution gate:
+
+- merge PR #25;
+- apply its new migration through a fresh protected workflow run;
+- generate and download the fresh private artifact;
+- create two isolated controlled adult synthetic accounts;
+- prove magic-link delivery, callback and session recovery;
+- persist onboarding and publish one synthetic man and one synthetic woman profile;
+- upload private synthetic portraits;
+- prove opposite-sex eligible discovery;
+- record reciprocal likes and exactly one match;
+- prove draft/family/faith data remains inaccessible cross-account;
+- claim one proof contact right and open exactly one conversation;
+- exchange realtime synthetic text messages;
+- validate signed portrait delivery, end-contact, block, report and feedback enforcement;
+- validate provider-side deletion cleanup;
+- delete both accounts and retain relational/object cleanup evidence.
 
 ### 2E. Institution and student-benefit verification
 
@@ -165,8 +181,9 @@ Still required:
 - hosted checkout;
 - webhook idempotency;
 - refunds and online cancellation;
-- entitlement ledger;
-- no payment until the free funnel creates repeatable value.
+- production entitlement ledger;
+- no payment until the free funnel creates repeatable value;
+- remove or permanently isolate the synthetic proof entitlement issuer before any real-user environment.
 
 ### 2I. Behavioural standing and moderation proof
 
