@@ -1,7 +1,7 @@
 # Project handover
 
 **Updated:** 2026-07-31  
-**Milestone:** private EU Supabase project provisioned; protected proof lane prepared
+**Milestone:** remote Supabase migrations and private artifact proof succeeded
 
 ## GitHub state
 
@@ -12,7 +12,9 @@
 - Backend foundation: PR #17 merged as `8bbf1398`.
 - True parallel race proof: PR #19 merged as `5976ddea`.
 - Auth/onboarding persistence: PR #20 merged as `1de81465`.
-- Protected private Supabase lane: draft PR #22 on `agent/private-supabase-preview-foundation`.
+- Protected private Supabase lane: PR #22 merged as `5a532629`.
+- Missing-setting diagnostics: PR #23 merged as `ecae0b48`.
+- Supported remote health checks: PR #24 merged as `9403330f`.
 - Public pilot remains synthetic `local-demo` on Hugging Face.
 
 ## Product baseline
@@ -42,20 +44,31 @@ Implemented and validated on `main`:
 
 The local proof baseline passed 118 pgTAP assertions, true parallel race tests, schema lint, client tests, app/artifact checks and Docker validation.
 
-## Supabase project evidence
+## Supabase project and remote proof evidence
 
-Owner evidence received on 2026-07-31:
+Private non-production project:
 
 - project: `RendezvueProject`;
 - status: Healthy;
 - region: West EU (Ireland);
 - compute: Nano;
-- remote migrations: none;
-- dashboard GitHub repository connection: none.
+- protected GitHub environment: `rendezvue-private-preview`;
+- public application connection: none.
 
-This is an approved non-production proof project, not a production backend or real-user environment.
+Private preview workflow run #7 succeeded on commit `9403330f`:
 
-## PR #22 — protected private proof lane
+- repository migrations linked: yes;
+- pending migrations applied: true;
+- remote Auth health: passed;
+- remote Data API metadata: passed;
+- browser artifact publishable-key boundary: validated;
+- generated artifacts: one short-lived private proof artifact;
+- public Hugging Face pilot changed: no;
+- real-user admission authorized: no.
+
+This proves remote deployment and browser/server credential separation. It does not yet prove magic-link delivery, two-account interaction, private object deletion or operational moderation.
+
+## Private proof lane
 
 Implemented:
 
@@ -65,53 +78,34 @@ Implemented:
 - syntax validation and recursive artifact scan for server secrets;
 - protected manual workflow using GitHub environment `rendezvue-private-preview`;
 - project-reference/URL consistency check;
-- `supabase link`, migration listing and optional `supabase db push`;
-- remote Auth/Data API health checks;
+- `supabase link`, migration listing and `supabase db push`;
+- project Auth and supported Data API metadata health checks;
 - three-day private workflow artifact;
 - complete provisioning and two-account proof runbook in `docs/PRIVATE-SUPABASE-PREVIEW.md`.
 
-The first PR #22 technical head passed the public application checks, retained Docker build and the private artifact/credential-boundary job. The final governance head must pass the complete validation suite before merge.
-
-## Required protected configuration
-
-Create GitHub environment `rendezvue-private-preview` with owner review and `main`-only deployment.
-
-Environment secrets:
-
-- `SUPABASE_PROJECT_REF`;
-- `SUPABASE_ACCESS_TOKEN`;
-- `SUPABASE_DB_PASSWORD`;
-- `SUPABASE_URL`;
-- `SUPABASE_PUBLISHABLE_KEY` using `sb_publishable_...`.
-
-Environment variable:
-
-- `RENDEZVUE_AUTH_REDIRECT_URL`, initially `http://127.0.0.1:4174/`.
-
-The exact callback URL must also be added to Supabase Authentication → URL Configuration. Never place these values in source, issues, screenshots or chat.
-
 ## Immediate next execution sequence
 
-1. merge PR #22 after final CI;
-2. create and protect GitHub environment `rendezvue-private-preview`;
-3. add the five secrets and callback variable;
-4. configure the exact callback in Supabase Auth;
-5. manually run **Deploy private Supabase preview** from `main` with migrations enabled;
-6. retain migration and health-check evidence;
-7. download and locally serve the short-lived private artifact;
-8. create two controlled synthetic adult accounts in isolated browser profiles;
-9. validate persistent onboarding, portraits, publication, opposite-sex discovery, reciprocal likes and exactly one match;
-10. add administrative pilot-entitlement orchestration and then validate realtime conversation, block/report and deletion cleanup.
+1. download the short-lived artifact from successful workflow run #7;
+2. extract it locally and serve `dist-private-preview` on `http://127.0.0.1:4174/`;
+3. use two controlled synthetic mailboxes in two isolated browser profiles;
+4. prove magic-link delivery, callback, session restore and sign-out;
+5. persist and resume onboarding for both accounts;
+6. publish one synthetic man and one synthetic woman profile with private synthetic portraits;
+7. prove opposite-sex discovery and reciprocal likes create exactly one match;
+8. prove neither account can read the other account's draft/family/faith data;
+9. add administrative pilot-entitlement orchestration;
+10. validate realtime text conversation, block/report and end-contact enforcement;
+11. validate signed portrait delivery and provider-side object cleanup;
+12. delete both accounts and retain relational/object cleanup evidence.
 
 ## Explicit limitations
 
-- repository migrations are not yet deployed to the remote project;
-- protected GitHub environment values are not yet configured through the current development connection;
-- real magic-link delivery/callback is unproven;
+- real magic-link delivery and callback are not yet proven;
 - recovery and duplicate-account handling are incomplete;
 - private object signed delivery and provider cleanup are unproven;
-- no private multi-user proof has yet completed;
-- no payments, operational moderation, Article 9 production basis or real-user authorization.
+- no private two-account interaction proof has yet completed;
+- no payments, operational moderation, Article 9 production basis or real-user authorization;
+- the workflow artifact is short-lived and intended only for controlled synthetic proof accounts.
 
 ## Owner review still required
 
