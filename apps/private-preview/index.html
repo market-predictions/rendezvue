@@ -207,6 +207,18 @@
         </form>
       </section>
 
+      <section class="panel deletion-zone">
+        <h2>Proofaccount en private objecten verwijderen</h2>
+        <p class="hint">Deze serverfunctie verwijdert eerst alle objecten onder de eigen UUID-map en daarna het Auth-account. Relationele records vallen via foreign-key cascades weg; behouden audit-ID's worden geanonimiseerd.</p>
+        <form id="delete-account-form" class="stack">
+          <label>
+            Typ exact <code>DELETE_SYNTHETIC_ACCOUNT</code>
+            <input id="delete-account-confirmation" autocomplete="off" spellcheck="false" required>
+          </label>
+          <button class="danger" type="submit">Synthetisch proofaccount definitief verwijderen</button>
+        </form>
+      </section>
+
       <section class="panel">
         <h2>Sanitized proofresultaat</h2>
         <pre id="result-output">Nog geen bewerking uitgevoerd.</pre>

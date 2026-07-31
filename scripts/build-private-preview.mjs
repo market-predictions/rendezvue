@@ -44,40 +44,47 @@ function validateRedirectUrl(value) {
   return url.toString();
 }
 
-function assembleSharedBrowserClient() {
-  return Promise.all([
+async function assembleSharedBrowserClient() {
+  const [appSource, interactionSource, indexSource] = await Promise.all([
     readFile(resolve(target, 'app.js'), 'utf8'),
-    readFile(resolve(target, 'interaction-proof.js'), 'utf8')
-  ]).then(async ([appSource, interactionSource]) => {
-    const clientDeclaration = 'const supabase = createClient(';
-    if (!appSource.includes(clientDeclaration)) {
-      throw new Error('Private preview app client declaration was not found');
-    }
+    readFile(resolve(target, 'interaction-proof.js'), 'utf8'),
+    readFile(resolve(target, 'index.html'), 'utf8')
+  ]);
 
-    const sharedAppSource = appSource.replace(
-      clientDeclaration,
-      'export const supabase = createClient('
-    );
+  const clientDeclaration = 'const supabase = createClient(';
+  if (!appSource.includes(clientDeclaration)) {
+    throw new Error('Private preview app client declaration was not found');
+  }
 
-    const interactionBodyStart = interactionSource.indexOf('const output = document.querySelector');
-    if (interactionBodyStart < 0) {
-      throw new Error('Private interaction proof body marker was not found');
-    }
+  const sharedAppSource = appSource.replace(
+    clientDeclaration,
+    'export const supabase = createClient('
+  );
 
-    // The source module remains independently syntax-checkable. The generated
-    // artifact deliberately imports the one Auth-aware client from app.js so
-    // the PKCE callback is processed exactly once in the browser.
-    const sharedInteractionSource = [
-      "import { supabase } from './app.js';",
-      '',
-      interactionSource.slice(interactionBodyStart)
-    ].join('\n');
+  const interactionBodyStart = interactionSource.indexOf('const output = document.querySelector');
+  if (interactionBodyStart < 0) {
+    throw new Error('Private interaction proof body marker was not found');
+  }
 
-    await Promise.all([
-      writeFile(resolve(target, 'app.js'), sharedAppSource, 'utf8'),
-      writeFile(resolve(target, 'interaction-proof.js'), sharedInteractionSource, 'utf8')
-    ]);
-  });
+  // The source module remains independently syntax-checkable. The generated
+  // artifact deliberately imports the one Auth-aware client from app.js so
+  // the PKCE callback is processed exactly once in the browser.
+  const sharedInteractionSource = [
+    "import { supabase } from './app.js';",
+    '',
+    interactionSource.slice(interactionBodyStart)
+  ].join('\n');
+
+  const cleanupScript = '  <script type="module" src="./account-cleanup.js"></script>\n';
+  const generatedIndex = indexSource.includes('account-cleanup.js')
+    ? indexSource
+    : indexSource.replace('</body>', `${cleanupScript}</body>`);
+
+  await Promise.all([
+    writeFile(resolve(target, 'app.js'), sharedAppSource, 'utf8'),
+    writeFile(resolve(target, 'interaction-proof.js'), sharedInteractionSource, 'utf8'),
+    writeFile(resolve(target, 'index.html'), generatedIndex, 'utf8')
+  ]);
 }
 
 const supabaseUrl = validateSupabaseUrl(requireEnvironment('SUPABASE_URL'));
@@ -120,6 +127,7 @@ await writeFile(
     publicPilotChanged: false,
     containsServerSecrets: false,
     sharedBrowserAuthClient: true,
+    providerAccountCleanup: true,
     authRedirectUrl,
     buildCommit
   }, null, 2)}\n`,
@@ -128,4 +136,5 @@ await writeFile(
 
 console.log(`Private preview artifact written for ${new URL(supabaseUrl).hostname}.`);
 console.log('One shared browser Auth client handles the PKCE callback and all proof interactions.');
+console.log('Provider-orchestrated private object and Auth account cleanup is included.');
 console.log('No database password, access token or Supabase secret key was passed to the browser build.');

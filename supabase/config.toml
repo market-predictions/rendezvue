@@ -24,7 +24,7 @@ port = 54324
 [auth]
 enabled = true
 site_url = "http://localhost:4173"
-additional_redirect_urls = ["http://127.0.0.1:4173", "http://localhost:4173"]
+additional_redirect_urls = ["http://127.0.0.1:4173", "http://localhost:4173", "http://127.0.0.1:4174", "http://localhost:4174"]
 jwt_expiry = 3600
 enable_signup = true
 
@@ -36,3 +36,8 @@ enable_confirmations = false
 [storage]
 enabled = true
 file_size_limit = "10MiB"
+
+[functions.delete-private-proof-account]
+# Authentication is handled inside the function with @supabase/server so the
+# same user-auth pattern works with the current publishable/asymmetric key model.
+verify_jwt = false

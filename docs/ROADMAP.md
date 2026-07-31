@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 1.5  
+**Version:** 1.6  
 **Updated:** 2026-07-31
 
 ## Operating doctrine
@@ -97,7 +97,11 @@ Delivered and independently validated:
 - cross-account draft isolation;
 - protected private preview artifact separated from the public Hugging Face build;
 - recursive artifact scan rejecting service/secret keys, database URLs, access tokens, passwords and private keys;
-- one generated browser Auth client shared by callback, onboarding and interaction modules.
+- one generated browser Auth client shared by callback, onboarding, interaction and cleanup modules;
+- authenticated provider-orchestrated private object and Auth-account cleanup;
+- exact destructive confirmation with account identity derived only from the JWT;
+- local Edge Function type check and runtime/auth-gate smoke test;
+- protected remote function deployment and unauthenticated rejection check.
 
 Remote provider evidence:
 
@@ -115,15 +119,15 @@ Still required:
 
 - run real magic-link delivery and callback with controlled synthetic mailboxes;
 - prove session recovery in isolated browser profiles;
+- execute authenticated object/Auth deletion remotely;
 - complete recovery and duplicate-account controls;
-- implement provider-orchestrated account deletion including private object cleanup;
 - define abandonment retention policy and cleanup job.
 
-### 2D. Controlled two-account interaction slice
+### 2D. Controlled two-account interaction and cleanup slice
 
-**Status:** implementation and local proof complete; remote execution pending.
+**Status:** implementation and local proof complete after PR #26; remote execution pending.
 
-Implemented and covered by the 151-assertion backend suite:
+Implemented and covered by the 151-assertion/backend/artifact/function suite:
 
 - one-time synthetic proof contact entitlement that cannot be reissued after consumption;
 - idempotent participant conversation opening;
@@ -132,13 +136,18 @@ Implemented and covered by the 151-assertion backend suite:
 - short-lived signed portrait UI;
 - normal end-contact closing match/conversation and revoking both signals;
 - block, private safety report and private structured feedback controls;
-- artifact controls for match, entitlement, conversation, messages, portrait and safety actions;
-- no second Auth client in the generated browser artifact.
+- provider cleanup deleting UUID-scoped portrait bytes before Auth account deletion;
+- relational cascades and retained audit anonymisation;
+- browser control requiring exact confirmation;
+- no second Auth client or server credential in the generated artifact;
+- CORS preflight and unauthenticated cleanup rejection.
 
 Next execution gate:
 
-- merge PR #25;
-- apply its new migration through a fresh protected workflow run;
+- merge PR #26;
+- run the protected workflow from `main` with migrations enabled;
+- apply the interaction migration and deploy `delete-private-proof-account`;
+- verify remote platform health and unauthenticated cleanup HTTP 401;
 - generate and download the fresh private artifact;
 - create two isolated controlled adult synthetic accounts;
 - prove magic-link delivery, callback and session recovery;
@@ -150,8 +159,8 @@ Next execution gate:
 - claim one proof contact right and open exactly one conversation;
 - exchange realtime synthetic text messages;
 - validate signed portrait delivery, end-contact, block, report and feedback enforcement;
-- validate provider-side deletion cleanup;
-- delete both accounts and retain relational/object cleanup evidence.
+- invoke provider cleanup for both accounts;
+- prove private object, Auth, relational and anonymised-audit outcomes.
 
 ### 2E. Institution and student-benefit verification
 

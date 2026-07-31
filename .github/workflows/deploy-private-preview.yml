@@ -111,6 +111,9 @@ jobs:
       - name: Show migration state after deployment
         run: supabase migration list --linked
 
+      - name: Deploy authenticated account cleanup function
+        run: supabase functions deploy delete-private-proof-account --project-ref "$SUPABASE_PROJECT_REF"
+
       - name: Check remote Auth and Data API health
         shell: bash
         run: |
@@ -149,6 +152,26 @@ jobs:
           console.log(`Remote Data API metadata passed (${Object.keys(document.paths ?? {}).length} paths).`);
           NODE
 
+      - name: Verify account cleanup function rejects unauthenticated calls
+        shell: bash
+        run: |
+          set -euo pipefail
+          cleanup_body="$RUNNER_TEMP/account-cleanup-auth-gate.json"
+          cleanup_status="$(curl --silent --show-error \
+            --output "$cleanup_body" \
+            --write-out '%{http_code}' \
+            --request POST \
+            --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            --header 'content-type: application/json' \
+            --data '{"confirmation":"DELETE_SYNTHETIC_ACCOUNT"}' \
+            "$SUPABASE_URL/functions/v1/delete-private-proof-account")"
+          if [[ "$cleanup_status" != "401" ]]; then
+            echo "::error title=Account cleanup auth gate failed::Expected HTTP 401 without a user session, received $cleanup_status."
+            cat "$cleanup_body"
+            exit 1
+          fi
+          echo "Remote account cleanup function rejects unauthenticated calls."
+
       - name: Build synthetic-only private proof artifact
         run: npm run build:private-preview
 
@@ -172,6 +195,8 @@ jobs:
           - Pending migrations applied: ${{ inputs.apply_migrations }}
           - Remote Auth health: passed
           - Remote Data API metadata: passed
+          - Authenticated private account cleanup function deployed: yes
+          - Unauthenticated cleanup rejection: passed
           - Browser artifact contains only the publishable key: validated
           - Public Hugging Face pilot changed: no
           - Real-user admission authorized: no
