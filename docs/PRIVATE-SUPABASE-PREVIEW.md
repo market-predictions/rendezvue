@@ -1,6 +1,6 @@
 # Private Supabase preview runbook
 
-**Status:** remote Supabase foundation and cleanup are deployed; private Hugging Face hosting is being introduced; controlled two-account execution remains pending.  
+**Status:** remote Supabase foundation, cleanup and private Hugging Face hosting are deployed; controlled two-account execution remains pending.  
 **Scope:** synthetic adult proof accounts only. No real-user admission.
 
 ## Architecture boundary
@@ -24,9 +24,24 @@ GitHub is the sole source of truth. Nothing is built, served or tested on the ow
 
 The private Space contains only browser-safe configuration: the Supabase project URL and publishable key. Database passwords, personal access tokens, service-role keys and Hugging Face write tokens remain in protected GitHub secrets and are never uploaded to the browser artifact.
 
+## Deployment evidence
+
+Automatic private deployment run `30657471168` on commit `3dc37be154d27502cf9c04d4df186040254f73ec` proved:
+
+- the private Static Space was created or updated;
+- private visibility was reasserted and verified;
+- the deployed repository artifact matched the GitHub build commit;
+- the Supabase Auth Site URL and redirect allow-list use the dedicated Hugging Face HTTPS callback;
+- migrations and remote platform health remained valid;
+- the public Hugging Face pilot was not changed;
+- no owner-local runtime was required;
+- real-user admission remained unauthorized.
+
+Success and failure evidence for future private deployments is written automatically to issue #21 without credentials, magic links, signed URLs or object paths.
+
 ## Protected deployment workflow
 
-Run **Deploy private Supabase preview** on `main` with `apply_migrations=true`.
+Relevant accepted changes on `main` automatically run **Deploy private Supabase preview**. A protected manual run remains available with `apply_migrations=true`.
 
 The workflow:
 
@@ -40,13 +55,14 @@ The workflow:
 8. creates or confirms a private Static Space;
 9. uploads the complete artifact;
 10. verifies private visibility and deployed repository metadata;
-11. leaves the public Hugging Face pilot unchanged.
+11. leaves the public Hugging Face pilot unchanged;
+12. records a non-secret result in issue #21.
 
 No local Git, Node, Python, Docker, PowerShell server, downloaded workflow artifact or localhost callback is part of this route.
 
 ## Opening the proof
 
-Sign into the authorized Hugging Face account and open the private Space from the Hugging Face Spaces dashboard. A visitor without repository access must receive no access to either the source or the running application.
+Sign into the authorized Hugging Face account and open the private Space from the Hugging Face Spaces dashboard. First verify in a separate unauthorized session that the Space and running application are inaccessible.
 
 Use two isolated browser profiles that are each signed into an authorized Hugging Face account. Within the application use two controlled email inboxes and synthetic profile data only.
 
