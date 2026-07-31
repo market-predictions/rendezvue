@@ -15,7 +15,7 @@ Camera flow, profile cards, likes, deterministic match, local chat, safety contr
 ## WP-015 — Hosted Hugging Face prototype
 
 **Status:** review  
-The product-baseline v1 pilot and binary-sex onboarding policy are deployed. Desktop/mobile field evidence and mobile camera review remain in issue #2.
+The product-baseline v1 pilot and man/woman onboarding policy are deployed. Desktop/mobile field evidence and mobile camera review remain in issue #2.
 
 ## WP-016 — Netherlands and faith foundation
 
@@ -55,17 +55,17 @@ Target-user research, Article 9 basis, withdrawal/deletion and anti-discriminati
 ## WP-030 — Production account and eligibility stack
 
 **Status:** active  
-Auth-linked account/profile domains, RLS, magic-link/session adapter, versioned onboarding progress, owner-derived stage writes, prompts/interests and server-side publication are implemented. `RendezvueProject` is provisioned and Healthy in West EU (Ireland). Remaining: protected remote migration deployment, real callback proof, recovery, duplicate-account controls, abandonment retention and provider-orchestrated deletion.
+Auth-linked account/profile domains, RLS, magic-link/session adapter, versioned onboarding progress, owner-derived stage writes, prompts/interests and server-side publication are implemented. Remote migrations are now applied to `RendezvueProject` in West EU (Ireland), and remote Auth/Data API checks pass. Remaining: real callback/session proof, recovery, duplicate-account controls, abandonment retention and provider-orchestrated deletion.
 
 ## WP-035 — Resumable onboarding persistence
 
 **Status:** review  
-Owner-only snapshot, stage allowlists, progress save, transactional personality save and publication gating passed 118 pgTAP assertions and client adapter tests. Remote proof with controlled synthetic accounts remains.
+Owner-only snapshot, stage allowlists, progress save, transactional personality save and publication gating passed 118 pgTAP assertions and client adapter tests. Remote two-account proof with controlled synthetic accounts remains.
 
 ## WP-037 — Protected private Supabase preview
 
-**Status:** active; implementation in PR #22  
-Separate private proof harness, runtime-config builder, browser/server secret scan, protected manual migration workflow and runbook are implemented. The public Hugging Face lane remains `local-demo`. Next gate: create GitHub environment `rendezvue-private-preview`, add protected values and run the first migration deployment from `main`.
+**Status:** complete for deployment foundation; interaction proof active next  
+The separate private proof harness, runtime-config builder, browser/server secret scan, protected migration workflow and runbook are merged. Workflow run #7 successfully linked and applied repository migrations, passed remote Auth and Data API metadata checks, validated the publishable-key-only browser artifact and generated one short-lived proof artifact. The public Hugging Face lane remains `local-demo`.
 
 ## WP-040 — Production liveness and privacy portrait
 
@@ -74,13 +74,18 @@ Randomized challenge analysis, replay threat model, short retention, fair portra
 
 ## WP-050 — Persistent application services
 
-**Status:** review for database foundation; private integration active next  
-Server-authoritative attraction, match, entitlement, conversation, message, block, feedback and report contracts are implemented. Private storage, Realtime, moderation/audit, least-privilege grants and true parallel races passed local validation. The private proof harness now exposes auth, onboarding, portrait upload, publication, discovery, like and match inspection paths.
+**Status:** active  
+Server-authoritative attraction, match, entitlement, conversation, message, block, feedback and report contracts are implemented. Private storage, Realtime, moderation/audit, least-privilege grants and true parallel races passed local validation. The private proof harness exposes auth, onboarding, portrait upload, publication, discovery, like and match inspection. Next: execute the controlled two-account remote slice and add administrative pilot-entitlement orchestration.
 
 ## WP-055 — Backend proof validation
 
 **Status:** active  
-CI proves empty-database replay, 118 pgTAP assertions, schema lint, cross-account draft/private-data isolation, publication gating, true parallel match/contact races, block enforcement, moderation escalation and relational deletion/anonymisation. PR #22 adds a separate artifact build and credential-boundary scan. Remaining: remote migration evidence, actual private object access/deletion, callback proof and two-account private-preview evidence. Tracked in issues #18 and #21.
+CI proves empty-database replay, 118 pgTAP assertions, schema lint, cross-account draft/private-data isolation, publication gating, true parallel match/contact races, block enforcement, moderation escalation and relational deletion/anonymisation. Remote migration deployment, Auth health, Data API metadata and browser/server credential separation are now proven. Remaining: magic-link callback/session recovery, actual private object access/deletion and full two-account interaction evidence. Tracked in issues #18 and #21.
+
+## WP-057 — Controlled two-account remote proof
+
+**Status:** active  
+Use the short-lived private artifact with two controlled synthetic adult accounts to prove magic-link delivery, session restore, persistent onboarding, publication, opposite-sex discovery, reciprocal likes, exactly one match and cross-account privacy isolation. Then extend with entitlement, realtime chat, block/report and account/object deletion evidence.
 
 ## WP-060 — Payments and entitlements
 
