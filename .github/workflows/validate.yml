@@ -43,7 +43,7 @@ jobs:
           deno-version: v2.x
       - run: npm ci
       - run: npm run check:private-preview
-      - run: deno check supabase/functions/delete-private-proof-account/index.ts
+      - run: deno check --node-modules-dir=auto supabase/functions/delete-private-proof-account/index.ts
 
   database:
     name: Backend migration, pgTAP and race tests
