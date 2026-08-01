@@ -58,16 +58,47 @@ if (!/^[a-f0-9]{40}$|^local$/.test(String(deployment.buildCommit))) {
   throw new Error('Build commit marker is missing or malformed');
 }
 
+const validConfigurationModes = new Set(['remote-supabase', 'browser-safe-placeholder']);
+if (!validConfigurationModes.has(deployment.configurationMode)) {
+  throw new Error('Cloudflare artifact configuration mode is missing or unsupported');
+}
+if (typeof deployment.remoteBackendConfigured !== 'boolean') {
+  throw new Error('Cloudflare artifact does not declare whether a remote backend is configured');
+}
+if (deployment.remoteBackendConfigured !== (deployment.configurationMode === 'remote-supabase')) {
+  throw new Error('Cloudflare artifact backend flag and configuration mode disagree');
+}
+if (deployment.cloudflareBranch !== null && typeof deployment.cloudflareBranch !== 'string') {
+  throw new Error('Cloudflare branch metadata is malformed');
+}
+
 const runtime = await readFile(resolve(target, 'runtime-config.js'), 'utf8');
 if (!runtime.includes('sb_publishable_')) throw new Error('Staging artifact does not contain a publishable browser key');
 if (!runtime.includes('supabase-proof')) throw new Error('Runtime config is not in supabase-proof mode');
 if (!runtime.includes('cloudflare-pages')) throw new Error('Runtime config does not identify Cloudflare Pages');
 if (!runtime.includes(canonicalStagingUrl)) throw new Error('Runtime config does not contain the canonical Pages URL');
+if (!runtime.includes(`"configurationMode": "${deployment.configurationMode}"`)) {
+  throw new Error('Runtime and deployment configuration modes disagree');
+}
+if (!runtime.includes(`"remoteBackendConfigured": ${deployment.remoteBackendConfigured}`)) {
+  throw new Error('Runtime and deployment backend flags disagree');
+}
 if (runtime.includes('127.0.0.1') || runtime.includes('localhost')) {
   throw new Error('Staging artifact may not depend on a local runtime');
 }
 if (runtime.includes('sb_secret_') || runtime.includes('service_role')) {
   throw new Error('Runtime config contains prohibited server credential material');
+}
+
+const usesPlaceholderProject = runtime.includes('https://example.supabase.co');
+if (usesPlaceholderProject !== !deployment.remoteBackendConfigured) {
+  throw new Error('Placeholder project use does not match the declared backend configuration');
+}
+if (deployment.configurationMode === 'browser-safe-placeholder' && !runtime.includes('sb_publishable_cloudflare_preview_placeholder_')) {
+  throw new Error('Placeholder mode does not use the designated browser-safe preview key');
+}
+if (deployment.configurationMode === 'remote-supabase' && runtime.includes('preview_placeholder')) {
+  throw new Error('Remote Supabase mode contains a preview placeholder key');
 }
 
 const index = await readFile(resolve(target, 'index.html'), 'utf8');
@@ -88,6 +119,9 @@ if (index.includes('email-otp-form') || index.includes('otp-proof.js')) {
 }
 if (/Hugging Face|static\.hf\.space/i.test(index)) {
   throw new Error('Generated staging index still references Hugging Face');
+}
+if (deployment.configurationMode === 'browser-safe-placeholder' && process.env.CF_PAGES === '1' && !index.includes('Branchpreview zonder backend')) {
+  throw new Error('Cloudflare branch preview does not display its non-functional backend warning');
 }
 
 const app = await readFile(resolve(target, 'app.js'), 'utf8');
@@ -194,4 +228,4 @@ for (const file of await collectFiles(target)) {
   }
 }
 
-console.log(`Cloudflare Pages staging artifact validation passed (${required.length} required files).`);
+console.log(`Cloudflare Pages staging artifact validation passed (${required.length} required files, ${deployment.configurationMode}).`);
