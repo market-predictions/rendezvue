@@ -10,11 +10,13 @@ const files = {
   ui: await readFile(resolve(source, 'proof-console-ui.js'), 'utf8'),
   observer: await readFile(resolve(source, 'proof-log-observer.js'), 'utf8'),
   signoutGuard: await readFile(resolve(source, 'proof-signout-guard.js'), 'utf8'),
+  portraitGenerator: await readFile(resolve(source, 'proof-portrait-generator.js'), 'utf8'),
   cleanup: await readFile(resolve(source, 'account-cleanup.js'), 'utf8'),
   builtOrchestrator: await readFile(resolve(built, 'proof-orchestrator.js'), 'utf8'),
   builtUi: await readFile(resolve(built, 'proof-console-ui.js'), 'utf8'),
   builtObserver: await readFile(resolve(built, 'proof-log-observer.js'), 'utf8'),
-  builtSignoutGuard: await readFile(resolve(built, 'proof-signout-guard.js'), 'utf8')
+  builtSignoutGuard: await readFile(resolve(built, 'proof-signout-guard.js'), 'utf8'),
+  builtPortraitGenerator: await readFile(resolve(built, 'proof-portrait-generator.js'), 'utf8')
 };
 
 for (const marker of [
@@ -54,6 +56,7 @@ for (const marker of [
   "import './proof-orchestrator.js';",
   "import './proof-log-observer.js';",
   "import './proof-signout-guard.js';",
+  "import './proof-portrait-generator.js';",
   "step: 'cleanup'"
 ]) {
   if (!files.cleanup.includes(marker)) throw new Error(`Account cleanup does not load or report WP-057 contract: ${marker}`);
@@ -83,6 +86,24 @@ for (const marker of [
   if (!files.signoutGuard.includes(marker)) throw new Error(`WP-057 sign-out guard is missing ${marker}`);
 }
 
+for (const marker of [
+  'wp057-generate-portrait',
+  'canvas.toBlob',
+  "storage.from('privacy-portraits').upload",
+  'wp057-browser-generated-synthetic',
+  "rpc('save_onboarding_progress'",
+  "step: 'portraitSelected'",
+  'objectStoredPrivately: true'
+]) {
+  if (!files.portraitGenerator.includes(marker)) throw new Error(`WP-057 portrait generator is missing ${marker}`);
+}
+if (!files.portraitGenerator.includes("select('status,is_public_profile_portrait,treatment')")) {
+  throw new Error('WP-057 portrait generator must return only sanitized portrait metadata');
+}
+if (files.portraitGenerator.includes('signedUrl') || files.portraitGenerator.includes('objectPath,') || files.portraitGenerator.includes('object_path: objectPath')) {
+  throw new Error('WP-057 portrait generator may not expose private paths or signed URLs in browser output');
+}
+
 if (files.orchestrator.includes('localStorage.setItem("access_token"') || files.orchestrator.includes("localStorage.setItem('access_token'")) {
   throw new Error('WP-057 evidence may not persist access tokens');
 }
@@ -97,7 +118,8 @@ for (const [name, contents] of Object.entries({
   builtOrchestrator: files.builtOrchestrator,
   builtUi: files.builtUi,
   builtObserver: files.builtObserver,
-  builtSignoutGuard: files.builtSignoutGuard
+  builtSignoutGuard: files.builtSignoutGuard,
+  builtPortraitGenerator: files.builtPortraitGenerator
 })) {
   if (!contents.trim()) throw new Error(`${name} is empty in the Cloudflare artifact`);
   if (/sb_secret_|service_role|SUPABASE_DB_PASSWORD|SUPABASE_ACCESS_TOKEN/i.test(contents)) {
