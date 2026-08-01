@@ -62,11 +62,25 @@ const validConfigurationModes = new Set(['remote-supabase', 'browser-safe-placeh
 if (!validConfigurationModes.has(deployment.configurationMode)) {
   throw new Error('Cloudflare artifact configuration mode is missing or unsupported');
 }
+const validConfigurationSources = new Set([
+  'environment',
+  'browser-safe-placeholder',
+  'previous-canonical-deployment'
+]);
+if (!validConfigurationSources.has(deployment.configurationSource)) {
+  throw new Error('Cloudflare artifact configuration source is missing or unsupported');
+}
 if (typeof deployment.remoteBackendConfigured !== 'boolean') {
   throw new Error('Cloudflare artifact does not declare whether a remote backend is configured');
 }
 if (deployment.remoteBackendConfigured !== (deployment.configurationMode === 'remote-supabase')) {
   throw new Error('Cloudflare artifact backend flag and configuration mode disagree');
+}
+if (deployment.configurationMode === 'browser-safe-placeholder' && !['environment', 'browser-safe-placeholder'].includes(deployment.configurationSource)) {
+  throw new Error('Placeholder mode uses an invalid configuration source');
+}
+if (deployment.configurationMode === 'remote-supabase' && !['environment', 'previous-canonical-deployment'].includes(deployment.configurationSource)) {
+  throw new Error('Remote Supabase mode uses an invalid configuration source');
 }
 if (deployment.cloudflareBranch !== null && typeof deployment.cloudflareBranch !== 'string') {
   throw new Error('Cloudflare branch metadata is malformed');
@@ -79,6 +93,9 @@ if (!runtime.includes('cloudflare-pages')) throw new Error('Runtime config does 
 if (!runtime.includes(canonicalStagingUrl)) throw new Error('Runtime config does not contain the canonical Pages URL');
 if (!runtime.includes(`"configurationMode": "${deployment.configurationMode}"`)) {
   throw new Error('Runtime and deployment configuration modes disagree');
+}
+if (!runtime.includes(`"configurationSource": "${deployment.configurationSource}"`)) {
+  throw new Error('Runtime and deployment configuration sources disagree');
 }
 if (!runtime.includes(`"remoteBackendConfigured": ${deployment.remoteBackendConfigured}`)) {
   throw new Error('Runtime and deployment backend flags disagree');
@@ -232,4 +249,4 @@ for (const file of await collectFiles(target)) {
   }
 }
 
-console.log(`Cloudflare Pages staging artifact validation passed (${required.length} required files, ${deployment.configurationMode}).`);
+console.log(`Cloudflare Pages staging artifact validation passed (${required.length} required files, ${deployment.configurationMode}, ${deployment.configurationSource}).`);

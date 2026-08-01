@@ -1,0 +1,51 @@
+name: Validate Cloudflare production bootstrap
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/validate-cloudflare-bootstrap.yml'
+      - 'scripts/build-private-preview.mjs'
+      - 'scripts/validate-private-preview.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate existing public browser configuration
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      CANONICAL_URL: https://rendezvue-private-preview.pages.dev/
+
+    steps:
+      - name: Fetch and validate browser-safe bootstrap source
+        shell: bash
+        run: |
+          set -euo pipefail
+          runtime="$RUNNER_TEMP/runtime-config.js"
+          status="$(curl --silent --show-error --location \
+            --output "$runtime" --write-out '%{http_code}' \
+            --header 'cache-control: no-cache' \
+            "${CANONICAL_URL}runtime-config.js?bootstrap=${GITHUB_SHA}")"
+          [[ "$status" == "200" ]] || { echo "::error title=Bootstrap source unavailable::HTTP $status"; exit 1; }
+
+          node --input-type=module --eval "
+            import { readFileSync } from 'node:fs';
+            const script = readFileSync(process.argv[1], 'utf8');
+            const prefix = 'window.__RENDEZVUE_CONFIG__ = Object.freeze(';
+            const start = script.indexOf(prefix);
+            const end = script.lastIndexOf(');');
+            if (start < 0 || end <= start + prefix.length) throw new Error('Unsupported runtime configuration format');
+            const config = JSON.parse(script.slice(start + prefix.length, end).trim());
+            const url = new URL(String(config.supabaseUrl ?? ''));
+            const key = String(config.supabasePublishableKey ?? '');
+            if (url.protocol !== 'https:' || !url.hostname.endsWith('.supabase.co')) throw new Error('Bootstrap Supabase URL is not approved');
+            if (url.hostname === 'example.supabase.co') throw new Error('Bootstrap source contains a placeholder project');
+            if (!key.startsWith('sb_publishable_') || key.startsWith('sb_secret_') || /\\s/.test(key) || key.length < 30) {
+              throw new Error('Bootstrap source does not contain an approved publishable browser key');
+            }
+            console.log('Canonical browser configuration is parseable and contains only an approved Supabase URL/key shape.');
+          " "$runtime"
