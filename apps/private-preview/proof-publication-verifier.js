@@ -1,9 +1,14 @@
 import { supabase } from './app.js';
 
 const CONFIG_KEY = 'rendezvue.wp057.config.v1';
+const PUBLICATION_LABEL = 'Profiel is via de server-side publicatiegate gepubliceerd';
 const diagnosticsButton = document.querySelector('#wp057-diagnostics');
 const publishButton = document.querySelector('#publish-profile');
+const checklist = document.querySelector('#wp057-checklist');
 const nextAction = document.querySelector('#wp057-next-action');
+
+let verificationRunning = false;
+let observerTimer = null;
 
 function loadConfig() {
   try {
@@ -28,61 +33,99 @@ function emit(step, status, details = {}) {
   }));
 }
 
+function publicationChecklistItem() {
+  return [...(checklist?.querySelectorAll('li') ?? [])]
+    .find((item) => String(item.textContent ?? '').includes(PUBLICATION_LABEL)) ?? null;
+}
+
 async function verifyPublishedSnapshot({ reportFailure = false } = {}) {
+  if (verificationRunning) return;
   const config = loadConfig();
   if (!config) return;
 
-  const { data: snapshot, error } = await supabase.rpc('load_onboarding_snapshot');
-  if (error) {
-    if (reportFailure) {
-      emit('profilePublished', 'blocked', {
-        reason: 'Server-authoritatieve publicatiestatus kon niet worden geladen.'
+  verificationRunning = true;
+  try {
+    const { data: snapshot, error } = await supabase.rpc('load_onboarding_snapshot');
+    if (error) {
+      if (reportFailure) {
+        emit('profilePublished', 'blocked', {
+          reason: 'Server-authoritatieve publicatiestatus kon niet worden geladen.'
+        });
+      }
+      return;
+    }
+
+    const profile = snapshot?.profile ?? null;
+    const lifeStage = snapshot?.life_stage ?? null;
+    if (!profile) {
+      if (reportFailure) {
+        emit('profilePublished', 'blocked', {
+          reason: 'De owner-snapshot bevat geen opgeslagen profiel.'
+        });
+      }
+      return;
+    }
+
+    const expected = expectedFixture(config);
+    const fixtureMatches = profile.nickname === expected.nickname
+      && profile.sex === expected.sex
+      && profile.city_region === expected.city
+      && lifeStage?.primary_status === expected.lifeStage;
+
+    if (!fixtureMatches) {
+      emit('profileSaved', 'blocked', {
+        reason: 'Opgeslagen profiel hoort niet bij de gekozen WP-057-browserrol.'
       });
     }
-    return;
+
+    const published = profile.publication_status === 'published' || Boolean(profile.published_at);
+    if (published) {
+      emit('profilePublished', 'pass', {
+        status: 'published',
+        present: true,
+        source: 'owner-snapshot-rpc'
+      });
+      return;
+    }
+
+    if (reportFailure) {
+      emit('profilePublished', 'blocked', {
+        reason: 'De owner-snapshot meldt nog geen gepubliceerde profielstatus.'
+      });
+    }
+  } finally {
+    verificationRunning = false;
   }
+}
 
-  const profile = snapshot?.profile ?? null;
-  const lifeStage = snapshot?.life_stage ?? null;
-  if (!profile) return;
-
-  const expected = expectedFixture(config);
-  const fixtureMatches = profile.nickname === expected.nickname
-    && profile.sex === expected.sex
-    && profile.city_region === expected.city
-    && lifeStage?.primary_status === expected.lifeStage;
-
-  if (!fixtureMatches) {
-    emit('profileSaved', 'blocked', {
-      reason: 'Opgeslagen profiel hoort niet bij de gekozen WP-057-browserrol.'
-    });
-    emit('profilePublished', 'blocked', {
-      reason: 'Publicatiebewijs geweigerd wegens afwijkende rolfixture.'
-    });
-    return;
-  }
-
-  const published = profile.publication_status === 'published' || Boolean(profile.published_at);
-  if (published) {
-    emit('profilePublished', 'pass', {
-      status: 'published',
-      present: true,
-      source: 'owner-snapshot-rpc'
-    });
+function scheduleVerification({ reportFailure = false } = {}) {
+  for (const delay of [250, 1400, 3200, 6200]) {
+    setTimeout(() => {
+      verifyPublishedSnapshot({ reportFailure: reportFailure && delay === 6200 }).catch(() => {
+        if (nextAction) nextAction.textContent = 'Publicatiestatus kon niet server-authoritatief worden bevestigd.';
+      });
+    }, delay);
   }
 }
 
 function verifyAfterCurrentAction() {
-  setTimeout(() => {
-    verifyPublishedSnapshot({ reportFailure: true }).catch(() => {
-      if (nextAction) nextAction.textContent = 'Publicatiestatus kon niet server-authoritatief worden bevestigd.';
-    });
-  }, 900);
+  scheduleVerification({ reportFailure: true });
 }
 
 diagnosticsButton?.addEventListener('click', verifyAfterCurrentAction);
 publishButton?.addEventListener('click', verifyAfterCurrentAction);
 
+if (checklist) {
+  new MutationObserver(() => {
+    const item = publicationChecklistItem();
+    if (!item || item.classList.contains('pass')) return;
+    clearTimeout(observerTimer);
+    observerTimer = setTimeout(() => {
+      verifyPublishedSnapshot().catch(() => undefined);
+    }, 150);
+  }).observe(checklist, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+}
+
 setTimeout(() => {
-  verifyPublishedSnapshot().catch(() => undefined);
+  scheduleVerification();
 }, 500);
