@@ -94,11 +94,15 @@ const usesPlaceholderProject = runtime.includes('https://example.supabase.co');
 if (usesPlaceholderProject !== !deployment.remoteBackendConfigured) {
   throw new Error('Placeholder project use does not match the declared backend configuration');
 }
-if (deployment.configurationMode === 'browser-safe-placeholder' && !runtime.includes('sb_publishable_cloudflare_preview_placeholder_')) {
-  throw new Error('Placeholder mode does not use the designated browser-safe preview key');
+const usesApprovedPlaceholderKey = [
+  'sb_publishable_cloudflare_preview_placeholder_',
+  'sb_publishable_ci_only_placeholder_'
+].some((marker) => runtime.includes(marker));
+if (deployment.configurationMode === 'browser-safe-placeholder' && !usesApprovedPlaceholderKey) {
+  throw new Error('Placeholder mode does not use an approved browser-safe preview or CI key');
 }
-if (deployment.configurationMode === 'remote-supabase' && runtime.includes('preview_placeholder')) {
-  throw new Error('Remote Supabase mode contains a preview placeholder key');
+if (deployment.configurationMode === 'remote-supabase' && runtime.includes('_placeholder_')) {
+  throw new Error('Remote Supabase mode contains placeholder key material');
 }
 
 const index = await readFile(resolve(target, 'index.html'), 'utf8');
