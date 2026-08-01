@@ -1,6 +1,6 @@
 # Backend proof foundation
 
-**Version:** 0.2  
+**Version:** 0.3  
 **Updated:** 2026-08-01  
 **Status:** remote synthetic proof project operational; Cloudflare browser acceptance pending
 
@@ -89,9 +89,18 @@ Feedback, safety reports, moderation cases and audit events remain distinct. `de
 
 ## 7. Authentication and staging delivery
 
-The Cloudflare application requests a numeric e-mail OTP. The Supabase template sends `{{ .Token }}`, and the already-open application verifies it with `verifyOtp({ type: 'email' })`.
+The Cloudflare application uses the default Supabase magic link with PKCE:
 
-The browser ignores URL callback parameters and fragments. Access and refresh tokens must not appear in the staging URL. The protected workflow configures the Supabase Site URL and allow-list to `https://rendezvue-private-preview.pages.dev/`.
+1. `signInWithOtp` requests the link with `emailRedirectTo` set to the fixed Cloudflare URL;
+2. the PKCE verifier remains in the requesting browser profile;
+3. the newest e-mail link must be opened in that same profile;
+4. Supabase returns a one-time `?code=`;
+5. the shared client exchanges the code for a persistent session;
+6. Rendezvue removes the consumed code from browser history.
+
+The implicit flow is disabled. Access and refresh tokens must not appear in the staging URL fragment.
+
+Remote execution proved that Supabase free-tier projects using the default mail provider cannot modify the passwordless e-mail template. Numeric `{{ .Token }}` delivery requires custom SMTP or a qualifying plan and is not part of this proof. The protected workflow configures and verifies only the Site URL and allow-list at `https://rendezvue-private-preview.pages.dev/`.
 
 ## 8. Proof sequence
 
@@ -103,13 +112,14 @@ The browser ignores URL callback parameters and fragments. Access and refresh to
 - Edge Function CORS and anonymous-auth rejection;
 - deterministic synthetic SQL seed;
 - browser artifact syntax and credential scan;
+- PKCE configuration and consumed-code cleanup assertions;
 - Cloudflare headers and deployment metadata validation.
 
 ### Remote provider proof
 
 - protected migrations and platform health;
 - cleanup function deployment;
-- Supabase Auth Site URL, allow-list and OTP template configuration;
+- Supabase Auth Site URL and allow-list configuration;
 - ten Auth-linked synthetic published profiles;
 - ten selected private portraits.
 
@@ -117,7 +127,8 @@ The browser ignores URL callback parameters and fragments. Access and refresh to
 
 - commit-matched Cloudflare production deployment;
 - two isolated controlled accounts;
-- OTP and session recovery;
+- same-browser-profile PKCE magic-link exchange and session recovery;
+- consumed callback-code cleanup and absence of implicit token fragments;
 - onboarding, publication and cross-account isolation;
 - discovery, reciprocal attraction and one match;
 - one contact right and one conversation;
@@ -134,6 +145,7 @@ The proof is accepted only when:
 - two-account browser execution proves the complete interaction and cleanup sequence;
 - no server credential appears in Cloudflare or Git history;
 - no URL carries access or refresh tokens;
+- a consumed one-time PKCE code is removed after successful exchange;
 - documentation and work claims continue to prohibit real-user admission.
 
 ## 10. Remaining packages
