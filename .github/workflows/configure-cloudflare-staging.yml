@@ -230,3 +230,20 @@ jobs:
           - browser artifact credential boundary: passed
           - real-user admission: not authorized
           EOF
+
+      - name: Record backend configuration failure
+        if: failure()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment 35 --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
+          ## Cloudflare staging backend configuration failed
+
+          - commit: \`${GITHUB_SHA}\`
+          - workflow: $RUN_URL
+          - result: migration, Supabase configuration, health, cleanup deployment or browser artifact validation did not complete
+          - action: inspect the protected run; no backend or Cloudflare staging success is claimed
+          - real-user admission: not authorized
+          EOF

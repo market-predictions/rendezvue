@@ -134,3 +134,21 @@ jobs:
           - Hugging Face runtime dependency: absent
           - real-user admission: not authorized
           EOF
+
+      - name: Record production verification failure
+        if: failure()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment 35 --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
+          ## Cloudflare Pages production verification failed
+
+          - canonical URL: $STAGING_URL
+          - expected commit: \`$GITHUB_SHA\`
+          - workflow: $RUN_URL
+          - result: production did not become commit-matched or failed the application/header contract
+          - action: inspect the linked run and Cloudflare Pages production deployment; no staging success is claimed
+          - real-user admission: not authorized
+          EOF
