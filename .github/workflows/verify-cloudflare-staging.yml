@@ -1,0 +1,136 @@
+name: Verify Cloudflare Pages staging
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-cloudflare-staging.yml'
+      - '.github/workflows/configure-cloudflare-staging.yml'
+      - 'apps/private-preview/**'
+      - 'apps/web/src/auth-session.js'
+      - 'apps/web/src/backend-contract.js'
+      - 'apps/web/src/onboarding-repository.js'
+      - 'scripts/build-private-preview.mjs'
+      - 'scripts/validate-private-preview.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: rendezvue-cloudflare-production-verification
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify production Pages artifact
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      STAGING_URL: https://rendezvue-private-preview.pages.dev/
+
+    steps:
+      - name: Wait for commit-matched deployment metadata
+        id: deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          metadata="$RUNNER_TEMP/deployment.json"
+          matched=false
+
+          for attempt in {1..72}; do
+            status="$(curl --silent --show-error --location \
+              --output "$metadata" --write-out '%{http_code}' \
+              --header 'cache-control: no-cache' \
+              "${STAGING_URL}deployment.json?commit=${GITHUB_SHA}&attempt=${attempt}" || true)"
+
+            if [[ "$status" == "200" ]]; then
+              if node --input-type=module - "$metadata" "$GITHUB_SHA" <<'NODE'
+              import { readFileSync } from 'node:fs';
+              const document = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+              const expected = process.argv[3];
+              if (document.hostingPlatform !== 'cloudflare-pages') process.exit(1);
+              if (document.canonicalUrl !== 'https://rendezvue-private-preview.pages.dev/') process.exit(1);
+              if (document.buildCommit !== expected) process.exit(1);
+              if (document.realUserAdmissionAuthorized !== false) process.exit(1);
+              NODE
+              then
+                matched=true
+                break
+              fi
+            fi
+
+            echo "Cloudflare production is not commit-matched yet (attempt $attempt, HTTP $status)."
+            sleep 10
+          done
+
+          if [[ "$matched" != "true" ]]; then
+            echo '::error title=Cloudflare deployment did not converge::Production deployment.json did not match the pushed commit within 12 minutes.'
+            [[ -f "$metadata" ]] && cat "$metadata" || true
+            exit 1
+          fi
+
+          echo "deployment_url=${STAGING_URL}deployment.json" >> "$GITHUB_OUTPUT"
+          cat "$metadata"
+
+      - name: Verify application marker and security headers
+        shell: bash
+        run: |
+          set -euo pipefail
+          index="$RUNNER_TEMP/index.html"
+          curl --silent --show-error --location --fail \
+            --header 'cache-control: no-cache' \
+            "${STAGING_URL}?commit=${GITHUB_SHA}" > "$index"
+          grep -q 'CLOUDFLARE STAGING' "$index"
+          grep -q 'email-otp-form' "$index"
+          if grep -Eiq 'Hugging Face|static\.hf\.space' "$index"; then
+            echo '::error title=Stale hosting reference::Production index still references Hugging Face.'
+            exit 1
+          fi
+
+          headers="$RUNNER_TEMP/runtime-headers.txt"
+          curl --silent --show-error --location --head \
+            --header 'cache-control: no-cache' \
+            "${STAGING_URL}runtime-config.js?commit=${GITHUB_SHA}" > "$headers"
+          grep -Eiq '^cache-control:.*no-store' "$headers"
+          grep -Eiq '^x-content-type-options:[[:space:]]*nosniff' "$headers"
+          grep -Eiq '^x-frame-options:[[:space:]]*DENY' "$headers"
+
+      - name: Write verification summary
+        shell: bash
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## Rendezvue Cloudflare Pages staging
+
+          - Canonical URL: $STAGING_URL
+          - Commit matched: \`$GITHUB_SHA\`
+          - Application marker: passed
+          - E-mail OTP interface: present
+          - Runtime configuration cache: no-store
+          - Security headers: passed
+          - Hugging Face runtime reference: absent
+          - Real-user admission authorized: no
+          EOF
+
+      - name: Record production deployment evidence
+        if: success()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment 35 --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
+          ## Cloudflare Pages production deployment verified
+
+          - canonical URL: $STAGING_URL
+          - commit: \`$GITHUB_SHA\`
+          - workflow: $RUN_URL
+          - deployment metadata: commit-matched
+          - application marker and e-mail OTP interface: passed
+          - runtime no-store and security headers: passed
+          - Hugging Face runtime dependency: absent
+          - real-user admission: not authorized
+          EOF
