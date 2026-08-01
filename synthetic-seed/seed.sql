@@ -17,7 +17,7 @@ declare
   p jsonb;
   uid uuid;
   n integer;
-  object_path text;
+  portrait_object_path text;
   published_ts timestamptz;
 begin
   n := 0;
@@ -29,7 +29,7 @@ begin
     n := n + 1;
     uid := (p->>'local_user_id')::uuid;
     published_ts := make_timestamptz(2026, 8, 1, 8, n, 0, 'UTC');
-    object_path := replace(p->>'storage_object_path_template', '{user_id}', uid::text);
+    portrait_object_path := replace(p->>'storage_object_path_template', '{user_id}', uid::text);
 
     insert into auth.users (
       instance_id,id,aud,role,email,encrypted_password,email_confirmed_at,
@@ -118,7 +118,7 @@ begin
 
     update public.privacy_portraits set is_public_profile_portrait=false where user_id=uid and is_public_profile_portrait;
     insert into public.privacy_portraits (user_id,object_path,treatment,status,is_public_profile_portrait)
-    values (uid,object_path,p->>'portrait_treatment','verified',true)
+    values (uid,portrait_object_path,p->>'portrait_treatment','verified',true)
     on conflict (user_id,object_path) do update set
       treatment=excluded.treatment,status='verified',is_public_profile_portrait=true,updated_at=timezone('utc',now());
 
