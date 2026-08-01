@@ -6,16 +6,12 @@ const source = resolve(root, 'apps/private-preview');
 const target = resolve(root, 'dist-private-preview');
 const canonicalStagingUrl = 'https://rendezvue-private-preview.pages.dev/';
 const cloudflareBranch = String(process.env.CF_PAGES_BRANCH ?? '').trim();
-const isCloudflarePreview = process.env.CF_PAGES === '1' && cloudflareBranch && cloudflareBranch !== 'main';
+const isCloudflareBuild = process.env.CF_PAGES === '1';
+const isCloudflarePreview = isCloudflareBuild && cloudflareBranch && cloudflareBranch !== 'main';
+const isCloudflareProduction = isCloudflareBuild && !isCloudflarePreview;
 
-function readEnvironment(name, previewFallback) {
-  const value = String(process.env[name] ?? '').trim();
-  if (value) return value;
-  if (isCloudflarePreview && previewFallback) {
-    console.warn(`${name} is not available to this Cloudflare branch preview; using a non-functional browser-safe placeholder.`);
-    return previewFallback;
-  }
-  throw new Error(`${name} is required for the Cloudflare Pages production staging build`);
+function optionalEnvironment(name) {
+  return String(process.env[name] ?? '').trim();
 }
 
 function validateSupabaseUrl(value) {
@@ -41,6 +37,79 @@ function validatePublishableKey(value) {
     throw new Error('SUPABASE_PUBLISHABLE_KEY is malformed');
   }
   return value;
+}
+
+function parseRuntimeConfigScript(script) {
+  const prefix = 'window.__RENDEZVUE_CONFIG__ = Object.freeze(';
+  const start = script.indexOf(prefix);
+  const end = script.lastIndexOf(');');
+  if (start < 0 || end <= start + prefix.length) {
+    throw new Error('Previous canonical runtime configuration has an unsupported format');
+  }
+  const payload = script.slice(start + prefix.length, end).trim();
+  return JSON.parse(payload);
+}
+
+async function loadPreviousCanonicalBrowserConfig() {
+  const bootstrapUrl = new URL('runtime-config.js', canonicalStagingUrl);
+  bootstrapUrl.searchParams.set('bootstrap', String(Date.now()));
+
+  const response = await fetch(bootstrapUrl, {
+    headers: {
+      accept: 'application/javascript,text/javascript,*/*;q=0.1',
+      'cache-control': 'no-cache'
+    },
+    redirect: 'follow'
+  });
+  if (!response.ok) {
+    throw new Error(`Previous canonical browser configuration returned HTTP ${response.status}`);
+  }
+
+  const previous = parseRuntimeConfigScript(await response.text());
+  const supabaseUrl = validateSupabaseUrl(String(previous.supabaseUrl ?? ''));
+  const supabasePublishableKey = validatePublishableKey(String(previous.supabasePublishableKey ?? ''));
+  if (new URL(supabaseUrl).hostname === 'example.supabase.co') {
+    throw new Error('Previous canonical browser configuration contains a placeholder project');
+  }
+
+  console.log('Validated and reused browser-safe Supabase configuration from the previous canonical deployment.');
+  return { supabaseUrl, supabasePublishableKey };
+}
+
+async function resolveBrowserConfiguration() {
+  const environmentUrl = optionalEnvironment('SUPABASE_URL');
+  const environmentKey = optionalEnvironment('SUPABASE_PUBLISHABLE_KEY');
+
+  if (environmentUrl && environmentKey) {
+    return {
+      supabaseUrl: validateSupabaseUrl(environmentUrl),
+      supabasePublishableKey: validatePublishableKey(environmentKey),
+      configurationSource: 'environment'
+    };
+  }
+
+  if (isCloudflarePreview) {
+    console.warn('Supabase browser variables are unavailable to this Cloudflare branch preview; using non-functional browser-safe placeholders.');
+    return {
+      supabaseUrl: validateSupabaseUrl('https://example.supabase.co'),
+      supabasePublishableKey: validatePublishableKey('sb_publishable_cloudflare_preview_placeholder_00000000000000000000'),
+      configurationSource: 'browser-safe-placeholder'
+    };
+  }
+
+  if (isCloudflareProduction) {
+    if (environmentUrl || environmentKey) {
+      console.warn('Cloudflare production has incomplete Supabase browser variables; ignoring the partial pair and using the validated previous public browser configuration.');
+    } else {
+      console.warn('Cloudflare production has no Supabase browser variables; bootstrapping from the validated previous public browser configuration.');
+    }
+    return {
+      ...await loadPreviousCanonicalBrowserConfig(),
+      configurationSource: 'previous-canonical-deployment'
+    };
+  }
+
+  throw new Error('SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY are both required outside a Cloudflare branch preview or production bootstrap');
 }
 
 async function assembleSharedBrowserClient() {
@@ -129,18 +198,18 @@ async function assembleSharedBrowserClient() {
   ]);
 }
 
-const supabaseUrl = validateSupabaseUrl(readEnvironment('SUPABASE_URL', 'https://example.supabase.co'));
-const publishableKey = validatePublishableKey(readEnvironment(
-  'SUPABASE_PUBLISHABLE_KEY',
-  'sb_publishable_cloudflare_preview_placeholder_00000000000000000000'
-));
+const {
+  supabaseUrl,
+  supabasePublishableKey,
+  configurationSource
+} = await resolveBrowserConfiguration();
 const buildCommit = String(
   process.env.CF_PAGES_COMMIT_SHA ?? process.env.GITHUB_SHA ?? 'local'
 ).slice(0, 40);
 const remoteBackendConfigured = new URL(supabaseUrl).hostname !== 'example.supabase.co';
 const configurationMode = remoteBackendConfigured ? 'remote-supabase' : 'browser-safe-placeholder';
 
-if (!isCloudflarePreview && process.env.CF_PAGES === '1' && !remoteBackendConfigured) {
+if (isCloudflareProduction && !remoteBackendConfigured) {
   throw new Error('Cloudflare Pages production may not use placeholder Supabase configuration');
 }
 
@@ -161,9 +230,10 @@ const runtimeConfig = {
   hostingPlatform: 'cloudflare-pages',
   canonicalStagingUrl,
   configurationMode,
+  configurationSource,
   remoteBackendConfigured,
   supabaseUrl,
-  supabasePublishableKey: publishableKey,
+  supabasePublishableKey,
   authRedirectUrl: canonicalStagingUrl,
   buildCommit
 };
@@ -183,6 +253,7 @@ await writeFile(
     hostingPlatform: 'cloudflare-pages',
     canonicalUrl: canonicalStagingUrl,
     configurationMode,
+    configurationSource,
     remoteBackendConfigured,
     cloudflareBranch: cloudflareBranch || null,
     containsServerSecrets: false,
@@ -207,5 +278,6 @@ console.log(`Cloudflare Pages artifact written for ${new URL(supabaseUrl).hostna
 console.log(`Canonical staging URL: ${canonicalStagingUrl}`);
 console.log(`Build commit marker: ${buildCommit}`);
 console.log(`Configuration mode: ${configurationMode}`);
+console.log(`Configuration source: ${configurationSource}`);
 console.log('One shared browser Auth client handles PKCE magic links and all proof interactions.');
 console.log('No database password, access token or Supabase secret key was passed to the browser build.');
