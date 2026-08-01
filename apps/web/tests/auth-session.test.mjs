@@ -80,11 +80,11 @@ test('auth subscription can be disposed', () => {
   assert.equal(fake.wasUnsubscribed(), true);
 });
 
-test('sign out is local to the current browser session', async () => {
+test('sign out revokes every proof session for the account', async () => {
   const fake = makeAuthClient();
   const auth = createAuthSessionAdapter(fake.client);
   assert.equal(await auth.signOut(), true);
-  assert.deepEqual(fake.calls.at(-1), ['signOut', { scope: 'local' }]);
+  assert.deepEqual(fake.calls.at(-1), ['signOut', { scope: 'global' }]);
 });
 
 test('provider errors are surfaced with operation context', async () => {
