@@ -7,9 +7,12 @@
     "dev": "python3 -m http.server 4173 --directory apps/web",
     "build:static": "node scripts/build-static.mjs",
     "build:cloudflare": "node scripts/build-private-preview.mjs",
+    "build:private-preview": "npm run build:cloudflare",
     "validate:cloudflare": "node scripts/validate-private-preview.mjs",
+    "validate:private-preview": "npm run validate:cloudflare",
     "validate:synthetic-seed": "node scripts/validate-synthetic-seed.mjs",
     "check:cloudflare": "node --check apps/private-preview/app.js && node --check apps/private-preview/interaction-proof.js && node --check apps/private-preview/otp-proof.js && node --check apps/private-preview/account-cleanup.js && node --check scripts/build-private-preview.mjs && node --check scripts/validate-private-preview.mjs && npm run build:cloudflare && npm run validate:cloudflare",
+    "check:private-preview": "npm run check:cloudflare",
     "test": "node --test apps/web/tests/*.test.mjs",
     "validate": "node scripts/validate-static.mjs",
     "check": "npm run build:static && npm run validate && npm run validate:synthetic-seed && npm test"
