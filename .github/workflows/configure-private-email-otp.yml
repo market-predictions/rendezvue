@@ -1,0 +1,90 @@
+name: Configure private email OTP
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/configure-private-email-otp.yml'
+      - 'apps/private-preview/otp-proof.js'
+      - 'apps/web/src/auth-session.js'
+      - 'scripts/build-private-preview.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rendezvue-private-auth-config
+  cancel-in-progress: false
+
+jobs:
+  configure:
+    name: Configure callback-free email OTP
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: rendezvue-private-preview
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+
+    steps:
+      - name: Validate protected configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${SUPABASE_ACCESS_TOKEN:-}" ]] || { echo '::error::SUPABASE_ACCESS_TOKEN is missing'; exit 1; }
+          [[ "$SUPABASE_PROJECT_REF" =~ ^[a-z0-9]{15,30}$ ]] || { echo '::error::SUPABASE_PROJECT_REF is invalid'; exit 1; }
+
+      - name: Configure one-time-code email template
+        shell: bash
+        run: |
+          set -euo pipefail
+          payload="$RUNNER_TEMP/email-otp-config.json"
+          response="$RUNNER_TEMP/email-otp-response.json"
+
+          node --input-type=module - "$payload" <<'NODE'
+          import { writeFileSync } from 'node:fs';
+          const content = [
+            '<h2>Rendezvue aanmeldcode</h2>',
+            '<p>Voer onderstaande code in het reeds geopende private Rendezvue-tabblad in.</p>',
+            '<p style="font-size:32px;letter-spacing:6px"><strong>{{ .Token }}</strong></p>',
+            '<p>Deze code verloopt binnenkort en kan slechts één keer worden gebruikt.</p>',
+            '<p>Klik niet op oude aanmeldlinks en deel de code met niemand.</p>'
+          ].join('');
+          writeFileSync(process.argv[2], JSON.stringify({
+            mailer_subjects_magic_link: 'Rendezvue aanmeldcode',
+            mailer_templates_magic_link_content: content
+          }));
+          NODE
+
+          status="$(curl --silent --show-error --output "$response" --write-out '%{http_code}' \
+            --request PATCH \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            --header 'content-type: application/json' \
+            --data-binary "@$payload" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/auth")"
+          if [[ "$status" != "200" ]]; then
+            echo "::error title=Email OTP configuration failed::Supabase Management API returned HTTP $status"
+            exit 1
+          fi
+
+          node --input-type=module - "$response" <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const config = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+          const template = String(config.mailer_templates_magic_link_content ?? '');
+          if (!template.includes('{{ .Token }}')) throw new Error('OTP token marker is missing after update');
+          if (template.includes('{{ .ConfirmationURL }}')) throw new Error('Magic-link callback marker is still present');
+          NODE
+
+      - name: Write summary
+        shell: bash
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          ## Rendezvue private authentication
+
+          - Delivery: email one-time code
+          - Verification: inside the already-open private Space
+          - Private Hugging Face callback required: no
+          - Access or refresh tokens in email URLs: no
+          - Real-user admission authorized: no
+          EOF

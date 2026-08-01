@@ -55,23 +55,22 @@ async function assembleSharedBrowserClient() {
   if (!appSource.includes(clientDeclaration)) {
     throw new Error('Private preview app client declaration was not found');
   }
-  if (!appSource.includes("flowType: 'pkce'")) {
-    throw new Error('Private preview source PKCE marker was not found');
+  if (!appSource.includes('detectSessionInUrl: true')) {
+    throw new Error('Private preview source callback-detection marker was not found');
   }
 
-  // The source module remains independently syntax-checkable. The generated
-  // hosted Static Space imports one Auth-aware client and deliberately uses
-  // the browser implicit callback flow. PKCE requires the callback to run in
-  // the same browser/device that requested the email, which is too brittle
-  // for this synthetic proof when mail clients open a different browser
-  // context. A production implementation must use a dedicated PKCE or
-  // token-hash callback endpoint rather than this proof-only accommodation.
+  // The hosted private Space is protected by Hugging Face before application
+  // JavaScript can run. Email callbacks therefore cannot reliably load the
+  // app and must not carry Supabase sessions in the URL. The generated proof
+  // uses an in-app email OTP form and explicitly ignores URL callbacks.
   const sharedAppSource = appSource
     .replace(clientDeclaration, 'export const supabase = createClient(')
-    .replace("flowType: 'pkce'", "flowType: 'implicit'");
+    .replace('detectSessionInUrl: true', 'detectSessionInUrl: false')
+    .replace("Magic link aangevraagd voor ${result.email}.", "E-mailcode aangevraagd voor ${result.email}.")
+    .replace("showResult({ requested: true, email: result.email, redirectTo: runtime.authRedirectUrl });", "showResult({ requested: true, email: result.email, delivery: 'email-otp' });");
 
-  if (!sharedAppSource.includes("flowType: 'implicit'")) {
-    throw new Error('Hosted private preview implicit Auth flow was not assembled');
+  if (!sharedAppSource.includes('detectSessionInUrl: false')) {
+    throw new Error('Hosted private preview URL callback detection was not disabled');
   }
 
   const interactionBodyStart = interactionSource.indexOf('const output = document.querySelector');
@@ -85,10 +84,41 @@ async function assembleSharedBrowserClient() {
     interactionSource.slice(interactionBodyStart)
   ].join('\n');
 
+  const otpForm = [
+    '      <form id="email-otp-form" class="stack separated-form">',
+    '        <label>',
+    '          Aanmeldcode uit de nieuwste e-mail',
+    '          <input id="email-otp" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,8}" required placeholder="123456">',
+    '        </label>',
+    '        <button type="submit">Code controleren en aanmelden</button>',
+    '        <p id="email-otp-status" class="hint" aria-live="polite">Vraag eerst een code aan en vul die in ditzelfde geopende tabblad in.</p>',
+    '      </form>'
+  ].join('\n');
+
+  let generatedIndex = indexSource
+    .replace('<h2>Aanmelden met magic link</h2>', '<h2>Aanmelden met e-mailcode</h2>')
+    .replace('Magic link aanvragen', 'E-mailcode aanvragen')
+    .replace(
+      '      <p class="hint">De redirect-URL moet exact in Supabase Auth → URL Configuration zijn toegestaan.</p>',
+      `${otpForm}\n      <p class="hint">Klik niet op oude aanmeldlinks. De private Hugging Face-app blijft open terwijl je de code uit de e-mail overneemt.</p>`
+    );
+
+  const otpScript = '  <script type="module" src="./otp-proof.js"></script>\n';
+  if (!generatedIndex.includes('otp-proof.js')) {
+    generatedIndex = generatedIndex.replace(
+      '  <script type="module" src="./interaction-proof.js"></script>\n',
+      `  <script type="module" src="./interaction-proof.js"></script>\n${otpScript}`
+    );
+  }
+
   const cleanupScript = '  <script type="module" src="./account-cleanup.js"></script>\n';
-  const generatedIndex = indexSource.includes('account-cleanup.js')
-    ? indexSource
-    : indexSource.replace('</body>', `${cleanupScript}</body>`);
+  if (!generatedIndex.includes('account-cleanup.js')) {
+    generatedIndex = generatedIndex.replace('</body>', `${cleanupScript}</body>`);
+  }
+
+  if (!generatedIndex.includes('email-otp-form') || !generatedIndex.includes('otp-proof.js')) {
+    throw new Error('Private preview email OTP interface was not assembled');
+  }
 
   await Promise.all([
     writeFile(resolve(target, 'app.js'), sharedAppSource, 'utf8'),
@@ -137,7 +167,7 @@ await writeFile(
     publicPilotChanged: false,
     containsServerSecrets: false,
     sharedBrowserAuthClient: true,
-    authFlow: 'implicit-static-proof',
+    authFlow: 'email-otp-private-space',
     providerAccountCleanup: true,
     authRedirectUrl,
     buildCommit
@@ -146,7 +176,7 @@ await writeFile(
 );
 
 console.log(`Private preview artifact written for ${new URL(supabaseUrl).hostname}.`);
-console.log('One shared browser Auth client handles the hosted static callback and all proof interactions.');
-console.log('The hosted proof uses implicit Auth flow so email callbacks do not depend on a PKCE verifier in another browser context.');
+console.log('One shared browser Auth client handles the in-app email OTP session and all proof interactions.');
+console.log('URL callback detection is disabled because the private Hugging Face access gate runs before application JavaScript.');
 console.log('Provider-orchestrated private object and Auth account cleanup is included.');
 console.log('No database password, access token or Supabase secret key was passed to the browser build.');

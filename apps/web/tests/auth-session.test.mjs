@@ -43,9 +43,9 @@ test('personal email is trimmed and normalized', () => {
   assert.throws(() => normaliseAccountEmail('not-an-email'), /valid personal email/);
 });
 
-test('magic link uses recoverable redirect configuration', async () => {
+test('email OTP request does not depend on a private-space callback', async () => {
   const fake = makeAuthClient();
-  const auth = createAuthSessionAdapter(fake.client, { redirectTo: 'https://preview.example/auth/callback' });
+  const auth = createAuthSessionAdapter(fake.client);
   assert.deepEqual(await auth.requestMagicLink('USER@EXAMPLE.NL'), {
     email: 'user@example.nl',
     requested: true
@@ -55,8 +55,7 @@ test('magic link uses recoverable redirect configuration', async () => {
     {
       email: 'user@example.nl',
       options: {
-        shouldCreateUser: true,
-        emailRedirectTo: 'https://preview.example/auth/callback'
+        shouldCreateUser: true
       }
     }
   ]);
@@ -81,11 +80,11 @@ test('auth subscription can be disposed', () => {
   assert.equal(fake.wasUnsubscribed(), true);
 });
 
-test('sign out is local to the current browser session', async () => {
+test('sign out revokes every proof session for the account', async () => {
   const fake = makeAuthClient();
   const auth = createAuthSessionAdapter(fake.client);
   assert.equal(await auth.signOut(), true);
-  assert.deepEqual(fake.calls.at(-1), ['signOut', { scope: 'local' }]);
+  assert.deepEqual(fake.calls.at(-1), ['signOut', { scope: 'global' }]);
 });
 
 test('provider errors are surfaced with operation context', async () => {

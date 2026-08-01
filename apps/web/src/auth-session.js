@@ -27,9 +27,8 @@ export function normaliseAccountEmail(value) {
   return email;
 }
 
-export function createAuthSessionAdapter(client, options = {}) {
+export function createAuthSessionAdapter(client) {
   const auth = requireAuthClient(client);
-  const redirectTo = String(options.redirectTo ?? '').trim();
 
   return Object.freeze({
     async requestMagicLink(emailValue) {
@@ -37,11 +36,10 @@ export function createAuthSessionAdapter(client, options = {}) {
       const result = await auth.signInWithOtp({
         email,
         options: {
-          shouldCreateUser: true,
-          ...(redirectTo ? { emailRedirectTo: redirectTo } : {})
+          shouldCreateUser: true
         }
       });
-      unwrap(result, 'magic-link request');
+      unwrap(result, 'email OTP request');
       return Object.freeze({ email, requested: true });
     },
 
@@ -67,7 +65,7 @@ export function createAuthSessionAdapter(client, options = {}) {
     },
 
     async signOut() {
-      unwrap(await auth.signOut({ scope: 'local' }), 'sign out');
+      unwrap(await auth.signOut({ scope: 'global' }), 'sign out');
       return true;
     }
   });

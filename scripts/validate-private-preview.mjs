@@ -20,6 +20,7 @@ const required = [
   'index.html',
   'app.js',
   'interaction-proof.js',
+  'otp-proof.js',
   'account-cleanup.js',
   'styles.css',
   'runtime-config.js',
@@ -38,11 +39,11 @@ if (deployment.backendMode !== 'supabase-proof') throw new Error('Private artifa
 if (deployment.publicPilotChanged !== false) throw new Error('Private preview must not claim to change the public pilot');
 if (deployment.containsServerSecrets !== false) throw new Error('Private preview secret boundary is not asserted');
 if (deployment.sharedBrowserAuthClient !== true) throw new Error('Private preview does not assert one shared browser Auth client');
-if (deployment.authFlow !== 'implicit-static-proof') throw new Error('Private preview hosted callback flow is not explicit');
+if (deployment.authFlow !== 'email-otp-private-space') throw new Error('Private preview does not assert the in-app email OTP flow');
 if (deployment.providerAccountCleanup !== true) throw new Error('Private preview does not assert provider account cleanup');
 const redirect = new URL(deployment.authRedirectUrl);
 if (redirect.protocol !== 'https:' || !redirect.hostname.endsWith('.static.hf.space')) {
-  throw new Error('Private preview callback must use a hosted Hugging Face HTTPS URL');
+  throw new Error('Private preview callback configuration must remain a hosted Hugging Face HTTPS URL');
 }
 
 const runtime = await readFile(resolve(target, 'runtime-config.js'), 'utf8');
@@ -54,6 +55,8 @@ if (runtime.includes('127.0.0.1') || runtime.includes('localhost')) {
 
 const index = await readFile(resolve(target, 'index.html'), 'utf8');
 if (!index.includes('interaction-proof.js')) throw new Error('Private interaction proof module is not loaded');
+if (!index.includes('otp-proof.js')) throw new Error('Private email OTP module is not loaded');
+if (!index.includes('email-otp-form')) throw new Error('Private email OTP form is missing');
 if (!index.includes('account-cleanup.js')) throw new Error('Private account cleanup module is not loaded');
 if (!index.includes('claim-proof-entitlement')) throw new Error('Private contact-entitlement control is missing');
 if (!index.includes('message-form')) throw new Error('Private messaging control is missing');
@@ -63,8 +66,22 @@ const app = await readFile(resolve(target, 'app.js'), 'utf8');
 if (!app.includes('export const supabase = createClient(')) {
   throw new Error('Private app does not export the shared Supabase client');
 }
-if (!app.includes("flowType: 'implicit'") || app.includes("flowType: 'pkce'")) {
-  throw new Error('Hosted private proof must use exactly the implicit static callback flow');
+if (!app.includes('detectSessionInUrl: false') || app.includes('detectSessionInUrl: true')) {
+  throw new Error('Private app must ignore URL-based Auth callbacks');
+}
+if (!app.includes("delivery: 'email-otp'")) {
+  throw new Error('Private app does not report email OTP delivery');
+}
+
+const otp = await readFile(resolve(target, 'otp-proof.js'), 'utf8');
+if (!otp.startsWith("import { supabase } from './app.js';")) {
+  throw new Error('Email OTP proof does not import the shared Supabase client');
+}
+if (!otp.includes('supabase.auth.verifyOtp') || !otp.includes("type: 'email'")) {
+  throw new Error('Email OTP verification contract is missing');
+}
+if (otp.includes('createClient(') || otp.includes('sb_secret_')) {
+  throw new Error('Email OTP proof may not create a client or contain secret key material');
 }
 
 const interaction = await readFile(resolve(target, 'interaction-proof.js'), 'utf8');
