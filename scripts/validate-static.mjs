@@ -14,10 +14,10 @@ const required = [
   'docs/WORKPACKAGES.md', 'docs/WORK-CLAIMS.md', 'docs/HANDOVER.md',
   'docs/UX-PRINCIPLES.md', 'docs/PRIVACY-AND-SAFETY.md', 'docs/INSTITUTION-REGISTRY-NL.md',
   'docs/decisions/ADR-0007-product-baseline-v1.md',
-  'scripts/build-static.mjs', 'scripts/build-hf-deploy.mjs', 'scripts/validate-static.mjs',
-  'infrastructure/huggingface/README.static.md',
-  'dist/index.html', 'dist/app.js', 'dist/pilot-v1.css', 'dist/deployment.json',
-  '.hf-deploy/README.md', '.hf-deploy/index.html', '.hf-deploy/app.js', '.hf-deploy/source.json'
+  'docs/decisions/ADR-0008-cloudflare-pages-canonical-staging.md',
+  'scripts/build-static.mjs', 'scripts/build-private-preview.mjs',
+  'scripts/validate-static.mjs', 'scripts/validate-private-preview.mjs',
+  'dist/index.html', 'dist/app.js', 'dist/pilot-v1.css', 'dist/deployment.json'
 ];
 
 for (const path of required) await access(resolve(root, path));
@@ -54,16 +54,17 @@ for (const marker of ['AVATAR_FILTERS', 'softFocus', 'warmVeil', 'monoMist', 'pr
 }
 
 const deployment = JSON.parse(await readFile(resolve(root, 'dist/deployment.json'), 'utf8'));
-if (deployment.version !== '0.3.0-alpha.1') throw new Error('Unexpected deployment version.');
+if (deployment.version !== '0.4.0-alpha.2') throw new Error('Unexpected deployment version.');
 if (deployment.audience !== 'adult-muslim-community-student-first') throw new Error('Deployment audience is stale.');
 if (deployment.portraitMode !== 'browser-local-privacy-filter-grid') throw new Error('Deployment portrait mode is stale.');
+if (deployment.target !== 'repository-static-artifact' || deployment.canonicalHosting !== false) {
+  throw new Error('The historical local-demo artifact must be explicitly non-canonical.');
+}
 
 const builtApp = await readFile(resolve(root, 'dist/app.js'), 'utf8');
 for (const marker of ['direct-like', 'bindSwipe', 'contactEntitlements', 'submit-feedback']) {
   if (!builtApp.includes(marker)) throw new Error(`Built app is missing ${marker}.`);
 }
-const deployHtml = await readFile(resolve(root, '.hf-deploy/index.html'), 'utf8');
-if (!deployHtml.includes('static-pilot-v1')) throw new Error('Hugging Face artifact is missing the v1 marker.');
 
 const requirements = await readFile(resolve(root, 'docs/REQUIREMENTS.md'), 'utf8');
 for (const marker of ['student-first, not student-only', 'marital history', 'Contact opening', 'Public star ratings', 'Concept-pilot acceptance criteria']) {
@@ -71,14 +72,11 @@ for (const marker of ['student-first, not student-only', 'marital history', 'Con
 }
 
 const architecture = await readFile(resolve(root, 'docs/ARCHITECTURE.md'), 'utf8');
-for (const marker of ['AttractionSignal', 'ContactEntitlement', 'Hugging Face', 'PostgreSQL']) {
+for (const marker of ['AttractionSignal', 'ContactEntitlement', 'Cloudflare Pages', 'PostgreSQL']) {
   if (!architecture.includes(marker)) throw new Error(`Architecture is missing ${marker}.`);
 }
-
-const deployReadme = await readFile(resolve(root, '.hf-deploy/README.md'), 'utf8');
-for (const marker of ['sdk: static', 'app_file: index.html', 'student-first', 'GitHub is the sole source of truth']) {
-  if (!deployReadme.includes(marker)) throw new Error(`Hugging Face metadata is missing ${marker}.`);
+if (/Hugging Face Static Space \(generated web-facing PWA\)/.test(architecture)) {
+  throw new Error('Architecture still presents Hugging Face as the current web-facing host.');
 }
-if (deployReadme.includes('app_build_command:')) throw new Error('Prebuilt deployment must not request a remote build.');
 
 console.log(`Static validation passed (${required.length} required artifacts).`);
