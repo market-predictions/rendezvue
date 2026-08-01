@@ -57,10 +57,26 @@ pre { margin: 0; padding: 1rem; border-radius: 0.8rem; background: #211d1a; colo
 .log-panel li { margin: 0.4rem 0; line-height: 1.4; }
 .log-panel li.error { color: #9a3024; font-weight: 700; }
 
+.proof-console { border-color: #aacdbf; }
+.proof-console-heading { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; }
+.proof-console-heading h2 { margin-top: 0.15rem; }
+.proof-config { margin-top: 1rem; }
+.proof-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 1rem; }
+.proof-next { margin: 1rem 0; padding: 0.85rem 1rem; border-radius: 0.8rem; background: #eef7f3; line-height: 1.45; }
+.proof-checklist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.55rem; padding: 0; list-style: none; }
+.proof-step { display: grid; grid-template-columns: 1.6rem 1fr; gap: 0.55rem; align-items: start; border: 1px solid #e0d7cc; border-radius: 0.7rem; padding: 0.65rem 0.75rem; line-height: 1.35; }
+.proof-step-marker { display: inline-grid; place-items: center; width: 1.35rem; height: 1.35rem; border-radius: 999px; background: #ece6de; font-weight: 900; }
+.proof-step.pass { border-color: #a9d1c0; background: #f1f9f5; }
+.proof-step.pass .proof-step-marker { background: #1f6b55; color: white; }
+.proof-step.blocked { border-color: #e0aaa2; background: #fff3f1; }
+.proof-step.blocked .proof-step-marker { background: #a53b32; color: white; }
+.proof-evidence-details { margin-top: 1rem; }
+.proof-evidence-details summary { cursor: pointer; font-weight: 750; margin-bottom: 0.75rem; }
+
 @media (max-width: 760px) {
-  .hero, .identity-bar { display: grid; }
+  .hero, .identity-bar, .proof-console-heading { display: grid; }
   .status-stack { min-width: 0; }
-  .grid-form, .action-grid, .message-form { grid-template-columns: 1fr; }
+  .grid-form, .action-grid, .message-form, .proof-actions, .proof-checklist { grid-template-columns: 1fr; }
   .grid-form .wide { grid-column: auto; }
   .profile-card { grid-template-columns: 1fr; }
 }
