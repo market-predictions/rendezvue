@@ -55,20 +55,30 @@ async function assembleSharedBrowserClient() {
   if (!appSource.includes(clientDeclaration)) {
     throw new Error('Private preview app client declaration was not found');
   }
+  if (!appSource.includes("flowType: 'pkce'")) {
+    throw new Error('Private preview source PKCE marker was not found');
+  }
 
-  const sharedAppSource = appSource.replace(
-    clientDeclaration,
-    'export const supabase = createClient('
-  );
+  // The source module remains independently syntax-checkable. The generated
+  // hosted Static Space imports one Auth-aware client and deliberately uses
+  // the browser implicit callback flow. PKCE requires the callback to run in
+  // the same browser/device that requested the email, which is too brittle
+  // for this synthetic proof when mail clients open a different browser
+  // context. A production implementation must use a dedicated PKCE or
+  // token-hash callback endpoint rather than this proof-only accommodation.
+  const sharedAppSource = appSource
+    .replace(clientDeclaration, 'export const supabase = createClient(')
+    .replace("flowType: 'pkce'", "flowType: 'implicit'");
+
+  if (!sharedAppSource.includes("flowType: 'implicit'")) {
+    throw new Error('Hosted private preview implicit Auth flow was not assembled');
+  }
 
   const interactionBodyStart = interactionSource.indexOf('const output = document.querySelector');
   if (interactionBodyStart < 0) {
     throw new Error('Private interaction proof body marker was not found');
   }
 
-  // The source module remains independently syntax-checkable. The generated
-  // artifact deliberately imports the one Auth-aware client from app.js so
-  // the PKCE callback is processed exactly once in the browser.
   const sharedInteractionSource = [
     "import { supabase } from './app.js';",
     '',
@@ -127,6 +137,7 @@ await writeFile(
     publicPilotChanged: false,
     containsServerSecrets: false,
     sharedBrowserAuthClient: true,
+    authFlow: 'implicit-static-proof',
     providerAccountCleanup: true,
     authRedirectUrl,
     buildCommit
@@ -135,6 +146,7 @@ await writeFile(
 );
 
 console.log(`Private preview artifact written for ${new URL(supabaseUrl).hostname}.`);
-console.log('One shared browser Auth client handles the PKCE callback and all proof interactions.');
+console.log('One shared browser Auth client handles the hosted static callback and all proof interactions.');
+console.log('The hosted proof uses implicit Auth flow so email callbacks do not depend on a PKCE verifier in another browser context.');
 console.log('Provider-orchestrated private object and Auth account cleanup is included.');
 console.log('No database password, access token or Supabase secret key was passed to the browser build.');
