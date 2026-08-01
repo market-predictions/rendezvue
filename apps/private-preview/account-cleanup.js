@@ -1,5 +1,6 @@
 import { supabase } from './app.js';
 import './proof-console-ui.js';
+import './proof-result-sanitizer.js';
 import './proof-orchestrator.js';
 import './proof-log-observer.js';
 import './proof-signout-guard.js';
