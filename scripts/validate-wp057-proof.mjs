@@ -8,6 +8,7 @@ const built = resolve(root, 'dist-private-preview');
 const files = {
   orchestrator: await readFile(resolve(source, 'proof-orchestrator.js'), 'utf8'),
   ui: await readFile(resolve(source, 'proof-console-ui.js'), 'utf8'),
+  sanitizer: await readFile(resolve(source, 'proof-result-sanitizer.js'), 'utf8'),
   observer: await readFile(resolve(source, 'proof-log-observer.js'), 'utf8'),
   signoutGuard: await readFile(resolve(source, 'proof-signout-guard.js'), 'utf8'),
   portraitGenerator: await readFile(resolve(source, 'proof-portrait-generator.js'), 'utf8'),
@@ -15,6 +16,7 @@ const files = {
   styles: await readFile(resolve(source, 'styles.css'), 'utf8'),
   builtOrchestrator: await readFile(resolve(built, 'proof-orchestrator.js'), 'utf8'),
   builtUi: await readFile(resolve(built, 'proof-console-ui.js'), 'utf8'),
+  builtSanitizer: await readFile(resolve(built, 'proof-result-sanitizer.js'), 'utf8'),
   builtObserver: await readFile(resolve(built, 'proof-log-observer.js'), 'utf8'),
   builtSignoutGuard: await readFile(resolve(built, 'proof-signout-guard.js'), 'utf8'),
   builtPortraitGenerator: await readFile(resolve(built, 'proof-portrait-generator.js'), 'utf8'),
@@ -68,7 +70,25 @@ for (const marker of [
 }
 
 for (const marker of [
+  'proof-result-output',
+  'interaction-match-summary',
+  'conversation-summary',
+  'redacted-token',
+  'redacted-auth-value',
+  'redacted-id',
+  'sensitiveKey',
+  'MutationObserver'
+]) {
+  const actual = marker === 'proof-result-output' ? '#result-output' : marker;
+  if (!files.sanitizer.includes(actual)) throw new Error(`WP-057 result sanitizer is missing ${actual}`);
+}
+if (!files.sanitizer.includes('access_token|refresh_token|code')) {
+  throw new Error('WP-057 result sanitizer does not redact browser authentication values');
+}
+
+for (const marker of [
   "import './proof-console-ui.js';",
+  "import './proof-result-sanitizer.js';",
   "import './proof-orchestrator.js';",
   "import './proof-log-observer.js';",
   "import './proof-signout-guard.js';",
@@ -140,6 +160,7 @@ if (!files.orchestrator.includes("['count', 'status', 'present', 'revoked', 'bot
 for (const [name, contents] of Object.entries({
   builtOrchestrator: files.builtOrchestrator,
   builtUi: files.builtUi,
+  builtSanitizer: files.builtSanitizer,
   builtObserver: files.builtObserver,
   builtSignoutGuard: files.builtSignoutGuard,
   builtPortraitGenerator: files.builtPortraitGenerator,
