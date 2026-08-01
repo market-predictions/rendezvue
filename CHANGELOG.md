@@ -15,6 +15,9 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Added a post-merge Pages verification workflow that waits for a production artifact whose `deployment.json` matches the merged commit.
 - Removed active Hugging Face deployment and deployment-evidence workflows and retired their helper code.
 - Rebased the roadmap, work packages, work claims, architecture, handover and private proof protocol on Cloudflare Pages.
+- Added fail-closed placeholder handling for branch previews and a controlled production bootstrap that can reuse only previously public, strictly validated browser configuration.
+- Verified production merge commit `c1632fc4c6d5a5d22f27c256fdf066e5d6710966` with `remote-supabase` configuration, approved configuration source, PKCE auth flow, no-store/security headers and no Hugging Face runtime dependency.
+- Marked WP-038 and WP-039 complete and transferred active work to WP-057 in issue #41.
 
 ### Passwordless authentication provider correction
 
@@ -97,13 +100,16 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Cloudflare canonical staging PR #36 merged as `fad220bc`.
 - Fail-closed migration evidence PR #37 merged as `d5947cc3`.
 - Cloudflare verifier/Auth deployment repair PR #38 merged as `544022a8`.
-- Remote run `30698614914` proved the canonical Cloudflare Site URL and allow-list were accepted, migrations were current and cleanup deployed; it then proved numeric OTP template modification is unavailable on the current free-tier/default-provider combination.
+- Free-tier PKCE correction PR #39 merged as `5f43022a`.
+- Production bootstrap PR #40 merged as `c1632fc4`.
+- Protected run `30699577670` proved the canonical Cloudflare Site URL and allow-list, migrations, remote health, cleanup deployment, anonymous rejection and browser credential boundary.
+- Production verification run `30712250023` proved the fixed Pages URL served commit `c1632fc4`, real browser-safe Supabase configuration, PKCE auth metadata, security/no-store headers and no Hugging Face runtime dependency.
 - CI validates application artifacts, browser/server credential separation, Deno type checking, Edge Runtime/CORS/auth gates, Docker, clean migration replay, pgTAP assertions, true parallel match/contact races and schema lint.
 - Real-user admission remains unauthorized.
 
 ### Pending review and proof
 
-- Verify the fixed Cloudflare Pages production URL serves the merged PKCE-magic-link commit.
+- Execute WP-057 under issue #41 using two isolated controlled synthetic browser profiles.
 - Execute same-browser-profile magic-link callback exchange, consumed-code removal, session recovery and global sign-out using two controlled synthetic accounts.
 - Execute persistent two-account onboarding, publication, reciprocal discovery/likes and exactly one match.
 - Execute remote one-time entitlement, realtime chat, signed portrait, end-contact, block/report and private feedback.

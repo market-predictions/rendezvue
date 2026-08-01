@@ -1,13 +1,15 @@
 # Project handover
 
 **Updated:** 2026-08-01  
-**Milestone:** Cloudflare Pages migration active; Supabase-connected two-account browser proof pending
+**Milestone:** Cloudflare Pages migration complete; controlled two-account browser proof active
 
 ## GitHub state
 
 - Authority: `market-predictions/rendezvue` `main`.
-- Cloudflare migration tracking and claim: issue #35.
-- Canonical staging target: `https://rendezvue-private-preview.pages.dev/`.
+- Completed Cloudflare migration evidence: issue #35.
+- Active controlled browser-proof claim: issue #41 / WP-057.
+- Canonical staging URL: `https://rendezvue-private-preview.pages.dev/`.
+- Verified production commit: `c1632fc4c6d5a5d22f27c256fdf066e5d6710966`.
 - Supabase project: `RendezvueProject`, Healthy, West EU (Ireland), Nano.
 - Ten Auth-linked synthetic profiles, ten published discovery profiles and ten selected private portraits are seeded.
 - No owner-local Git, Node, Python, Docker or webserver is part of the operational workflow.
@@ -15,7 +17,7 @@
 
 ## Architecture decision
 
-GitHub remains the sole source of truth. Cloudflare Pages becomes the only web-facing staging host. Supabase remains the Auth, PostgreSQL/RLS, private Storage, Realtime and Edge Function backend.
+GitHub is the sole source of truth. Cloudflare Pages is the only web-facing staging host. Supabase remains the Auth, PostgreSQL/RLS, private Storage, Realtime and Edge Function backend.
 
 The former public and private Hugging Face Spaces are historical, non-canonical artifacts. Their deployment workflows and helper code are retired. No further functional acceptance testing is performed on Hugging Face.
 
@@ -62,15 +64,28 @@ Implemented and validated:
 
 Cloudflare Pages project: `rendezvue-private-preview`.
 
-Expected production settings:
+Production settings:
 
 - production branch: `main`;
 - build command: `npm run build:cloudflare`;
 - output directory: `dist-private-preview`;
-- variables: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`;
+- browser configuration: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`;
 - fixed production URL: `https://rendezvue-private-preview.pages.dev/`.
 
 The artifact contains only browser-safe configuration, a commit marker and explicit synthetic-only boundaries. `_headers` prevents framing, limits browser capabilities and marks runtime configuration and deployment metadata as `no-store`.
+
+Production verification run `30712250023` proved:
+
+- merge commit `c1632fc4c6d5a5d22f27c256fdf066e5d6710966` is served;
+- configuration mode is `remote-supabase`, not a placeholder;
+- configuration source is the strictly validated `previous-canonical-deployment` transition path;
+- PKCE magic-link metadata is active;
+- implicit token fragments are disabled;
+- security and no-store headers pass;
+- no Hugging Face runtime dependency remains;
+- real-user admission remains false.
+
+Direct Cloudflare Pages environment variables remain the preferred steady-state source. The transition bootstrap accepts only a previously public HTTPS `.supabase.co` URL and `sb_publishable_` browser key and rejects placeholders, secret keys, partial configuration and malformed content.
 
 ## Protected Supabase workflow
 
@@ -86,12 +101,14 @@ The artifact contains only browser-safe configuration, a commit marker and expli
 8. builds and validates the Cloudflare PKCE artifact;
 9. records non-secret evidence in issue #35.
 
-It deliberately does not modify the passwordless e-mail template because that operation is unavailable with the current provider/plan.
+Protected run `30699577670` completed these checks successfully. It deliberately does not modify the passwordless e-mail template because that operation is unavailable with the current provider/plan.
 
 ## Production Pages verification
 
-`.github/workflows/verify-cloudflare-staging.yml` waits for Cloudflare production to serve a `deployment.json` whose `buildCommit` equals the merged `main` commit. It also checks:
+`.github/workflows/verify-cloudflare-staging.yml` verifies:
 
+- commit-matched production deployment metadata;
+- remote browser-safe Supabase configuration and an approved configuration source;
 - Cloudflare hosting marker and canonical URL;
 - PKCE magic-link interface and declared auth flow;
 - implicit token fragments disabled;
@@ -100,31 +117,31 @@ It deliberately does not modify the passwordless e-mail template because that op
 - `nosniff` and frame-denial headers;
 - real-user admission remains false.
 
-## Immediate next execution sequence
+WP-038 and WP-039 are complete. WP-057 is the active work package.
 
-1. merge the free-tier PKCE correction after CI and Pages preview checks pass;
-2. confirm the protected Supabase configuration workflow succeeds;
-3. confirm the production Pages verification workflow matches the merge commit;
-4. open the canonical Cloudflare staging URL in two isolated browser profiles;
-5. use two controlled synthetic mailboxes;
-6. request and open each newest magic link in the same corresponding browser profile;
-7. prove PKCE code exchange, consumed-code removal, session recovery and global sign-out;
-8. persist and publish one synthetic woman and one synthetic man profile;
-9. prove cross-account draft/family/faith/object isolation;
-10. prove opposite-sex discovery and reciprocal likes create exactly one match;
-11. claim one contact right, open exactly one conversation and exchange realtime messages;
-12. prove signed portrait delivery and access revocation after end-contact or block;
-13. prove private feedback/reporting exposes no public rating or moderation case;
-14. invoke authenticated cleanup for both accounts and verify objects, Auth users and relational rows are removed and retained audit identifiers are anonymised;
-15. retain only non-secret evidence in issue #35.
+## Immediate next execution sequence — WP-057
+
+1. open the canonical Cloudflare staging URL in two isolated browser profiles;
+2. use two controlled synthetic mailboxes;
+3. request and open each newest magic link in the same corresponding browser profile;
+4. prove PKCE code exchange, consumed-code removal, session recovery and global sign-out;
+5. persist and publish one synthetic woman and one synthetic man profile;
+6. prove cross-account draft/family/faith/object isolation;
+7. prove opposite-sex discovery and reciprocal likes create exactly one match;
+8. claim one contact right, open exactly one conversation and exchange realtime messages;
+9. prove signed portrait delivery and access revocation after end-contact or block;
+10. prove private feedback/reporting exposes no public rating or moderation case;
+11. invoke authenticated cleanup for both accounts;
+12. verify private objects, Auth users and relational rows are removed and retained audit identifiers are anonymised;
+13. retain only non-secret evidence in issue #41.
 
 ## Explicit limitations
 
-- a commit-matched Cloudflare production deployment is not claimed until the post-merge verifier succeeds;
-- real PKCE magic-link exchange and session recovery are not yet proven on Cloudflare;
+- real PKCE magic-link exchange and session recovery are not yet proven through controlled user browsers;
 - the complete two-account remote journey has not yet been executed;
 - authenticated remote cleanup and actual object deletion have not yet been observed;
 - recovery and duplicate-account controls remain incomplete;
 - custom SMTP and numeric OTP are not configured;
+- direct Cloudflare Pages environment variables should replace the transition bootstrap when operationally available;
 - no payments, operational moderation, Article 9 production basis or real-user authorization;
 - the staging proof is restricted to controlled synthetic adult accounts.

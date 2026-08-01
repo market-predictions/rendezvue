@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 2.1  
+**Version:** 2.2  
 **Updated:** 2026-08-01
 
 ## Operating doctrine
@@ -17,43 +17,44 @@
 
 ## Phase 0 — Foundation and hosting
 
-**Status:** active architecture transition.
+**Status:** complete.
 
-GitHub authority, CI, static builds and Docker validation are complete. The current milestone replaces the former Hugging Face hosting lanes with one canonical Cloudflare Pages staging application backed by Supabase.
+GitHub authority, CI, static builds, Docker validation and the migration from Hugging Face to one canonical Cloudflare Pages staging application backed by Supabase are complete.
 
 ### 0A. Cloudflare canonical staging
 
-**Status:** active; tracked and claimed in issue #35.
+**Status:** complete; evidence recorded in issue #35.
 
-Acceptance criteria:
+Accepted evidence:
 
 - `https://rendezvue-private-preview.pages.dev/` is the sole canonical staging URL;
-- the Pages production deployment is generated from `main` and exposes a commit-matched `deployment.json`;
-- Cloudflare receives only the Supabase project URL and publishable key;
+- production is generated from `main` and serves a commit-matched `deployment.json` for merge commit `c1632fc4c6d5a5d22f27c256fdf066e5d6710966`;
+- the production artifact declares `remote-supabase`, not placeholder configuration;
+- the browser artifact contains only the Supabase project URL and publishable key;
 - browser/server credential scanning remains fail-closed;
 - security headers and no-store rules protect runtime configuration and deployment metadata;
 - no source, workflow or runbook depends on a Hugging Face runtime.
 
 ### 0B. Supabase staging configuration
 
-**Status:** active; canonical Cloudflare URL accepted remotely, final end-to-end run pending.
+**Status:** complete for deployment and provider configuration; behavioural browser proof continues in Phase 2D.
 
-Acceptance criteria:
+Accepted evidence:
 
 - Supabase Auth Site URL and redirect allow-list use the fixed Cloudflare Pages URL;
 - passwordless sign-in uses the free-tier default-provider magic link with PKCE;
-- the link is requested and opened in the same isolated browser profile;
 - only a one-time `?code=` callback is accepted and removed after successful exchange;
 - implicit access- and refresh-token URL fragments remain disabled;
-- remote migrations, platform health, Edge Function deployment and anonymous cleanup rejection remain automatically checked.
+- migrations, platform health, Edge Function deployment and anonymous cleanup rejection pass remotely;
+- Cloudflare production serves real browser-safe Supabase configuration rather than preview placeholders.
 
 Provider constraint proven on 2026-08-01: numeric `{{ .Token }}` e-mail delivery is unavailable on a free-tier project using Supabase's default mail provider. It requires custom SMTP or a plan change and is therefore outside this proof.
 
 ### 0C. Hugging Face retirement
 
-**Status:** implementation complete; historical remote artifacts may remain reachable.
+**Status:** complete; historical remote artifacts may remain reachable.
 
-Acceptance criteria:
+Accepted evidence:
 
 - public and private Hugging Face deployment workflows are removed;
 - active Hugging Face helper code and deployment-evidence automation are removed;
@@ -120,7 +121,7 @@ Demonstrated:
 
 ### 2C. Authentication, resumable onboarding and Cloudflare deployment
 
-**Status:** implementation complete; Cloudflare production verification active.
+**Status:** deployment implementation and production verification complete; controlled browser execution remains.
 
 Delivered:
 
@@ -133,18 +134,18 @@ Delivered:
 - recursive browser-artifact credential scanning;
 - authenticated provider-orchestrated private object and Auth-account cleanup;
 - protected remote migration/function/URL configuration workflow;
-- deterministic synthetic seed with ten Auth-linked published profiles and ten private portraits.
+- deterministic synthetic seed with ten Auth-linked published profiles and ten private portraits;
+- commit-matched Cloudflare production deployment with real browser-safe Supabase configuration.
 
 Still required:
 
-- production Pages deployment verified against the merged commit;
 - controlled same-browser-profile magic-link and session-recovery execution;
 - recovery and duplicate-account controls;
 - abandonment retention policy and cleanup job.
 
 ### 2D. Controlled two-account interaction and cleanup slice
 
-**Status:** automated proof complete; Cloudflare browser execution pending.
+**Status:** active; claimed in issue #41.
 
 Execute only on canonical Cloudflare staging:
 
