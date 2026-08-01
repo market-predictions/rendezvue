@@ -2,6 +2,7 @@ import { supabase } from './app.js';
 import './proof-console-ui.js';
 import './proof-result-sanitizer.js';
 import './proof-orchestrator.js';
+import './proof-diagnostics-watchdog.js';
 import './proof-authoritative-evidence.js';
 import './proof-publication-verifier.js';
 import './proof-log-observer.js';
