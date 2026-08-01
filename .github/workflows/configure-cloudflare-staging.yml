@@ -1,38 +1,38 @@
-name: Deploy private Supabase preview
+name: Configure Cloudflare staging backend
 
 on:
   push:
     branches: [main]
     paths:
-      - '.github/workflows/deploy-private-preview.yml'
+      - '.github/workflows/configure-cloudflare-staging.yml'
       - 'apps/private-preview/**'
       - 'apps/web/src/auth-session.js'
       - 'apps/web/src/backend-contract.js'
       - 'apps/web/src/onboarding-repository.js'
       - 'scripts/build-private-preview.mjs'
       - 'scripts/validate-private-preview.mjs'
-      - 'scripts/huggingface_private_space.py'
       - 'supabase/**'
       - 'package.json'
       - 'package-lock.json'
   workflow_dispatch:
     inputs:
       apply_migrations:
-        description: Apply pending repository migrations to the linked private project
+        description: Apply pending repository migrations to the linked staging project
         required: true
         default: true
         type: boolean
 
 permissions:
   contents: read
+  issues: write
 
 concurrency:
-  group: rendezvue-private-supabase-preview
+  group: rendezvue-cloudflare-staging-backend
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    name: Migrate and deploy private proof
+  configure:
+    name: Configure Supabase and validate Pages artifact
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: rendezvue-private-preview
@@ -42,9 +42,7 @@ jobs:
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
-      HF_TOKEN: ${{ secrets.HF_TOKEN }}
-      HF_PRIVATE_SPACE_ID: solidprivacy/rendezvue-private-preview
-      RENDEZVUE_AUTH_REDIRECT_URL: https://solidprivacy-rendezvue-private-preview.static.hf.space/
+      RENDEZVUE_STAGING_URL: https://rendezvue-private-preview.pages.dev/
 
     steps:
       - uses: actions/checkout@v6
@@ -54,16 +52,12 @@ jobs:
           node-version: 22
           cache: npm
 
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.12'
-
       - uses: supabase/setup-cli@v2
         with:
           version: latest
           github-token: ${{ github.token }}
 
-      - name: Validate protected environment contract
+      - name: Validate protected configuration contract
         shell: bash
         run: |
           set -euo pipefail
@@ -73,9 +67,7 @@ jobs:
             SUPABASE_DB_PASSWORD
             SUPABASE_URL
             SUPABASE_PUBLISHABLE_KEY
-            HF_TOKEN
-            HF_PRIVATE_SPACE_ID
-            RENDEZVUE_AUTH_REDIRECT_URL
+            RENDEZVUE_STAGING_URL
           )
           missing=()
           for name in "${required[@]}"; do
@@ -89,29 +81,28 @@ jobs:
             exit 1
           fi
           if [[ ! "$SUPABASE_PROJECT_REF" =~ ^[a-z0-9]{15,30}$ ]]; then
-            echo "::error title=Invalid project reference::SUPABASE_PROJECT_REF has an unexpected format"
+            echo '::error title=Invalid project reference::SUPABASE_PROJECT_REF has an unexpected format'
             exit 1
           fi
           if [[ "$SUPABASE_PUBLISHABLE_KEY" == sb_secret_* || "$SUPABASE_PUBLISHABLE_KEY" != sb_publishable_* ]]; then
-            echo "::error title=Unsafe browser key::Use an sb_publishable_ key, never an sb_secret_ key"
+            echo '::error title=Unsafe browser key::Use an sb_publishable_ key, never an sb_secret_ key'
             exit 1
           fi
           node --input-type=module <<'NODE'
           const projectRef = process.env.SUPABASE_PROJECT_REF;
           const projectUrl = new URL(process.env.SUPABASE_URL);
-          const redirect = new URL(process.env.RENDEZVUE_AUTH_REDIRECT_URL);
+          const staging = new URL(process.env.RENDEZVUE_STAGING_URL);
           if (projectUrl.protocol !== 'https:' || projectUrl.hostname !== `${projectRef}.supabase.co`) {
             throw new Error('SUPABASE_URL does not match SUPABASE_PROJECT_REF');
           }
-          if (redirect.protocol !== 'https:' || redirect.hostname !== 'solidprivacy-rendezvue-private-preview.static.hf.space') {
-            throw new Error('Private preview redirect must be the dedicated Hugging Face HTTPS URL');
+          if (staging.href !== 'https://rendezvue-private-preview.pages.dev/') {
+            throw new Error('Cloudflare staging URL differs from the canonical fixed URL');
           }
-          console.log(`Protected configuration validated for ${projectUrl.hostname}.`);
           NODE
 
       - run: npm ci
 
-      - name: Link repository migrations to private project
+      - name: Link repository migrations to staging project
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
 
       - name: Show migration state before deployment
@@ -127,46 +118,52 @@ jobs:
       - name: Deploy authenticated account cleanup function
         run: supabase functions deploy delete-private-proof-account --project-ref "$SUPABASE_PROJECT_REF"
 
-      - name: Configure Supabase Auth for private Hugging Face callback
+      - name: Configure Supabase Auth for Cloudflare staging and e-mail OTP
         shell: bash
         run: |
           set -euo pipefail
-          current="$RUNNER_TEMP/supabase-auth-config.json"
-          payload="$RUNNER_TEMP/supabase-auth-update.json"
-          status="$(curl --silent --show-error --output "$current" --write-out '%{http_code}' \
-            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
-            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/auth")"
-          if [[ "$status" != "200" ]]; then
-            echo "::error title=Auth config read failed::Management API returned HTTP $status"
-            cat "$current"
-            exit 1
-          fi
-          node --input-type=module - "$current" "$payload" <<'NODE'
-          import { readFileSync, writeFileSync } from 'node:fs';
-          const current = JSON.parse(readFileSync(process.argv[2], 'utf8'));
-          const redirect = process.env.RENDEZVUE_AUTH_REDIRECT_URL;
-          const allow = String(current.uri_allow_list ?? '')
-            .split(',')
-            .map((value) => value.trim())
-            .filter(Boolean);
-          if (!allow.includes(redirect)) allow.push(redirect);
-          writeFileSync(process.argv[3], JSON.stringify({
-            site_url: redirect,
-            uri_allow_list: allow.join(',')
+          payload="$RUNNER_TEMP/cloudflare-auth-config.json"
+          response="$RUNNER_TEMP/cloudflare-auth-response.json"
+
+          node --input-type=module - "$payload" <<'NODE'
+          import { writeFileSync } from 'node:fs';
+          const staging = process.env.RENDEZVUE_STAGING_URL;
+          const template = [
+            '<h2>Rendezvue aanmeldcode</h2>',
+            '<p>Voer onderstaande code in het reeds geopende Rendezvue-tabblad in.</p>',
+            '<p style="font-size:32px;letter-spacing:6px"><strong>{{ .Token }}</strong></p>',
+            '<p>Deze code verloopt binnenkort en kan slechts één keer worden gebruikt.</p>',
+            '<p>Deel deze code met niemand.</p>'
+          ].join('');
+          writeFileSync(process.argv[2], JSON.stringify({
+            site_url: staging,
+            uri_allow_list: staging,
+            mailer_subjects_magic_link: 'Rendezvue aanmeldcode',
+            mailer_templates_magic_link_content: template
           }));
           NODE
-          status="$(curl --silent --show-error --output "$RUNNER_TEMP/supabase-auth-update-response.json" --write-out '%{http_code}' \
+
+          status="$(curl --silent --show-error --output "$response" --write-out '%{http_code}' \
             --request PATCH \
             --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
             --header 'content-type: application/json' \
             --data-binary "@$payload" \
             "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/auth")"
           if [[ "$status" != "200" ]]; then
-            echo "::error title=Auth config update failed::Management API returned HTTP $status"
-            cat "$RUNNER_TEMP/supabase-auth-update-response.json"
+            echo "::error title=Cloudflare Auth configuration failed::Supabase Management API returned HTTP $status"
             exit 1
           fi
-          echo 'Supabase Auth callback configured for the private Hugging Face Space.'
+
+          node --input-type=module - "$response" <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const expected = process.env.RENDEZVUE_STAGING_URL;
+          const config = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+          if (config.site_url !== expected) throw new Error('Supabase Site URL does not match Cloudflare staging');
+          if (String(config.uri_allow_list ?? '') !== expected) throw new Error('Supabase redirect allow-list is not restricted to Cloudflare staging');
+          const template = String(config.mailer_templates_magic_link_content ?? '');
+          if (!template.includes('{{ .Token }}')) throw new Error('E-mail OTP token marker is missing');
+          if (template.includes('{{ .ConfirmationURL }}')) throw new Error('Magic-link callback marker is still present');
+          NODE
 
       - name: Check remote Auth and Data API health
         shell: bash
@@ -179,9 +176,8 @@ jobs:
             --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
             "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/openapi?schema=public")"
           [[ "$openapi_status" == "200" ]] || { echo "::error title=Remote Data API metadata failed::HTTP $openapi_status"; exit 1; }
-          echo 'Remote Auth and Data API metadata passed.'
 
-      - name: Verify account cleanup function rejects unauthenticated calls
+      - name: Verify account cleanup rejects unauthenticated calls
         shell: bash
         run: |
           set -euo pipefail
@@ -193,68 +189,44 @@ jobs:
             "$SUPABASE_URL/functions/v1/delete-private-proof-account")"
           [[ "$cleanup_status" == "401" ]] || { echo "::error title=Account cleanup auth gate failed::Expected 401, received $cleanup_status"; exit 1; }
 
-      - name: Build and validate private browser proof
-        run: |
-          npm run build:private-preview
-          npm run validate:private-preview
-
-      - name: Install Hugging Face deployment client
-        run: python -m pip install --disable-pip-version-check "huggingface_hub>=0.32,<2"
-
-      - name: Create or confirm private Static Space
-        run: python scripts/huggingface_private_space.py ensure
-
-      - name: Assemble private Static Space artifact
-        shell: bash
-        run: |
-          set -euo pipefail
-          rm -rf .hf-private-deploy
-          mkdir .hf-private-deploy
-          cp -R dist-private-preview/. .hf-private-deploy/
-          cat > .hf-private-deploy/README.md <<'EOF'
-          ---
-          title: Rendezvue Private Preview
-          emoji: 🔒
-          colorFrom: green
-          colorTo: gray
-          sdk: static
-          app_file: index.html
-          fullWidth: true
-          header: mini
-          ---
-
-          Controlled synthetic-only Rendezvue proof. GitHub is the source of truth.
-          EOF
-
-      - name: Upload private proof to Hugging Face
-        run: |
-          hf upload "$HF_PRIVATE_SPACE_ID" .hf-private-deploy . \
-            --repo-type=space \
-            --delete="*" \
-            --commit-message="Deploy private Rendezvue proof ${GITHUB_SHA}" \
-            --token "$HF_TOKEN"
-
-      - name: Verify private Hugging Face repository artifact
-        run: python scripts/huggingface_private_space.py verify
+      - name: Build and validate Cloudflare Pages artifact
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+        run: npm run check:cloudflare
 
       - name: Write run summary
         shell: bash
         run: |
           cat >> "$GITHUB_STEP_SUMMARY" <<EOF
-          ## Rendezvue private Supabase proof
+          ## Rendezvue Cloudflare staging backend
 
+          - Canonical URL: $RENDEZVUE_STAGING_URL
           - Project migrations linked: yes
           - Pending migrations applied: ${{ github.event_name == 'push' || inputs.apply_migrations }}
           - Remote Auth and Data API: passed
-          - Auth callback: private Hugging Face HTTPS URL
+          - Supabase Site URL and allow-list: Cloudflare Pages only
+          - Passwordless delivery: in-app e-mail OTP
           - Authenticated account cleanup deployed: yes
           - Browser/server secret boundary: validated
-          - Private Hugging Face Static Space deployed: yes
-          - Private visibility verified: yes
-          - Public Hugging Face pilot changed: no
-          - Local runtime required: no
+          - Hugging Face deployment performed: no
           - Real-user admission authorized: no
+          EOF
 
-          Open the private Space while signed into the authorized Hugging Face account:
-          https://huggingface.co/spaces/$HF_PRIVATE_SPACE_ID
+      - name: Record successful backend configuration
+        if: success()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment 35 --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
+          ## Cloudflare staging backend configured
+
+          - commit: \`${GITHUB_SHA}\`
+          - workflow: $RUN_URL
+          - Supabase Site URL and allow-list: \`$RENDEZVUE_STAGING_URL\`
+          - e-mail OTP template: verified
+          - migrations, remote health, cleanup deployment and anonymous rejection: passed
+          - browser artifact credential boundary: passed
+          - real-user admission: not authorized
           EOF

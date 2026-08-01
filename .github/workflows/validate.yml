@@ -31,15 +31,14 @@ jobs:
           python -m pip install 'Pillow==11.3.0'
           python scripts/generate-synthetic-portraits.py
       - run: npm run check
-      - run: python -m py_compile scripts/huggingface_space.py scripts/huggingface_private_space.py scripts/generate-synthetic-portraits.py
+      - run: python -m py_compile scripts/generate-synthetic-portraits.py
 
-  private_preview:
-    name: Hosted private preview and cleanup boundary
+  cloudflare_staging:
+    name: Cloudflare Pages staging and cleanup boundary
     runs-on: ubuntu-latest
     env:
       SUPABASE_URL: https://example.supabase.co
       SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_only_placeholder_00000000000000000000
-      RENDEZVUE_AUTH_REDIRECT_URL: https://solidprivacy-rendezvue-private-preview.static.hf.space/
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -50,7 +49,7 @@ jobs:
         with:
           deno-version: v2.x
       - run: npm ci
-      - run: npm run check:private-preview
+      - run: npm run check:cloudflare
       - run: deno check --node-modules-dir=auto supabase/functions/delete-private-proof-account/index.ts
 
   database:
@@ -81,7 +80,7 @@ jobs:
               --output /dev/null \
               --write-out '%{http_code}' \
               --request OPTIONS \
-              --header 'origin: https://solidprivacy-rendezvue-private-preview.static.hf.space' \
+              --header 'origin: https://rendezvue-private-preview.pages.dev' \
               --header 'access-control-request-method: POST' \
               "$endpoint" || true)"
             [[ "$options_status" == "200" || "$options_status" == "204" ]] && break

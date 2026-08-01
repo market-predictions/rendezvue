@@ -4,6 +4,32 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
+### Cloudflare Pages canonical staging
+
+- Accepted issue #35 and defined WP-038, WP-039 and WP-059 for the hosting transition.
+- Selected `https://rendezvue-private-preview.pages.dev/` as the sole canonical web-facing staging URL.
+- Kept GitHub as the source of truth and Supabase as the Auth, PostgreSQL/RLS, private Storage, Realtime and Edge Function backend.
+- Reclassified the historical public and private Hugging Face Spaces as non-canonical artifacts and stopped further functional acceptance work there.
+- Added a Cloudflare-specific static artifact contract with commit metadata, browser-safe Supabase configuration and Pages security headers.
+- Added a protected staging workflow to apply migrations, deploy account cleanup, configure the Supabase Auth Site URL/allow-list for Cloudflare and validate remote platform health.
+- Added a post-merge Pages verification workflow that waits for a production artifact whose `deployment.json` matches the merged commit.
+- Removed active Hugging Face deployment and deployment-evidence workflows and retired their helper code.
+- Rebased the roadmap, work packages, work claims, architecture, handover and private proof protocol on Cloudflare Pages.
+
+### Passwordless authentication correction
+
+- Replaced private-host magic-link callbacks with a numeric e-mail OTP verified inside the already-open application.
+- Disabled automatic session extraction from URL query parameters and fragments.
+- Added cleanup of legacy callback parameters and prohibited access/refresh tokens in the staging URL.
+- Changed proof sign-out to revoke all refresh sessions for the proof account.
+
+### Synthetic profile seed
+
+- Added ten standalone, varied synthetic WebP portraits and ten canonical structured profile records.
+- Added JSON, CSV, deterministic SQL and protected remote seed routes.
+- Added explicit `is_synthetic` and `synthetic_id` database markers.
+- Created ten confirmed Auth-linked test users, published ten discovery profiles and selected ten private Storage portraits.
+
 ### Backend proof foundation
 
 - Added versioned Supabase/PostgreSQL migrations, Row Level Security, least-privilege grants and private portrait-storage contracts.
@@ -15,7 +41,7 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ### Auth and resumable onboarding contracts
 
-- Added an injectable magic-link/session adapter with email normalization, session restore, current-user lookup, auth-state subscription and sign-out.
+- Added a provider-injectable passwordless/session adapter with email normalization, session restore, current-user lookup, auth-state subscription and sign-out.
 - Added owner-derived stage persistence with strict per-domain field allowlists.
 - Added versioned `onboarding_progress`, first-class prompts/interests and transactional personality save.
 - Added owner-only sanitized onboarding snapshots.
@@ -23,21 +49,15 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Publication requires eligible single/adult/serious/community state, family context, a selected privacy portrait, at least two prompts and at least three interests.
 - Added cross-account draft-isolation and publication-lifecycle tests.
 
-### Private Supabase and Hugging Face proof lane
+### Supabase proof lane
 
 - Provisioned non-production `RendezvueProject` in West EU (Ireland) on Nano compute.
-- Added a separate `apps/private-preview` interface that is never copied into the public Hugging Face artifact.
+- Added a separate `apps/private-preview` interface connected to Supabase using only browser-safe configuration.
 - Added protected GitHub Actions deployment through environment `rendezvue-private-preview`.
-- Added a private artifact builder that embeds only the project URL, an `sb_publishable_...` key and the exact Auth redirect URL.
 - Added recursive credential scanning for secret/service-role material, database URLs, access tokens, passwords and private keys.
 - Added project Auth health and supported Data API metadata validation.
-- Added one shared browser Supabase Auth client for callback, onboarding, interaction and cleanup.
-- Replaced the incorrect localhost/download route with a dedicated private Hugging Face Static Space deployment.
-- Added automatic creation and verification of `solidprivacy/rendezvue-private-preview` with private visibility.
-- Added automatic Supabase Auth Site URL and redirect allow-list configuration for the private Hugging Face HTTPS callback.
-- Removed the temporary Windows/PowerShell launcher and all local-runtime assumptions.
-- Added automatic deployment from relevant accepted changes on `main`.
-- Added a non-secret success/failure evidence workflow for issue #21.
+- Added one shared browser Supabase client for authentication, onboarding, interaction and cleanup.
+- Added authenticated provider-orchestrated account cleanup and unauthenticated HTTP 401 verification.
 
 ### Private interaction harness
 
@@ -48,7 +68,6 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Added active-match-only portrait-path access and five-minute signed matched-portrait delivery.
 - Stopped portrait and message access after contact ending or blocking.
 - Added private safety-report and structured-feedback controls without public ratings.
-- Added artifact assertions rejecting a second `createClient`, missing controls or server credentials.
 
 ### Provider-orchestrated account cleanup
 
@@ -58,11 +77,9 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Deletes object bytes before deleting the Auth account so storage failure leaves the account intact and retryable.
 - Uses existing foreign-key cascades and audit anonymisation after Auth deletion.
 - Returns only deletion status and object count; paths and credentials are never returned.
-- Added private-preview cleanup controls using the one shared browser client.
 - Added Deno type checking and Edge Runtime tests for CORS and unauthenticated HTTP 401.
-- Extended the protected workflow to deploy the cleanup function and verify unauthenticated rejection remotely.
 
-### Validation and remote evidence
+### Historical validation and remote evidence
 
 - Backend foundation PR #17 merged as `8bbf1398`.
 - Concurrency proof PR #19 merged as `5976ddea`.
@@ -71,23 +88,21 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Supported health-check PR #24 merged as `9403330f`.
 - Contact/chat/safety harness PR #25 merged as `11964e91`.
 - Provider cleanup PR #26 merged as `8400ebc7`.
-- Private Hugging Face architecture correction PR #29 merged as `37420b21`.
-- Private deployment evidence PR #30 merged as `3dc37be1`.
-- CI validation passes application/artifact checks, private shared-client and credential-boundary validation, Deno type checking, Edge Runtime/CORS/auth-gate tests, Docker, clean migration replay, **151 pgTAP assertions**, true parallel match/contact races and schema lint.
-- Protected workflow run **#8** on `main` commit `8400ebc70d02dc6393e00d48a7b02c9f808559cf` linked migrations, passed remote health checks, deployed cleanup and validated the browser secret boundary.
-- Automatic private deployment run `30657471168` on commit `3dc37be154d27502cf9c04d4df186040254f73ec` deployed `solidprivacy/rendezvue-private-preview`, verified private visibility and the commit-matched repository artifact, configured the hosted Supabase Auth callback and left the public pilot unchanged.
-- The private deployment requires no owner-local Git, Node, Python, Docker, server or downloaded artifact.
+- Historical private Hugging Face architecture PR #29 merged as `37420b21`.
+- Synthetic seed PR #32 merged as `e058696b` and remote seed execution reported 10 Auth-linked profiles, 10 published profiles and 10 selected portraits.
+- OTP correction PR #34 merged as `85818340`.
+- CI validates application artifacts, browser/server credential separation, Deno type checking, Edge Runtime/CORS/auth gates, Docker, clean migration replay, pgTAP assertions, true parallel match/contact races and schema lint.
 - Real-user admission remains unauthorized.
 
 ### Pending review and proof
 
-- Verify an unauthorized Hugging Face account cannot access the private Space.
-- Real magic-link delivery, callback and session recovery using two controlled synthetic accounts in two isolated authorized browser profiles.
-- Persistent two-account onboarding, publication, reciprocal discovery/likes and exactly one match.
-- Remote one-time entitlement, realtime chat, signed portrait, end-contact, block/report and private feedback execution.
-- Remote authenticated deletion of private objects and both proof accounts, including relational cascades and retained audit anonymisation.
-- Desktop/mobile field review of the public pilot and camera/privacy portraits.
-- Legal, privacy, security and moderation gates before any real-user pilot.
+- Verify the fixed Cloudflare Pages production URL serves the merged commit.
+- Execute e-mail OTP, session recovery and sign-out using two controlled synthetic accounts in two isolated browser profiles.
+- Execute persistent two-account onboarding, publication, reciprocal discovery/likes and exactly one match.
+- Execute remote one-time entitlement, realtime chat, signed portrait, end-contact, block/report and private feedback.
+- Execute authenticated deletion of private objects and both proof accounts, including relational cascades and retained audit anonymisation.
+- Complete desktop/mobile field review and camera/privacy portrait review in the eventual integrated Cloudflare application.
+- Complete legal, privacy, security and moderation gates before any real-user pilot.
 
 ## [0.3.0-alpha.1] - 2026-07-29
 

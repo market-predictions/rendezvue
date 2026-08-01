@@ -1,30 +1,66 @@
 # Rendezvue roadmap
 
-**Version:** 1.9  
-**Updated:** 2026-07-31
+**Version:** 2.0  
+**Updated:** 2026-08-01
 
 ## Operating doctrine
 
-- GitHub is authoritative; Hugging Face hosts generated web applications.
+- GitHub is the sole source of truth.
+- Cloudflare Pages is the canonical web-facing staging host.
+- Supabase provides Auth, PostgreSQL/RLS, private Storage, Realtime and Edge Functions.
 - Nothing is built, served or tested on the owner's computer.
+- Hugging Face is retired as an application host; existing Spaces are historical, non-canonical artifacts and receive no further deployments.
+- The staging environment is restricted to controlled synthetic adult accounts. Real-user admission remains unauthorized.
 - Rendezvue is adult-only, currently-single and serious-intent, with a student-first community layer rather than student-only admission.
-- Local marketplace density and safe interaction are validated before national expansion.
 - Fuzzy browser-generated privacy portraits are the MVP baseline; AI portraits are optional.
 - Safety, fairness, privacy and legal controls are product features.
-- The public Hugging Face pilot remains synthetic `local-demo`.
-- The private Supabase proof is deployed to a separate private Hugging Face Static Space and restricted to controlled synthetic adult accounts.
 
 ## Phase 0 — Foundation and hosting
 
-**Status:** complete.
+**Status:** active architecture transition.
 
-Governance, dependency-light PWA, CI, Static Space deployment, Docker fallback and hosted marker verification are delivered.
+GitHub authority, CI, static builds and Docker validation are complete. The current milestone replaces the former Hugging Face hosting lanes with one canonical Cloudflare Pages staging application backed by Supabase.
+
+### 0A. Cloudflare canonical staging
+
+**Status:** active; tracked and claimed in issue #35.
+
+Acceptance criteria:
+
+- `https://rendezvue-private-preview.pages.dev/` is the sole canonical staging URL;
+- the Pages production deployment is generated from `main` and exposes a commit-matched `deployment.json`;
+- Cloudflare receives only the Supabase project URL and publishable key;
+- browser/server credential scanning remains fail-closed;
+- security headers and no-store rules protect runtime configuration and deployment metadata;
+- no source, workflow or runbook depends on a Hugging Face runtime.
+
+### 0B. Supabase staging configuration
+
+**Status:** active.
+
+Acceptance criteria:
+
+- Supabase Auth Site URL and redirect allow-list use the fixed Cloudflare Pages URL;
+- passwordless sign-in uses a numeric e-mail OTP verified inside the already-open application;
+- URL access/refresh tokens and legacy callback fragments are ignored and removed;
+- remote migrations, platform health, Edge Function deployment and anonymous cleanup rejection remain automatically checked.
+
+### 0C. Hugging Face retirement
+
+**Status:** active.
+
+Acceptance criteria:
+
+- public and private Hugging Face deployment workflows are disabled or removed;
+- active Hugging Face helper code and deployment-evidence automation are removed;
+- historical deployment evidence remains documented but is not presented as current architecture;
+- no further acceptance testing is performed on Hugging Face.
 
 ## Phase 1 — Concept and interaction validation
 
 ### 1A. Core dating loop
 
-**Status:** complete.
+**Status:** complete in source.
 
 Camera demonstration, profile, discovery, contextual like, deterministic match, local-demo chat, report, block and PWA shell.
 
@@ -36,23 +72,21 @@ Dutch/English, MBO/HBO/WO fixtures, descriptive faith fields and private practic
 
 ### 1C. Selectable privacy portraits
 
-**Status:** implementation and hosted deployment complete; mobile owner review remains.
+**Status:** implementation complete; mobile owner review remains.
 
 Four browser-local fuzzy variants, no raw-selfie option and downsampling fallback.
 
 ### 1D. Product baseline v1 and onboarding redefinition
 
-**Status:** complete and hosted.
+**Status:** complete in source.
 
-Student-first open membership, eligibility, life stage, family context, privacy portraits, profile preview, community promise and man/woman onboarding with derived opposite-sex discovery are delivered.
+Student-first open membership, eligibility, life stage, family context, privacy portraits, profile preview, community promise and man/woman onboarding with derived opposite-sex discovery.
 
 ### 1E. Interaction, contact and feedback concept
 
-**Status:** complete and hosted; field review remains.
+**Status:** complete in source; field review remains.
 
-Pass, direct/contextual likes, swipes, reciprocal pilot match, simulated contact entitlement, text conversation, end-contact feedback and safety controls are delivered without public ratings or automatic feedback penalties.
-
-**Remaining Phase-1 gate:** desktop/mobile field review, mobile camera/privacy-portrait review, swipe/chat review, terminology review and logging of material defects in issue #2.
+Pass, direct/contextual likes, swipes, reciprocal pilot match, simulated contact entitlement, text conversation, end-contact feedback and safety controls without public ratings or automatic feedback penalties.
 
 ## Phase 2 — External backend proof
 
@@ -62,7 +96,7 @@ Pass, direct/contextual likes, swipes, reciprocal pilot match, simulated contact
 
 **Status:** complete.
 
-Versioned Supabase/PostgreSQL configuration, Auth-linked domain records, RLS, private portrait storage, server-authoritative likes/matches/contact/chat/block/feedback/reporting, moderation/audit contracts and account-deletion anonymisation are delivered.
+Versioned Supabase/PostgreSQL configuration, Auth-linked domain records, RLS, private portrait storage, server-authoritative likes/matches/contact/chat/block/feedback/reporting, moderation/audit contracts and account-deletion anonymisation.
 
 ### 2B. Schema, authorization and concurrency proof
 
@@ -74,83 +108,50 @@ Demonstrated:
 - cross-account private-data isolation;
 - hidden incoming likes;
 - retry-safe and truly parallel reciprocal matching;
-- retry-safe and truly parallel contact opening with one entitlement consumed;
+- retry-safe and truly parallel contact opening;
 - participant-only messages;
 - private feedback/report visibility;
-- moderation escalation;
 - block enforcement;
 - relational deletion and audit anonymisation.
 
-### 2C. Authentication, resumable onboarding and hosted private deployment
+### 2C. Authentication, resumable onboarding and Cloudflare deployment
 
-**Status:** hosted private deployment complete; controlled account execution next.
+**Status:** implementation complete; Cloudflare production verification active.
 
-Delivered and validated:
+Delivered:
 
-- injectable magic-link/session adapter;
-- one generated browser Auth client shared by callback, onboarding, interaction and cleanup modules;
+- browser e-mail OTP and persistent session adapter;
+- one shared browser Supabase client for authentication, onboarding, interaction and cleanup;
 - owner-derived onboarding persistence with prompts/interests and sanitized snapshot;
 - server-side publication gate and cross-account draft isolation;
-- recursive credential scan rejecting service/secret keys, database URLs, access tokens, passwords and private keys;
+- recursive browser-artifact credential scanning;
 - authenticated provider-orchestrated private object and Auth-account cleanup;
-- exact destructive confirmation with account identity derived only from the JWT;
-- Deno type checking and GitHub Actions Edge Runtime/CORS/auth-gate testing;
-- protected remote migration and function deployment;
-- a dedicated private Hugging Face Static Space;
-- automatic Supabase Auth Site URL and redirect allow-list configuration for the private HTTPS callback;
-- explicit private-visibility and deployed-artifact verification;
-- automatic non-secret success/failure evidence in issue #21;
-- no local Git, Node, Python, Docker, webserver, downloaded artifact or localhost callback requirement.
-
-Remote provider evidence:
-
-- workflow run #8 on `8400ebc70d02dc6393e00d48a7b02c9f808559cf` linked migrations, applied pending migrations, passed remote Auth/Data API health, deployed `delete-private-proof-account`, rejected unauthenticated cleanup and validated the browser/server credential boundary;
-- automatic private deployment run `30657471168` on `3dc37be154d27502cf9c04d4df186040254f73ec` deployed `solidprivacy/rendezvue-private-preview`, verified private visibility and deployed repository metadata, configured the dedicated Hugging Face HTTPS callback and left the public pilot unchanged;
-- `RendezvueProject` remains Healthy in West EU (Ireland), Nano compute;
-- no real-user admission is authorized.
+- protected remote migration/function/configuration workflow;
+- deterministic synthetic seed with ten Auth-linked published profiles and ten private portraits.
 
 Still required:
 
-- unauthorized Hugging Face access-denial browser check;
-- real magic-link delivery, callback and session recovery with controlled synthetic mailboxes;
-- authenticated remote cleanup with actual object deletion evidence;
+- production Pages deployment verified against the merged commit;
+- controlled e-mail OTP and session-recovery execution;
 - recovery and duplicate-account controls;
 - abandonment retention policy and cleanup job.
 
 ### 2D. Controlled two-account interaction and cleanup slice
 
-**Status:** implementation and automated proof complete; hosted browser execution pending.
+**Status:** automated proof complete; Cloudflare browser execution pending.
 
-Implemented and covered by the 151-assertion/backend/artifact/function suite:
+Execute only on canonical Cloudflare staging:
 
-- one-time synthetic proof contact entitlement that cannot be reissued after consumption;
-- idempotent participant conversation opening;
-- participant-only text messages and Realtime publication;
-- active-match-only selected portrait access;
-- short-lived signed portrait UI;
-- normal end-contact closing match/conversation and revoking both signals;
-- block, private safety report and private structured feedback controls;
-- provider cleanup deleting UUID-scoped portrait bytes before Auth account deletion;
-- relational cascades and retained audit anonymisation;
-- browser control requiring exact confirmation;
-- no second Auth client or server credential in the generated artifact;
-- CORS preflight and unauthenticated cleanup rejection.
-
-Current execution gate:
-
-- open the dedicated private Hugging Face Space in two isolated authorized browser profiles;
-- prove a non-authorized Hugging Face session cannot access the Space;
-- create two controlled adult synthetic accounts;
-- prove magic-link delivery, callback, session recovery and sign-out;
-- persist onboarding and publish one synthetic man and one synthetic woman profile;
-- upload private synthetic portraits;
-- prove opposite-sex eligible discovery and exactly one reciprocal match;
-- prove draft/family/faith/object isolation cross-account;
-- claim one proof contact right and open exactly one conversation;
-- exchange realtime synthetic text messages;
-- validate signed portrait delivery, end-contact, block, report and feedback enforcement;
-- invoke provider cleanup for both accounts;
-- prove private object, Auth, relational and anonymised-audit outcomes.
+1. create or use two controlled synthetic adult accounts in isolated browser profiles;
+2. prove e-mail OTP, session restore, sign-out and sign-in;
+3. persist and publish one synthetic man and one synthetic woman profile;
+4. prove draft/family/faith/object isolation cross-account;
+5. prove opposite-sex eligible discovery and exactly one reciprocal match;
+6. claim one proof contact right and open exactly one conversation;
+7. exchange realtime synthetic text messages;
+8. validate signed portrait delivery, end-contact, block, report and feedback enforcement;
+9. invoke provider cleanup for both accounts;
+10. prove private object, Auth, relational and anonymised-audit outcomes.
 
 ### 2E. Institution and student-benefit verification
 
@@ -182,7 +183,7 @@ Current execution gate:
 - refunds and online cancellation;
 - production entitlement ledger;
 - no payment until the free funnel creates repeatable value;
-- remove or permanently isolate the synthetic proof entitlement issuer before any real-user environment.
+- permanently isolate the synthetic proof entitlement issuer before any real-user environment.
 
 ### 2I. Behavioural standing and moderation proof
 
@@ -195,18 +196,6 @@ Current execution gate:
 
 **Goal:** operate a constrained real-user pilot in one Dutch city across students, recent graduates and young professionals.
 
-Scope:
-
-- invite-only real accounts;
-- production authentication and external database;
-- age and serious-intent friction;
-- optional verified student layer;
-- live capture and privacy portrait;
-- persistent discovery, matching, contact opening and text chat;
-- manual moderation console and support coverage;
-- deletion, retention and incident procedures;
-- initially free contact rights or a clearly labelled pricing experiment.
-
 **Gate:** privacy, security, legal and moderation readiness approved and real-user admission explicitly authorized.
 
 ## Phase 4 — Monetised Dutch beta
@@ -215,7 +204,7 @@ Hosted web checkout, regular pricing, student discount, Campus Mode, broader cit
 
 ## Phase 5 — National scale and Belgium assessment
 
-National institution coverage, local density expansion and partnerships, followed only then by a separate Belgian legal/language/institution assessment.
+National institution coverage and local-density expansion, followed only then by a separate Belgian legal/language/institution assessment.
 
 ## Phase 6 — Native shells
 

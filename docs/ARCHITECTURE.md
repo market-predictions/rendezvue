@@ -1,75 +1,86 @@
 # Rendezvue architecture
 
-**Version:** 1.1  
-**Updated:** 2026-07-30
+**Version:** 2.0  
+**Updated:** 2026-08-01
 
-## 1. Current public concept-pilot topology
+## 1. Canonical staging topology
 
 ```text
 GitHub branch / PR
       |
-      v
-CI: tests -> static build -> deployment artifact -> Docker validation
+      +--> CI and database validation
+      |
+      +--> Cloudflare Pages preview deployment
       |
       v
 GitHub main (authority)
       |
-      v
-Hugging Face Static Space (generated web-facing PWA)
+      +--> Cloudflare Pages production staging
+      |        https://rendezvue-private-preview.pages.dev/
+      |
+      +--> protected Supabase configuration workflow
+               |
+               v
+         Supabase Auth / Data API
+               |
+               v
+         PostgreSQL + RLS
+         private Storage
+         Realtime
+         Edge Functions
 ```
 
-The Static Space performs no application build and owns no persistent state. The public deployment remains a synthetic concept pilot and uses local browser state only.
+GitHub is the sole source of truth. Cloudflare Pages is the only canonical web-facing staging host. Supabase owns persistent state. No owner-local runtime is required.
 
-## 2. Current browser modules
+The historical Hugging Face Spaces are retired, non-canonical artifacts. They receive no deployments and are not used for functional acceptance.
+
+## 2. Browser applications
 
 ```text
 apps/web/
-  app.js                    onboarding state machine and interaction orchestration
-  community-policy.js       man/woman community policy and derived discovery direction
-  styles.css                retained visual system
-  pilot-v1.css              product-baseline additions
-  src/domain.js             eligibility, life stage, family, faith and profile rules
-  src/i18n.js               Dutch/English copy
-  src/camera.js             live capture and frame extraction
-  src/avatar.js             browser-local privacy portrait variants
-  src/demo-data.js          synthetic cross-life-stage profiles
-  src/backend-contract.js    safe local/remote backend boundary
+  historical local-demo concept application
+  browser-local camera and privacy portrait renderer
+
+apps/private-preview/
+  canonical Supabase-connected staging harness
+  e-mail OTP, onboarding, discovery, matching, chat and cleanup controls
 ```
 
-The former build-time patching of the privacy-filter grid is removed. Source equals the behaviour that is built and deployed.
+The local-demo artifact remains useful as product-design source but is not a hosted authority. The Supabase-connected application is built into `dist-private-preview` for Cloudflare Pages.
 
-## 3. Public concept-pilot state
+## 3. Cloudflare Pages build contract
 
-The browser state models the complete flow but is not a security boundary. It may persist non-production progress in local storage. Camera source data remains browser-local. The selected derived portrait may be stored locally so the concept flow can resume.
+Cloudflare Pages uses:
 
-Prototype interactions are deterministic and local:
+- build command: `npm run build:cloudflare`;
+- output directory: `dist-private-preview`;
+- production branch: `main`;
+- browser variables: `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`;
+- canonical URL: `https://rendezvue-private-preview.pages.dev/`.
 
-- likes and passes are not shared between users;
-- the first like creates a pilot match;
-- one local contact entitlement opens a conversation;
-- chat, reports and feedback exist only in local demo state;
-- feedback has no ranking effect.
+The build embeds:
 
-The runtime backend mode defaults to `local-demo`. A public artifact must not silently switch to a remote backend.
+- Supabase project URL;
+- publishable browser key;
+- hosting platform and canonical URL;
+- the Cloudflare/GitHub commit SHA;
+- explicit `realUserAdmissionAuthorized: false`.
 
-## 4. Backend proof topology
+The build rejects secret/service-role keys, database URLs, access tokens, passwords and private keys. Cloudflare `_headers` prevents framing, limits browser capabilities and disables caching for runtime configuration and deployment metadata.
 
-```text
-Public Hugging Face PWA                 Private proof preview
-(local-demo only)                       (controlled accounts only)
-          |                                      |
-          | no persistent calls                  v
-          |                             Supabase Auth / API
-          |                                      |
-          |                                      v
-          |                             PostgreSQL + RLS
-          |                             private Storage
-          |                             Realtime publication
-          |                                      |
-          +---------------- GitHub migrations ---+
-```
+## 4. Passwordless authentication
 
-`supabase/config.toml` and versioned migrations are committed to GitHub. Provider secrets, service-role keys and real user data are never committed or included in the public static artifact.
+Rendezvue staging uses a numeric e-mail OTP:
+
+1. the browser requests an OTP with `signInWithOtp`;
+2. Supabase sends `{{ .Token }}` rather than a confirmation URL;
+3. the code is entered in the already-open Cloudflare application;
+4. the browser verifies it with `verifyOtp({ type: 'email' })`;
+5. one shared Supabase client owns the session and all subsequent operations.
+
+Automatic session extraction from URL query parameters or fragments is disabled. Legacy `?code=` and `#access_token=` callbacks are removed from browser history and ignored.
+
+The protected workflow configures the Supabase Auth Site URL and redirect allow-list to the fixed Cloudflare URL. The OTP flow itself does not depend on redirect transport.
 
 ## 5. Server-authoritative domain boundaries
 
@@ -93,9 +104,9 @@ ModerationCase
 AuditEvent
 ```
 
-These boundaries are implemented as separate tables in the backend proof migration and described in `docs/DATA-MODEL.md` and `docs/BACKEND-PROOF.md`.
+These boundaries are implemented as separate tables and described in `docs/DATA-MODEL.md` and `docs/BACKEND-PROOF.md`.
 
-## 6. Backend proof operations
+## 6. Backend operations
 
 ### Like to match
 
@@ -103,57 +114,67 @@ These boundaries are implemented as separate tables in the backend proof migrati
 
 ### Contact right to conversation
 
-`open_match_conversation(...)` locks the match and entitlement, verifies participant and block state, consumes one valid entitlement idempotently and creates or returns the unique conversation. Both match participants may then reply.
+`open_match_conversation(...)` locks the match and entitlement, verifies participant and block state, consumes one valid entitlement idempotently and creates or returns the unique conversation.
 
 ### Messaging
 
 Messages are insertable only by a participant in an open conversation. Realtime delivery never grants access by itself; table RLS remains authoritative.
 
-### Safety
+### Portrait access
 
-Blocks are server records. Feedback, safety reports, moderation cases and audit events are separate. Moderation and audit tables have no authenticated-user policies.
+Portrait objects are private and owner-scoped. An active matched participant may receive a short-lived signed URL through the controlled server path. Access stops after contact ending or blocking.
 
-## 7. Data exposure architecture
+### Account cleanup
 
-- private profile domains are readable only by their owner in the first migration;
-- `discovery_profiles` exposes only approved basic profile and life-stage fields;
-- full family and faith data remain fail-closed until visibility projections are reviewed;
+`delete-private-proof-account` derives identity from the authenticated JWT, requires exact confirmation, deletes UUID-scoped private objects first and deletes the Auth user only after object cleanup succeeds. Relational cascades and audit anonymisation then apply.
+
+## 7. Data exposure rules
+
+- private profile domains are owner-only;
+- `discovery_profiles` exposes only approved discovery fields;
+- full family and faith data remain fail-closed;
 - incoming likes are not directly queryable by the recipient;
-- a participant can read only their matches, conversations and messages;
+- participants can read only their matches, conversations and messages;
 - report subjects cannot read reports about themselves;
-- privacy portrait objects are stored in a private bucket under the owner UUID prefix;
-- service-role operations are reserved for controlled backend and moderation processes.
+- moderation and audit tables have no ordinary authenticated-user policies;
+- private objects are stored below the owner UUID prefix;
+- a publishable browser key never bypasses RLS.
 
 ## 8. Security and privacy invariants
 
 - the browser is untrusted;
-- persistent state never depends on Hugging Face;
+- persistent state never depends on Cloudflare Pages;
+- GitHub source and migrations are authoritative;
+- only browser-safe configuration enters the Pages artifact;
+- URL access and refresh tokens are not accepted as an authentication transport;
 - account identity and student evidence are separate;
 - age assurance and student verification are independent;
 - source media and public portrait are separate data classes;
-- verification labels derive from evidence, not editable fields;
 - blocks, contact entitlements and moderation are server-authoritative;
 - faith and family data are not advertising segments;
 - data about individual children is not collected;
 - likes are attraction signals, not reputation votes;
 - serious reports never become a simple ranking penalty;
-- all deployed files derive from accepted GitHub source;
-- the public concept pilot never receives a service-role credential.
+- real-user admission requires an explicit later authorization gate.
 
-## 9. Deployment lanes
+## 9. Deployment and validation lanes
 
-### Public concept lane
+### Pull requests
 
-GitHub `main` builds and deploys to the existing Hugging Face Static Space. This lane remains synthetic and suitable for UX review only.
+GitHub Actions validates application code, the Cloudflare artifact, credential boundaries, Docker, migrations, pgTAP, races and Edge Function behaviour. Cloudflare Pages supplies a branch preview.
 
-### Private proof lane
+### Main
 
-A later non-public preview build will receive browser-safe Supabase URL and publishable-key configuration. It is limited to controlled test accounts until privacy, legal and moderation approval.
+Relevant accepted changes trigger:
 
-### Production lane
+1. Cloudflare Pages production deployment through the existing GitHub integration;
+2. protected Supabase configuration, migration, health and Edge Function checks;
+3. polling verification that production `deployment.json` matches the merged commit.
 
-No production lane exists yet. A production environment requires provider/region approval, DPA/DPIA review, backup and incident controls, operational moderation, monitored migrations and explicit real-user authorization.
+### Production
+
+No real-user production lane exists. A production environment requires legal/privacy approval, operational moderation, incident response, backup controls, monitored migrations and explicit real-user authorization.
 
 ## 10. Framework decision
 
-The dependency-light PWA remains appropriate for concept validation. A production component framework is selected only after the interaction model stabilizes, using accessibility, localization, state-machine, WebRTC, testing, bundle-size and maintainability criteria.
+The dependency-light PWA remains appropriate for proof and interaction validation. A production component framework is selected only after the interaction model stabilizes, using accessibility, localization, state-machine, WebRTC, testing, bundle-size and maintainability criteria.

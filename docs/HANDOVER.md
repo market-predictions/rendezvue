@@ -1,30 +1,27 @@
 # Project handover
 
-**Updated:** 2026-07-31  
-**Milestone:** private Supabase foundation and private Hugging Face preview deployed; controlled two-account browser proof pending
+**Updated:** 2026-08-01  
+**Milestone:** Cloudflare Pages migration active; Supabase-connected two-account browser proof pending
 
 ## GitHub state
 
 - Authority: `market-predictions/rendezvue` `main`.
-- Product baseline v1: PR #14 merged and publicly deployed.
-- Man/woman onboarding policy: PR #16 merged and hosted.
-- Backend foundation: PR #17 merged as `8bbf1398`.
-- True parallel race proof: PR #19 merged as `5976ddea`.
-- Auth/onboarding persistence: PR #20 merged as `1de81465`.
-- Protected private Supabase lane: PR #22 merged as `5a532629`.
-- Supported remote health checks: PR #24 merged as `9403330f`.
-- Contact/chat/safety proof harness: PR #25 merged as `11964e91`.
-- Provider-orchestrated account cleanup: PR #26 merged as `8400ebc7`.
-- Private Hugging Face architecture correction: PR #29 merged as `37420b21`.
-- Private deployment evidence workflow: PR #30 merged as `3dc37be1`.
-- Public pilot remains synthetic `local-demo` on Hugging Face.
-- No owner-local Git, Node, Python, Docker or webserver is part of the project workflow.
+- Cloudflare migration tracking and claim: issue #35.
+- Canonical staging target: `https://rendezvue-private-preview.pages.dev/`.
+- Supabase project: `RendezvueProject`, Healthy, West EU (Ireland), Nano.
+- Ten Auth-linked synthetic profiles, ten published discovery profiles and ten selected private portraits are seeded.
+- No owner-local Git, Node, Python, Docker or webserver is part of the operational workflow.
+- Real-user admission is not authorized.
 
-## Product baseline
+## Architecture decision
 
-Rendezvue is adult, currently-single and serious-intent, with student-first open membership. Student verification is optional. Life stage, marital history, children, child wish, faith/lifestyle, fuzzy privacy portraits, free discovery/likes and paid conversation opening remain separate product domains. Public stars, downvotes and popularity counts are prohibited. The community flow uses man/woman sex options and derives opposite-sex discovery.
+GitHub remains the sole source of truth. Cloudflare Pages becomes the only web-facing staging host. Supabase remains the Auth, PostgreSQL/RLS, private Storage, Realtime and Edge Function backend.
 
-## Implemented backend and private proof harness
+The former public and private Hugging Face Spaces are historical, non-canonical artifacts. Their deployment workflows and helper code are retired. No further functional acceptance testing is performed on Hugging Face.
+
+See `docs/decisions/ADR-0008-cloudflare-pages-canonical-staging.md`.
+
+## Implemented backend and browser harness
 
 Implemented and validated:
 
@@ -34,7 +31,7 @@ Implemented and validated:
 - server-authoritative attraction, matching, contact entitlement, conversation, message, block, feedback and report operations;
 - hidden moderation/audit domains and high-severity escalation;
 - true parallel first-like and contact-opening race protection;
-- magic-link/session adapter and one shared browser Auth client;
+- e-mail OTP/session adapter and one shared browser Auth client;
 - owner-scoped resumable onboarding, prompts/interests and sanitized snapshot;
 - server-side profile publication and opposite-sex discovery;
 - one-time synthetic proof entitlement that cannot be reissued after consumption;
@@ -43,85 +40,70 @@ Implemented and validated:
 - Realtime conversation/message publication;
 - authenticated Edge Function for UUID-scoped portrait deletion followed by Auth-account deletion;
 - relational cascades and retained audit-ID anonymisation;
-- exact destructive confirmation with no client-supplied user ID;
-- storage-first deletion so object failure leaves the Auth account retryable.
+- exact destructive confirmation with no client-supplied user ID.
 
-GitHub Actions validation passes 151 pgTAP assertions, true parallel race tests, schema lint, application/artifact checks, Deno Edge Function type checking, Edge Runtime/CORS/auth-gate smoke testing and Docker validation.
+## Cloudflare build and deployment contract
 
-## Hosted architecture
+Cloudflare Pages project: `rendezvue-private-preview`.
 
-Rendezvue has two separate generated Hugging Face lanes:
+Expected production settings:
 
-1. public concept pilot: `solidprivacy/rendezvue`, always `local-demo`;
-2. private proof: `solidprivacy/rendezvue-private-preview`, private Static Space connected to `RendezvueProject`.
+- production branch: `main`;
+- build command: `npm run build:cloudflare`;
+- output directory: `dist-private-preview`;
+- variables: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`;
+- fixed production URL: `https://rendezvue-private-preview.pages.dev/`.
 
-The private Space deployment route:
+The artifact contains only browser-safe configuration, a commit marker and explicit synthetic-only boundaries. `_headers` prevents framing, limits browser capabilities and marks runtime configuration and deployment metadata as `no-store`.
 
-- is triggered from accepted relevant changes on `main` or a protected manual run;
-- builds in GitHub Actions;
-- embeds only the Supabase URL and browser publishable key;
-- automatically configures the Supabase Auth HTTPS callback;
-- reasserts private Hugging Face visibility;
-- uploads the generated static application;
-- verifies repository metadata and build commit;
-- records non-secret success/failure evidence in issue #21;
-- never publishes the private application through the public Space;
-- requires no downloaded artifact or localhost runtime.
+## Protected Supabase workflow
 
-## Remote provider evidence
+`.github/workflows/configure-cloudflare-staging.yml`:
 
-Private non-production project:
+1. validates protected GitHub environment secrets;
+2. links and applies repository migrations;
+3. deploys `delete-private-proof-account`;
+4. configures Supabase Auth Site URL and allow-list to the fixed Pages URL;
+5. configures the e-mail template to deliver `{{ .Token }}`;
+6. checks Auth and Data API health;
+7. verifies unauthenticated cleanup receives HTTP 401;
+8. builds and validates the Cloudflare artifact;
+9. records non-secret evidence in issue #35.
 
-- project: `RendezvueProject`;
-- status: Healthy;
-- region: West EU (Ireland);
-- compute: Nano;
-- protected GitHub environment: `rendezvue-private-preview`;
-- private Space: `solidprivacy/rendezvue-private-preview`;
-- public application connection: none.
+## Production Pages verification
 
-Protected workflow run **#8** on `main` commit `8400ebc70d02dc6393e00d48a7b02c9f808559cf` proved migrations, remote platform health, cleanup deployment, unauthenticated cleanup rejection and browser/server credential separation.
+`.github/workflows/verify-cloudflare-staging.yml` waits for Cloudflare production to serve a `deployment.json` whose `buildCommit` equals the merged `main` commit. It also checks:
 
-Automatic private deployment run `30657471168` on `main` commit `3dc37be154d27502cf9c04d4df186040254f73ec` additionally proved:
-
-- dedicated private Hugging Face Static Space deployed;
-- private visibility verified by the deployment workflow;
-- deployed repository artifact matched the GitHub commit;
-- Supabase Auth callback configured to the dedicated Hugging Face HTTPS URL;
-- public Hugging Face pilot remained unchanged;
-- no owner-local runtime was required;
-- real-user admission remained unauthorized.
+- Cloudflare hosting marker and canonical URL;
+- e-mail OTP interface;
+- no Hugging Face runtime reference;
+- no-store runtime configuration;
+- `nosniff` and frame-denial headers;
+- real-user admission remains false.
 
 ## Immediate next execution sequence
 
-1. confirm an unauthorized Hugging Face account cannot open the private Space;
-2. open the private Space in two isolated authorized browser profiles;
-3. use two controlled synthetic mailboxes;
-4. prove magic-link delivery, callback, session recovery and sign-out;
-5. persist and publish one synthetic woman and one synthetic man profile;
-6. prove cross-account draft/family/faith/object isolation;
-7. prove opposite-sex discovery and reciprocal likes create exactly one match;
-8. claim one contact right, open exactly one conversation and exchange realtime messages;
-9. prove active-match signed portrait delivery and that access stops after end-contact or block;
-10. prove private feedback/reporting exposes no public rating or moderation case;
-11. invoke authenticated cleanup for both accounts and verify portrait bytes, Auth users and relational records are removed and retained audit identifiers are anonymised;
-12. retain only non-secret evidence in issue #21.
+1. merge the Cloudflare migration after CI and Pages preview checks pass;
+2. confirm the protected Supabase configuration workflow succeeds;
+3. confirm the production Pages verification workflow matches the merge commit;
+4. open the canonical Cloudflare staging URL in two isolated browser profiles;
+5. use two controlled synthetic mailboxes;
+6. prove e-mail OTP delivery, verification, session recovery and sign-out;
+7. persist and publish one synthetic woman and one synthetic man profile;
+8. prove cross-account draft/family/faith/object isolation;
+9. prove opposite-sex discovery and reciprocal likes create exactly one match;
+10. claim one contact right, open exactly one conversation and exchange realtime messages;
+11. prove signed portrait delivery and access revocation after end-contact or block;
+12. prove private feedback/reporting exposes no public rating or moderation case;
+13. invoke authenticated cleanup for both accounts and verify objects, Auth users and relational rows are removed and retained audit identifiers are anonymised;
+14. retain only non-secret evidence in issue #35.
 
 ## Explicit limitations
 
-- unauthorized-browser access denial has not yet been manually demonstrated;
-- real magic-link delivery and callback are not yet proven;
+- a commit-matched Cloudflare production deployment is not claimed until the post-merge verifier succeeds;
+- real e-mail OTP and session recovery are not yet proven on Cloudflare;
 - the complete two-account remote journey has not yet been executed;
 - authenticated remote cleanup and actual object deletion have not yet been observed;
 - recovery and duplicate-account controls remain incomplete;
 - no payments, operational moderation, Article 9 production basis or real-user authorization;
-- the private proof is restricted to controlled synthetic adult accounts.
-
-## Owner review still required
-
-- private Space access-denial and two-account browser proof;
-- desktop/mobile field test of the public pilot;
-- mobile camera and all privacy portrait variants;
-- terminology for faith, marital history, children and community positioning;
-- swipe, contextual like, contact right, chat, feedback, report and block;
-- confirmation that the man/woman onboarding flow matches the intended community.
+- the staging proof is restricted to controlled synthetic adult accounts.

@@ -1,41 +1,39 @@
 # Backend proof foundation
 
-**Version:** 0.1  
-**Updated:** 2026-07-30  
-**Status:** implementation foundation; no remote project provisioned
+**Version:** 0.2  
+**Updated:** 2026-08-01  
+**Status:** remote synthetic proof project operational; Cloudflare browser acceptance pending
 
 ## 1. Purpose
 
-The backend proof converts the local deterministic concept pilot into a server-authoritative multi-user system without admitting real dating users yet. The first proof must demonstrate that two synthetic or controlled test accounts can authenticate, complete a profile, like each other, create one match, consume one contact entitlement, exchange messages, block each other and create a safety report without bypassing authorization.
+The backend proof converts the local deterministic concept into a server-authoritative multi-user system without admitting real dating users. The proof must demonstrate that controlled synthetic accounts can authenticate, complete a profile, discover eligible profiles, like each other, create one match, consume one contact entitlement, exchange messages, enforce safety actions and delete their private data without bypassing authorization.
 
-GitHub remains authoritative. Hugging Face remains the generated public frontend. Persistent state is hosted outside Hugging Face.
+GitHub remains authoritative. Cloudflare Pages is the canonical web-facing staging host. Supabase owns persistent state. Hugging Face is not part of the current runtime architecture.
 
-## 2. Selected proof candidate
+## 2. Selected proof platform
 
-Supabase is the leading proof platform because its local workflow supports versioned SQL migrations and a local Auth/PostgreSQL/Storage stack. The proof uses native PostgreSQL Row Level Security as the primary authorization boundary. Provider adoption remains reversible: the SQL domain model and browser adapter contract avoid provider-specific business semantics where practical.
+Supabase is the proof platform because it supports versioned SQL migrations and Auth/PostgreSQL/Storage/Realtime/Edge Functions. PostgreSQL Row Level Security is the primary authorization boundary. The project is non-production, synthetic-only and hosted in West EU (Ireland).
 
-No production vendor commitment is made by this branch. A remote project, data-processing review, region decision and cost approval remain separate gates.
+No production vendor commitment or real-user authorization follows from this proof.
 
 ## 3. Repository layout
 
 ```text
-supabase/
-  config.toml
-  migrations/
-    20260730203000_backend_proof_foundation.sql
-
-apps/web/src/
-  backend-contract.js
-
-apps/web/tests/
-  backend-contract.test.mjs
+apps/private-preview/             Supabase-connected browser proof
+scripts/build-private-preview.mjs Cloudflare Pages artifact builder
+scripts/validate-private-preview.mjs
+supabase/config.toml
+supabase/migrations/
+supabase/functions/
+supabase/tests/
+synthetic-seed/
 ```
 
-Secrets never belong in GitHub. `.env.example` contains only names and browser-safe placeholders.
+Secrets never belong in GitHub or browser artifacts. Cloudflare receives only `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`.
 
 ## 4. Implemented domain boundary
 
-The foundation migration defines:
+The migrations define:
 
 - `profiles`;
 - `eligibility`;
@@ -44,11 +42,12 @@ The foundation migration defines:
 - `faith_profiles`;
 - `student_verifications`;
 - `privacy_portraits`;
+- `profile_prompts` and `profile_interests`;
+- `onboarding_progress`;
 - `attraction_signals`;
 - `matches`;
 - `contact_entitlements`;
-- `conversations`;
-- `messages`;
+- `conversations` and `messages`;
 - `blocks`;
 - `interaction_feedback`;
 - `safety_reports`;
@@ -59,116 +58,88 @@ The Auth user ID is the stable account key. Public profile, eligibility, student
 
 ## 5. Server-authoritative operations
 
-### Attraction signal and match
+### Attraction and match
 
-`record_attraction_signal(...)`:
+`record_attraction_signal(...)` derives the actor from `auth.uid()`, rejects invalid or blocked interaction, stores the signal and creates exactly one normalized match after reciprocal attraction.
 
-1. derives the actor from `auth.uid()`;
-2. rejects self-interaction, unpublished targets and blocked pairs;
-3. inserts or updates pass, like or contextual like;
-4. checks for a reciprocal active like;
-5. creates exactly one normalized match;
-6. writes an audit event;
-7. returns the signal and optional match ID.
+### Contact right and conversation
 
-A pass remains a private attraction choice. It does not alter general profile standing.
+`claim_private_proof_entitlement()` issues at most one synthetic proof right. `open_match_conversation(...)` locks the match and entitlement, confirms participant/block state, consumes one right idempotently and creates or returns one conversation.
 
-### Contact entitlement and conversation
+### Messaging and portrait access
 
-`open_match_conversation(...)`:
+Only participants in an open conversation may exchange messages. Realtime never bypasses table RLS. Active matched participants may receive a short-lived signed URL to the selected private portrait; access stops after ending or blocking contact.
 
-1. locks the active match;
-2. confirms the caller is a participant;
-3. rejects blocked pairs;
-4. returns an already existing conversation idempotently;
-5. locks and consumes one valid contact entitlement;
-6. creates one conversation;
-7. records the audit event.
+### Safety and cleanup
 
-Both participants can reply after one participant opens the conversation. A browser redirect or client-side flag can never create an entitlement.
+Feedback, safety reports, moderation cases and audit events remain distinct. `delete-private-proof-account` derives identity from the JWT, requires exact confirmation, removes UUID-scoped private objects first and then deletes the Auth account so relational cascades and audit anonymisation run.
 
 ## 6. Authorization baseline
 
 - users can edit only their own private profile domains;
-- published profile basics can be discovered unless either party has blocked the other;
-- incoming likes are not directly queryable by the target;
-- matches and conversations are readable only by participants;
-- messages can be inserted only by a participant in an open conversation;
+- discovery exposes only approved published fields;
+- incoming likes are hidden;
+- matches, conversations and messages are participant-only;
 - feedback is private to its reviewer;
-- reports are visible to their reporter and operational roles, not the subject;
-- moderation cases and audit events have no authenticated-user policies;
-- privacy portraits use a private bucket and a user-ID folder prefix;
-- Realtime publication is limited initially to `messages` and `matches`, with RLS remaining authoritative.
+- reports are not visible to their subject;
+- moderation and audit domains are unavailable to ordinary users;
+- portraits live in a private bucket below the owner UUID prefix;
+- service-role operations never execute in the browser;
+- the publishable key relies on RLS and does not grant privileged access.
 
-## 7. Fail-closed choices
+## 7. Authentication and staging delivery
 
-The first migration deliberately does not expose full family or faith records to other users. A later discovery projection will expose only approved fields according to explicit visibility settings. This avoids accidental sensitive-data leakage while the profile compatibility model is still being validated.
+The Cloudflare application requests a numeric e-mail OTP. The Supabase template sends `{{ .Token }}`, and the already-open application verifies it with `verifyOtp({ type: 'email' })`.
 
-The migration also does not implement:
-
-- moderator role claims;
-- production admin access;
-- paid entitlement issuance;
-- formal age or liveness evidence;
-- student-document upload;
-- recommendation ranking;
-- behavioural standing aggregation;
-- push notifications;
-- media messages;
-- audio or video calling.
+The browser ignores URL callback parameters and fragments. Access and refresh tokens must not appear in the staging URL. The protected workflow configures the Supabase Site URL and allow-list to `https://rendezvue-private-preview.pages.dev/`.
 
 ## 8. Proof sequence
 
-### Backend proof A — local schema
+### Automated proof
 
-- install the Supabase CLI;
-- run `supabase start`;
-- run `supabase db reset`;
-- verify the migration applies from an empty database;
-- run repository tests;
-- inspect RLS through two local Auth accounts.
+- clean migration replay;
+- pgTAP authorization and lifecycle assertions;
+- true parallel attraction/match and contact-opening races;
+- Edge Function CORS and anonymous-auth rejection;
+- deterministic synthetic SQL seed;
+- browser artifact syntax and credential scan;
+- Cloudflare headers and deployment metadata validation.
 
-### Backend proof B — controlled multi-user slice
+### Remote provider proof
 
-- provision a private non-production project in an approved EU region;
-- configure magic-link or OTP authentication;
-- connect a non-public preview build;
-- create two controlled adult test accounts;
-- validate profile ownership and block enforcement;
-- create reciprocal likes and exactly one match;
-- issue one pilot contact entitlement server-side;
-- open one conversation and exchange messages;
-- verify report privacy and audit creation;
-- delete both accounts and confirm cascading deletion.
+- protected migrations and platform health;
+- cleanup function deployment;
+- Supabase Auth Site URL, allow-list and OTP template configuration;
+- ten Auth-linked synthetic published profiles;
+- ten selected private portraits.
 
-### Backend proof C — frontend integration
+### Controlled browser proof
 
-- add a Supabase client only to a non-public preview build;
-- retain `local-demo` as the public synthetic default;
-- replace local persistence module by module;
-- show explicit environment and data-boundary labels;
-- prohibit real-user invitation until legal, privacy and moderation gates pass.
+- commit-matched Cloudflare production deployment;
+- two isolated controlled accounts;
+- OTP and session recovery;
+- onboarding, publication and cross-account isolation;
+- discovery, reciprocal attraction and one match;
+- one contact right and one conversation;
+- realtime messages and signed portrait;
+- end-contact, block, report and feedback;
+- authenticated object/Auth/relational/audit cleanup.
 
 ## 9. Acceptance criteria
 
-The foundation is accepted when:
+The proof is accepted only when:
 
-- CI validates the repository and backend contract tests;
-- a clean local database reset applies the migration;
-- RLS tests prove cross-account isolation;
-- reciprocal likes create one match under concurrency;
-- one entitlement opens one conversation idempotently;
-- block enforcement prevents new interaction and messages;
-- reports do not become ordinary profile ratings;
-- no service-role secret appears in frontend artifacts or Git history;
-- documentation and work claims remain explicit that real-user admission is prohibited.
+- production Cloudflare `deployment.json` matches accepted GitHub `main`;
+- protected Supabase configuration succeeds;
+- two-account browser execution proves the complete interaction and cleanup sequence;
+- no server credential appears in Cloudflare or Git history;
+- no URL carries access or refresh tokens;
+- documentation and work claims continue to prohibit real-user admission.
 
-## 10. Next implementation packages
+## 10. Remaining packages
 
-1. SQL test harness for RLS and transactional functions.
-2. Auth/session adapter and onboarding persistence.
-3. Discovery projection with approved visibility rules.
-4. Server-authoritative block/report/end-contact functions.
-5. Realtime message subscription and pagination.
-6. Minimal moderation console for controlled testers.
-7. Provider, region, DPA and DPIA decision gate.
+1. Execute WP-057 on Cloudflare Pages.
+2. Add recovery and duplicate-account controls.
+3. Define abandonment retention and cleanup.
+4. Complete provider, DPA and DPIA gates.
+5. Build operational moderation only after proof acceptance.

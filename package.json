@@ -1,19 +1,21 @@
 {
   "name": "rendezvue",
-  "version": "0.4.0-alpha.1",
+  "version": "0.4.0-alpha.2",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "python3 -m http.server 4173 --directory apps/web",
     "build:static": "node scripts/build-static.mjs",
-    "build:hf": "npm run build:static && node scripts/build-hf-deploy.mjs",
-    "build:private-preview": "node scripts/build-private-preview.mjs",
-    "validate:private-preview": "node scripts/validate-private-preview.mjs",
+    "build:cloudflare": "node scripts/build-private-preview.mjs",
+    "build:private-preview": "npm run build:cloudflare",
+    "validate:cloudflare": "node scripts/validate-private-preview.mjs",
+    "validate:private-preview": "npm run validate:cloudflare",
     "validate:synthetic-seed": "node scripts/validate-synthetic-seed.mjs",
-    "check:private-preview": "node --check apps/private-preview/app.js && node --check apps/private-preview/interaction-proof.js && node --check apps/private-preview/otp-proof.js && node --check apps/private-preview/account-cleanup.js && node --check scripts/build-private-preview.mjs && node --check scripts/validate-private-preview.mjs && npm run build:private-preview && npm run validate:private-preview",
+    "check:cloudflare": "node --check apps/private-preview/app.js && node --check apps/private-preview/interaction-proof.js && node --check apps/private-preview/otp-proof.js && node --check apps/private-preview/account-cleanup.js && node --check scripts/build-private-preview.mjs && node --check scripts/validate-private-preview.mjs && npm run build:cloudflare && npm run validate:cloudflare",
+    "check:private-preview": "npm run check:cloudflare",
     "test": "node --test apps/web/tests/*.test.mjs",
     "validate": "node scripts/validate-static.mjs",
-    "check": "npm run build:hf && npm run validate && npm run validate:synthetic-seed && npm test"
+    "check": "npm run build:static && npm run validate && npm run validate:synthetic-seed && npm test"
   },
   "engines": { "node": ">=20" }
 }
