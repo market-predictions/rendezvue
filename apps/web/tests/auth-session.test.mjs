@@ -43,9 +43,11 @@ test('personal email is trimmed and normalized', () => {
   assert.throws(() => normaliseAccountEmail('not-an-email'), /valid personal email/);
 });
 
-test('email OTP request does not depend on a private-space callback', async () => {
+test('magic link uses the canonical Cloudflare redirect', async () => {
   const fake = makeAuthClient();
-  const auth = createAuthSessionAdapter(fake.client);
+  const auth = createAuthSessionAdapter(fake.client, {
+    redirectTo: 'https://rendezvue-private-preview.pages.dev/'
+  });
   assert.deepEqual(await auth.requestMagicLink('USER@EXAMPLE.NL'), {
     email: 'user@example.nl',
     requested: true
@@ -55,10 +57,18 @@ test('email OTP request does not depend on a private-space callback', async () =
     {
       email: 'user@example.nl',
       options: {
-        shouldCreateUser: true
+        shouldCreateUser: true,
+        emailRedirectTo: 'https://rendezvue-private-preview.pages.dev/'
       }
     }
   ]);
+});
+
+test('magic link can omit a redirect for local provider tests', async () => {
+  const fake = makeAuthClient();
+  const auth = createAuthSessionAdapter(fake.client);
+  await auth.requestMagicLink('user@example.nl');
+  assert.deepEqual(fake.calls[0][1].options, { shouldCreateUser: true });
 });
 
 test('session restore and current user unwrap provider data', async () => {
