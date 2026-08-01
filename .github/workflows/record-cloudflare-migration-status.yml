@@ -1,0 +1,123 @@
+name: Record Cloudflare migration status
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/record-cloudflare-migration-status.yml'
+      - '.github/workflows/configure-cloudflare-staging.yml'
+      - '.github/workflows/verify-cloudflare-staging.yml'
+      - 'apps/private-preview/**'
+      - 'scripts/build-private-preview.mjs'
+      - 'scripts/validate-private-preview.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+concurrency:
+  group: rendezvue-cloudflare-status-${{ github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  observe:
+    name: Record workflow states
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - name: Wait for related workflows to settle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          snapshot="$RUNNER_TEMP/runs.json"
+
+          for attempt in {1..24}; do
+            gh api \
+              --header 'X-GitHub-Api-Version: 2022-11-28' \
+              "/repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$GITHUB_SHA&per_page=100" > "$snapshot"
+
+            unsettled="$(node --input-type=module - "$snapshot" "$GITHUB_RUN_ID" <<'NODE'
+            import { readFileSync } from 'node:fs';
+            const data = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+            const self = Number(process.argv[3]);
+            const relevant = data.workflow_runs.filter((run) =>
+              run.id !== self && [
+                'Configure Cloudflare staging backend',
+                'Verify Cloudflare Pages staging',
+                'CI'
+              ].includes(run.name)
+            );
+            console.log(relevant.filter((run) => run.status !== 'completed').length);
+            NODE
+            )"
+
+            [[ "$unsettled" == "0" ]] && break
+            sleep 30
+          done
+
+      - name: Record status snapshot in issue 35
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          snapshot="$RUNNER_TEMP/runs.json"
+          body="$RUNNER_TEMP/status.md"
+
+          gh api \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            "/repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$GITHUB_SHA&per_page=100" > "$snapshot"
+
+          node --input-type=module - "$snapshot" "$body" "$GITHUB_RUN_ID" <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const data = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+          const output = process.argv[3];
+          const self = Number(process.argv[4]);
+          const names = new Set([
+            'Configure Cloudflare staging backend',
+            'Verify Cloudflare Pages staging',
+            'CI',
+            'Seed synthetic Rendezvue profiles'
+          ]);
+          const relevant = data.workflow_runs
+            .filter((run) => run.id !== self && names.has(run.name))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+          const lines = [
+            '## Cloudflare migration workflow status',
+            '',
+            `- commit: \`${process.env.GITHUB_SHA}\``,
+            `- observed at: ${new Date().toISOString()}`,
+            ''
+          ];
+
+          if (relevant.length === 0) {
+            lines.push('- No related workflow runs were returned for this commit.');
+          } else {
+            for (const run of relevant) {
+              lines.push(`- ${run.name}: status=\`${run.status}\`, conclusion=\`${run.conclusion ?? 'pending'}\`, event=\`${run.event}\`, run=${run.html_url}`);
+            }
+          }
+
+          const waiting = relevant.filter((run) => ['waiting', 'pending', 'queued', 'in_progress', 'requested'].includes(run.status));
+          const failed = relevant.filter((run) => run.status === 'completed' && run.conclusion !== 'success');
+          lines.push('');
+          if (waiting.length) {
+            lines.push('- Interpretation: at least one workflow is still queued, running or waiting on an external/protected gate.');
+          } else if (failed.length) {
+            lines.push('- Interpretation: at least one required workflow failed; migration success is not claimed.');
+          } else if (relevant.length) {
+            lines.push('- Interpretation: all observed required workflows completed successfully.');
+          }
+          lines.push('- Real-user admission authorized: no');
+
+          writeFileSync(output, `${lines.join('\n')}\n`);
+          NODE
+
+          gh issue comment 35 --repo "$GITHUB_REPOSITORY" --body-file "$body"
