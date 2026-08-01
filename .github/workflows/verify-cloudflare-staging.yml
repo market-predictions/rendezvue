@@ -55,6 +55,8 @@ jobs:
                 if (document.hostingPlatform !== 'cloudflare-pages') process.exit(1);
                 if (document.canonicalUrl !== 'https://rendezvue-private-preview.pages.dev/') process.exit(1);
                 if (document.buildCommit !== expected) process.exit(1);
+                if (document.authFlow !== 'pkce-magic-link-cloudflare-staging') process.exit(1);
+                if (document.implicitTokenFragmentsAccepted !== false) process.exit(1);
                 if (document.realUserAdmissionAuthorized !== false) process.exit(1);
               " "$metadata" "$GITHUB_SHA"; then
                 matched=true
@@ -84,7 +86,12 @@ jobs:
             --header 'cache-control: no-cache' \
             "${STAGING_URL}?commit=${GITHUB_SHA}" > "$index"
           grep -q 'CLOUDFLARE STAGING' "$index"
-          grep -q 'email-otp-form' "$index"
+          grep -q 'magic-link-form' "$index"
+          grep -q 'Magic link aanvragen' "$index"
+          if grep -Eq 'email-otp-form|otp-proof\.js' "$index"; then
+            echo '::error title=Unavailable auth mode::Production index still contains the numeric OTP interface.'
+            exit 1
+          fi
           if grep -Eiq 'Hugging Face|static\.hf\.space' "$index"; then
             echo '::error title=Stale hosting reference::Production index still references Hugging Face.'
             exit 1
@@ -107,7 +114,8 @@ jobs:
           - Canonical URL: $STAGING_URL
           - Commit matched: \`$GITHUB_SHA\`
           - Application marker: passed
-          - E-mail OTP interface: present
+          - Passwordless interface: PKCE magic link
+          - Implicit access/refresh token fragments: disabled
           - Runtime configuration cache: no-store
           - Security headers: passed
           - Hugging Face runtime reference: absent
@@ -125,10 +133,11 @@ jobs:
           ## Cloudflare Pages production deployment verified
 
           - canonical URL: $STAGING_URL
-          - commit: \`$GITHUB_SHA\`
+          - commit: \`${GITHUB_SHA}\`
           - workflow: $RUN_URL
           - deployment metadata: commit-matched
-          - application marker and e-mail OTP interface: passed
+          - passwordless interface: default-provider PKCE magic link
+          - implicit access/refresh token fragments: disabled
           - runtime no-store and security headers: passed
           - Hugging Face runtime dependency: absent
           - real-user admission: not authorized
@@ -147,7 +156,7 @@ jobs:
           - canonical URL: $STAGING_URL
           - expected commit: \`$GITHUB_SHA\`
           - workflow: $RUN_URL
-          - result: production did not become commit-matched or failed the application/header contract
+          - result: production did not become commit-matched or failed the application/header/auth-flow contract
           - action: inspect the linked run and Cloudflare Pages production deployment; no staging success is claimed
           - real-user admission: not authorized
           EOF
