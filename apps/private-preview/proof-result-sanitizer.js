@@ -9,12 +9,16 @@ const sensitiveKey = /(^id$|_id$|user|email|token|secret|password|path|url|redir
 const uuidPattern = /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi;
 const jwtPattern = /\beyJ[a-zA-Z0-9_-]{20,}\.[a-zA-Z0-9_-]{20,}\.[a-zA-Z0-9_-]{20,}\b/g;
 const tokenFragmentPattern = /(?:access_token|refresh_token|code)=[^&#\s]+/gi;
+const emailPattern = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
+const httpsUrlPattern = /https:\/\/[^\s"'<>]+/gi;
 let rewriting = false;
 
 function redactString(value) {
   return String(value)
     .replace(jwtPattern, '[redacted-token]')
     .replace(tokenFragmentPattern, '[redacted-auth-value]')
+    .replace(emailPattern, '[redacted-email]')
+    .replace(httpsUrlPattern, '[redacted-url]')
     .replace(uuidPattern, '[redacted-id]');
 }
 
