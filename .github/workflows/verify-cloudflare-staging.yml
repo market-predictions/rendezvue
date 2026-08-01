@@ -55,7 +55,10 @@ jobs:
                 if (document.hostingPlatform !== 'cloudflare-pages') process.exit(1);
                 if (document.canonicalUrl !== 'https://rendezvue-private-preview.pages.dev/') process.exit(1);
                 if (document.buildCommit !== expected) process.exit(1);
+                if (document.configurationMode !== 'remote-supabase') process.exit(1);
+                if (document.remoteBackendConfigured !== true) process.exit(1);
                 if (document.authFlow !== 'pkce-magic-link-cloudflare-staging') process.exit(1);
+                if (document.pkceCodeCallbacksAccepted !== true) process.exit(1);
                 if (document.implicitTokenFragmentsAccepted !== false) process.exit(1);
                 if (document.realUserAdmissionAuthorized !== false) process.exit(1);
               " "$metadata" "$GITHUB_SHA"; then
@@ -64,12 +67,12 @@ jobs:
               fi
             fi
 
-            echo "Cloudflare production is not commit-matched yet (attempt $attempt, HTTP $status)."
+            echo "Cloudflare production is not commit-matched with a real Supabase backend yet (attempt $attempt, HTTP $status)."
             sleep 10
           done
 
           if [[ "$matched" != "true" ]]; then
-            echo '::error title=Cloudflare deployment did not converge::Production deployment.json did not match the pushed commit within 12 minutes.'
+            echo '::error title=Cloudflare deployment did not converge::Production deployment.json did not match the pushed commit with remote-supabase configuration within 12 minutes.'
             [[ -f "$metadata" ]] && cat "$metadata" || true
             exit 1
           fi
@@ -88,6 +91,10 @@ jobs:
           grep -q 'CLOUDFLARE STAGING' "$index"
           grep -q 'magic-link-form' "$index"
           grep -q 'Magic link aanvragen' "$index"
+          if grep -q 'Branchpreview zonder backend' "$index"; then
+            echo '::error title=Placeholder deployment::Production is serving the non-functional branch-preview artifact.'
+            exit 1
+          fi
           if grep -Eq 'email-otp-form|otp-proof\.js' "$index"; then
             echo '::error title=Unavailable auth mode::Production index still contains the numeric OTP interface.'
             exit 1
@@ -113,6 +120,7 @@ jobs:
 
           - Canonical URL: $STAGING_URL
           - Commit matched: \`$GITHUB_SHA\`
+          - Supabase configuration: remote, not placeholder
           - Application marker: passed
           - Passwordless interface: PKCE magic link
           - Implicit access/refresh token fragments: disabled
@@ -136,6 +144,7 @@ jobs:
           - commit: \`${GITHUB_SHA}\`
           - workflow: $RUN_URL
           - deployment metadata: commit-matched
+          - Supabase configuration: remote, not placeholder
           - passwordless interface: default-provider PKCE magic link
           - implicit access/refresh token fragments: disabled
           - runtime no-store and security headers: passed
@@ -156,7 +165,7 @@ jobs:
           - canonical URL: $STAGING_URL
           - expected commit: \`$GITHUB_SHA\`
           - workflow: $RUN_URL
-          - result: production did not become commit-matched or failed the application/header/auth-flow contract
+          - result: production did not become commit-matched with real Supabase configuration or failed the application/header/auth-flow contract
           - action: inspect the linked run and Cloudflare Pages production deployment; no staging success is claimed
           - real-user admission: not authorized
           EOF
