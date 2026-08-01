@@ -21,7 +21,6 @@ const required = [
   'index.html',
   'app.js',
   'interaction-proof.js',
-  'otp-proof.js',
   'account-cleanup.js',
   'styles.css',
   'runtime-config.js',
@@ -50,8 +49,9 @@ if (deployment.hostingPlatform !== 'cloudflare-pages') throw new Error('Staging 
 if (deployment.canonicalUrl !== canonicalStagingUrl) throw new Error('Canonical Cloudflare Pages URL is incorrect');
 if (deployment.containsServerSecrets !== false) throw new Error('Browser/server secret boundary is not asserted');
 if (deployment.sharedBrowserAuthClient !== true) throw new Error('Staging artifact does not assert one shared browser Auth client');
-if (deployment.authFlow !== 'email-otp-cloudflare-staging') throw new Error('Staging artifact does not assert the Cloudflare e-mail OTP flow');
-if (deployment.urlTokenCallbacksAccepted !== false) throw new Error('URL token callbacks must be rejected');
+if (deployment.authFlow !== 'pkce-magic-link-cloudflare-staging') throw new Error('Staging artifact does not assert the Cloudflare PKCE magic-link flow');
+if (deployment.pkceCodeCallbacksAccepted !== true) throw new Error('PKCE code callbacks must be accepted');
+if (deployment.implicitTokenFragmentsAccepted !== false) throw new Error('Implicit token fragments must remain disabled');
 if (deployment.providerAccountCleanup !== true) throw new Error('Staging artifact does not assert provider account cleanup');
 if (deployment.realUserAdmissionAuthorized !== false) throw new Error('Real-user admission must remain unauthorized');
 if (!/^[a-f0-9]{40}$|^local$/.test(String(deployment.buildCommit))) {
@@ -73,15 +73,18 @@ if (runtime.includes('sb_secret_') || runtime.includes('service_role')) {
 const index = await readFile(resolve(target, 'index.html'), 'utf8');
 for (const marker of [
   'CLOUDFLARE STAGING',
+  'magic-link-form',
+  'Magic link aanvragen',
   'interaction-proof.js',
-  'otp-proof.js',
-  'email-otp-form',
   'account-cleanup.js',
   'claim-proof-entitlement',
   'message-form',
   'delete-account-form'
 ]) {
   if (!index.includes(marker)) throw new Error(`Cloudflare staging index is missing ${marker}`);
+}
+if (index.includes('email-otp-form') || index.includes('otp-proof.js')) {
+  throw new Error('Generated staging index still contains the unavailable numeric OTP flow');
 }
 if (/Hugging Face|static\.hf\.space/i.test(index)) {
   throw new Error('Generated staging index still references Hugging Face');
@@ -91,25 +94,25 @@ const app = await readFile(resolve(target, 'app.js'), 'utf8');
 if (!app.includes('export const supabase = createClient(')) {
   throw new Error('Staging app does not export the shared Supabase client');
 }
-if (!app.includes('detectSessionInUrl: false') || app.includes('detectSessionInUrl: true')) {
-  throw new Error('Staging app must ignore URL-based Auth callbacks');
+if (!app.includes('detectSessionInUrl: true') || !app.includes("flowType: 'pkce'")) {
+  throw new Error('Staging app must process PKCE code callbacks');
 }
-if (!app.includes("delivery: 'email-otp'")) {
-  throw new Error('Staging app does not report e-mail OTP delivery');
+if (app.includes("flowType: 'implicit'") || app.includes('detectSessionInUrl: false')) {
+  throw new Error('Staging app may not use the implicit token-fragment flow');
+}
+if (!app.includes('removeConsumedPkceCode()') || !app.includes("url.searchParams.delete('code')")) {
+  throw new Error('Consumed PKCE callback cleanup is missing');
+}
+if (!app.includes('redirectTo: runtime.authRedirectUrl')) {
+  throw new Error('Magic-link request does not use the canonical redirect configuration');
 }
 
-const otp = await readFile(resolve(target, 'otp-proof.js'), 'utf8');
-if (!otp.startsWith("import { supabase } from './app.js';")) {
-  throw new Error('E-mail OTP proof does not import the shared Supabase client');
+const adapter = await readFile(resolve(target, 'src/auth-session.js'), 'utf8');
+if (!adapter.includes('emailRedirectTo: redirectTo')) {
+  throw new Error('Auth adapter does not forward the canonical magic-link redirect');
 }
-if (!otp.includes('supabase.auth.verifyOtp') || !otp.includes("type: 'email'")) {
-  throw new Error('E-mail OTP verification contract is missing');
-}
-if (!otp.includes("location.hash.includes('access_token=')") || !otp.includes("location.search.includes('code=')")) {
-  throw new Error('Legacy URL callback cleanup is missing');
-}
-if (otp.includes('createClient(') || otp.includes('sb_secret_')) {
-  throw new Error('E-mail OTP proof may not create a client or contain secret key material');
+if (!adapter.includes("signOut({ scope: 'global' })")) {
+  throw new Error('Proof sign-out must revoke every refresh session for the account');
 }
 
 const interaction = await readFile(resolve(target, 'interaction-proof.js'), 'utf8');
