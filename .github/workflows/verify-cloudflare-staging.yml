@@ -48,16 +48,15 @@ jobs:
               "${STAGING_URL}deployment.json?commit=${GITHUB_SHA}&attempt=${attempt}" || true)"
 
             if [[ "$status" == "200" ]]; then
-              if node --input-type=module - "$metadata" "$GITHUB_SHA" <<'NODE'
-              import { readFileSync } from 'node:fs';
-              const document = JSON.parse(readFileSync(process.argv[2], 'utf8'));
-              const expected = process.argv[3];
-              if (document.hostingPlatform !== 'cloudflare-pages') process.exit(1);
-              if (document.canonicalUrl !== 'https://rendezvue-private-preview.pages.dev/') process.exit(1);
-              if (document.buildCommit !== expected) process.exit(1);
-              if (document.realUserAdmissionAuthorized !== false) process.exit(1);
-              NODE
-              then
+              if node --input-type=module --eval "
+                import { readFileSync } from 'node:fs';
+                const document = JSON.parse(readFileSync(process.argv[1], 'utf8'));
+                const expected = process.argv[2];
+                if (document.hostingPlatform !== 'cloudflare-pages') process.exit(1);
+                if (document.canonicalUrl !== 'https://rendezvue-private-preview.pages.dev/') process.exit(1);
+                if (document.buildCommit !== expected) process.exit(1);
+                if (document.realUserAdmissionAuthorized !== false) process.exit(1);
+              " "$metadata" "$GITHUB_SHA"; then
                 matched=true
                 break
               fi
