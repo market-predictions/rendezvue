@@ -18,7 +18,9 @@ GitHub `main` is the source of truth. Cloudflare Pages builds `dist-private-prev
 - commit-matched deployment metadata;
 - Cloudflare security and no-store headers.
 
-Supabase provides Auth, PostgreSQL/RLS, private Storage, Realtime and Edge Functions. Passwordless authentication uses a numeric e-mail OTP verified inside the already-open application; access and refresh tokens are not accepted in application URLs.
+Supabase provides Auth, PostgreSQL/RLS, private Storage, Realtime and Edge Functions. Passwordless authentication uses the default Supabase magic link with PKCE. The link must be requested and opened in the same browser profile. The callback transports only a one-time authorization code; implicit access- and refresh-token URL fragments are disabled.
+
+The free-tier Supabase default mail provider does not permit custom e-mail templates. Numeric `{{ .Token }}` delivery would therefore require custom SMTP or a plan change and is not part of this proof.
 
 ## Historical concept artifact
 
