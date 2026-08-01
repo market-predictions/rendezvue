@@ -4,10 +4,11 @@ import { resolve } from 'node:path';
 const root = resolve(process.cwd());
 const source = resolve(root, 'apps/private-preview');
 const target = resolve(root, 'dist-private-preview');
+const canonicalStagingUrl = 'https://rendezvue-private-preview.pages.dev/';
 
 function requireEnvironment(name) {
   const value = String(process.env[name] ?? '').trim();
-  if (!value) throw new Error(`${name} is required for the private preview build`);
+  if (!value) throw new Error(`${name} is required for the Cloudflare Pages staging build`);
   return value;
 }
 
@@ -15,7 +16,7 @@ function validateSupabaseUrl(value) {
   const url = new URL(value);
   const local = ['localhost', '127.0.0.1'].includes(url.hostname);
   if (!local && url.protocol !== 'https:') {
-    throw new Error('SUPABASE_URL must use HTTPS outside local development');
+    throw new Error('SUPABASE_URL must use HTTPS outside local validation');
   }
   if (!local && !url.hostname.endsWith('.supabase.co')) {
     throw new Error('SUPABASE_URL must point to an approved Supabase project');
@@ -36,14 +37,6 @@ function validatePublishableKey(value) {
   return value;
 }
 
-function validateRedirectUrl(value) {
-  const url = new URL(value);
-  if (!['http:', 'https:'].includes(url.protocol)) {
-    throw new Error('RENDEZVUE_AUTH_REDIRECT_URL must be an HTTP(S) URL');
-  }
-  return url.toString();
-}
-
 async function assembleSharedBrowserClient() {
   const [appSource, interactionSource, indexSource] = await Promise.all([
     readFile(resolve(target, 'app.js'), 'utf8'),
@@ -53,29 +46,29 @@ async function assembleSharedBrowserClient() {
 
   const clientDeclaration = 'const supabase = createClient(';
   if (!appSource.includes(clientDeclaration)) {
-    throw new Error('Private preview app client declaration was not found');
+    throw new Error('Staging app client declaration was not found');
   }
   if (!appSource.includes('detectSessionInUrl: true')) {
-    throw new Error('Private preview source callback-detection marker was not found');
+    throw new Error('Staging source callback-detection marker was not found');
   }
 
-  // The hosted private Space is protected by Hugging Face before application
-  // JavaScript can run. Email callbacks therefore cannot reliably load the
-  // app and must not carry Supabase sessions in the URL. The generated proof
-  // uses an in-app email OTP form and explicitly ignores URL callbacks.
   const sharedAppSource = appSource
     .replace(clientDeclaration, 'export const supabase = createClient(')
     .replace('detectSessionInUrl: true', 'detectSessionInUrl: false')
+    .replace("flowType: 'pkce'", "flowType: 'implicit'")
     .replace("Magic link aangevraagd voor ${result.email}.", "E-mailcode aangevraagd voor ${result.email}.")
-    .replace("showResult({ requested: true, email: result.email, redirectTo: runtime.authRedirectUrl });", "showResult({ requested: true, email: result.email, delivery: 'email-otp' });");
+    .replace(
+      'showResult({ requested: true, email: result.email, redirectTo: runtime.authRedirectUrl });',
+      "showResult({ requested: true, email: result.email, delivery: 'email-otp' });"
+    );
 
   if (!sharedAppSource.includes('detectSessionInUrl: false')) {
-    throw new Error('Hosted private preview URL callback detection was not disabled');
+    throw new Error('Cloudflare staging must ignore URL-based Auth callbacks');
   }
 
   const interactionBodyStart = interactionSource.indexOf('const output = document.querySelector');
   if (interactionBodyStart < 0) {
-    throw new Error('Private interaction proof body marker was not found');
+    throw new Error('Interaction proof body marker was not found');
   }
 
   const sharedInteractionSource = [
@@ -96,11 +89,13 @@ async function assembleSharedBrowserClient() {
   ].join('\n');
 
   let generatedIndex = indexSource
+    .replace('PRIVATE · SYNTHETIC PROOF ONLY', 'CLOUDFLARE STAGING · SYNTHETIC PROOF ONLY')
+    .replace('<h1>Rendezvue backend preview</h1>', '<h1>Rendezvue Cloudflare staging</h1>')
     .replace('<h2>Aanmelden met magic link</h2>', '<h2>Aanmelden met e-mailcode</h2>')
     .replace('Magic link aanvragen', 'E-mailcode aanvragen')
     .replace(
       '      <p class="hint">De redirect-URL moet exact in Supabase Auth → URL Configuration zijn toegestaan.</p>',
-      `${otpForm}\n      <p class="hint">Klik niet op oude aanmeldlinks. De private Hugging Face-app blijft open terwijl je de code uit de e-mail overneemt.</p>`
+      `${otpForm}\n      <p class="hint">De code wordt in deze Cloudflare Pages-app gecontroleerd. Aanmeldtokens horen nooit in de adresbalk.</p>`
     );
 
   const otpScript = '  <script type="module" src="./otp-proof.js"></script>\n';
@@ -117,7 +112,7 @@ async function assembleSharedBrowserClient() {
   }
 
   if (!generatedIndex.includes('email-otp-form') || !generatedIndex.includes('otp-proof.js')) {
-    throw new Error('Private preview email OTP interface was not assembled');
+    throw new Error('Cloudflare staging e-mail OTP interface was not assembled');
   }
 
   await Promise.all([
@@ -129,8 +124,9 @@ async function assembleSharedBrowserClient() {
 
 const supabaseUrl = validateSupabaseUrl(requireEnvironment('SUPABASE_URL'));
 const publishableKey = validatePublishableKey(requireEnvironment('SUPABASE_PUBLISHABLE_KEY'));
-const authRedirectUrl = validateRedirectUrl(requireEnvironment('RENDEZVUE_AUTH_REDIRECT_URL'));
-const buildCommit = String(process.env.GITHUB_SHA ?? 'local').slice(0, 40);
+const buildCommit = String(
+  process.env.CF_PAGES_COMMIT_SHA ?? process.env.GITHUB_SHA ?? 'local'
+).slice(0, 40);
 
 await readFile(resolve(source, 'index.html'), 'utf8');
 await rm(target, { recursive: true, force: true });
@@ -146,9 +142,11 @@ await assembleSharedBrowserClient();
 
 const runtimeConfig = {
   backendMode: 'supabase-proof',
+  hostingPlatform: 'cloudflare-pages',
+  canonicalStagingUrl,
   supabaseUrl,
   supabasePublishableKey: publishableKey,
-  authRedirectUrl,
+  authRedirectUrl: canonicalStagingUrl,
   buildCommit
 };
 
@@ -164,19 +162,27 @@ await writeFile(
     app: 'rendezvue-private-preview',
     audience: 'controlled-synthetic-adult-proof-accounts',
     backendMode: 'supabase-proof',
-    publicPilotChanged: false,
+    hostingPlatform: 'cloudflare-pages',
+    canonicalUrl: canonicalStagingUrl,
     containsServerSecrets: false,
     sharedBrowserAuthClient: true,
-    authFlow: 'email-otp-private-space',
+    authFlow: 'email-otp-cloudflare-staging',
+    urlTokenCallbacksAccepted: false,
     providerAccountCleanup: true,
-    authRedirectUrl,
+    realUserAdmissionAuthorized: false,
     buildCommit
   }, null, 2)}\n`,
   'utf8'
 );
 
-console.log(`Private preview artifact written for ${new URL(supabaseUrl).hostname}.`);
-console.log('One shared browser Auth client handles the in-app email OTP session and all proof interactions.');
-console.log('URL callback detection is disabled because the private Hugging Face access gate runs before application JavaScript.');
-console.log('Provider-orchestrated private object and Auth account cleanup is included.');
+await writeFile(
+  resolve(target, '_headers'),
+  `/*\n  X-Content-Type-Options: nosniff\n  X-Frame-Options: DENY\n  Referrer-Policy: no-referrer\n  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()\n  Cross-Origin-Opener-Policy: same-origin\n  Cross-Origin-Resource-Policy: same-origin\n\n/runtime-config.js\n  Cache-Control: no-store, max-age=0\n\n/deployment.json\n  Cache-Control: no-store, max-age=0\n`,
+  'utf8'
+);
+
+console.log(`Cloudflare Pages staging artifact written for ${new URL(supabaseUrl).hostname}.`);
+console.log(`Canonical staging URL: ${canonicalStagingUrl}`);
+console.log(`Build commit marker: ${buildCommit}`);
+console.log('One shared browser Auth client handles e-mail OTP and all proof interactions.');
 console.log('No database password, access token or Supabase secret key was passed to the browser build.');
