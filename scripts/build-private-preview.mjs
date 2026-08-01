@@ -48,22 +48,37 @@ async function assembleSharedBrowserClient() {
   if (!appSource.includes(clientDeclaration)) {
     throw new Error('Staging app client declaration was not found');
   }
-  if (!appSource.includes('detectSessionInUrl: true')) {
-    throw new Error('Staging source callback-detection marker was not found');
+  if (!appSource.includes('detectSessionInUrl: true') || !appSource.includes("flowType: 'pkce'")) {
+    throw new Error('Staging source PKCE callback markers were not found');
   }
 
-  const sharedAppSource = appSource
-    .replace(clientDeclaration, 'export const supabase = createClient(')
-    .replace('detectSessionInUrl: true', 'detectSessionInUrl: false')
-    .replace("flowType: 'pkce'", "flowType: 'implicit'")
-    .replace("Magic link aangevraagd voor ${result.email}.", "E-mailcode aangevraagd voor ${result.email}.")
-    .replace(
-      'showResult({ requested: true, email: result.email, redirectTo: runtime.authRedirectUrl });',
-      "showResult({ requested: true, email: result.email, delivery: 'email-otp' });"
-    );
+  const cleanupHelper = [
+    '',
+    'function removeConsumedPkceCode() {',
+    "  const url = new URL(globalThis.location.href);",
+    "  if (!url.searchParams.has('code')) return;",
+    "  url.searchParams.delete('code');",
+    "  const next = `${url.pathname}${url.search}${url.hash}`;",
+    "  globalThis.history.replaceState(null, '', next);",
+    '}',
+    ''
+  ].join('\n');
 
-  if (!sharedAppSource.includes('detectSessionInUrl: false')) {
-    throw new Error('Cloudflare staging must ignore URL-based Auth callbacks');
+  let sharedAppSource = appSource
+    .replace(clientDeclaration, 'export const supabase = createClient(')
+    .replace('function setSession(user) {', `${cleanupHelper}function setSession(user) {`);
+
+  sharedAppSource = sharedAppSource.replace(
+    '  if (session?.user) {\n    try {',
+    '  if (session?.user) {\n    removeConsumedPkceCode();\n    try {'
+  );
+  sharedAppSource = sharedAppSource.replace(
+    "  if (session?.user) appendLog('Bestaande sessie hersteld.');",
+    "  if (session?.user) {\n    removeConsumedPkceCode();\n    appendLog('Bestaande sessie hersteld.');\n  }"
+  );
+
+  if (!sharedAppSource.includes('removeConsumedPkceCode()')) {
+    throw new Error('PKCE callback cleanup was not assembled');
   }
 
   const interactionBodyStart = interactionSource.indexOf('const output = document.querySelector');
@@ -77,42 +92,21 @@ async function assembleSharedBrowserClient() {
     interactionSource.slice(interactionBodyStart)
   ].join('\n');
 
-  const otpForm = [
-    '      <form id="email-otp-form" class="stack separated-form">',
-    '        <label>',
-    '          Aanmeldcode uit de nieuwste e-mail',
-    '          <input id="email-otp" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,8}" required placeholder="123456">',
-    '        </label>',
-    '        <button type="submit">Code controleren en aanmelden</button>',
-    '        <p id="email-otp-status" class="hint" aria-live="polite">Vraag eerst een code aan en vul die in ditzelfde geopende tabblad in.</p>',
-    '      </form>'
-  ].join('\n');
-
   let generatedIndex = indexSource
     .replace('PRIVATE · SYNTHETIC PROOF ONLY', 'CLOUDFLARE STAGING · SYNTHETIC PROOF ONLY')
     .replace('<h1>Rendezvue backend preview</h1>', '<h1>Rendezvue Cloudflare staging</h1>')
-    .replace('<h2>Aanmelden met magic link</h2>', '<h2>Aanmelden met e-mailcode</h2>')
-    .replace('Magic link aanvragen', 'E-mailcode aanvragen')
     .replace(
       '      <p class="hint">De redirect-URL moet exact in Supabase Auth → URL Configuration zijn toegestaan.</p>',
-      `${otpForm}\n      <p class="hint">De code wordt in deze Cloudflare Pages-app gecontroleerd. Aanmeldtokens horen nooit in de adresbalk.</p>`
+      '      <p class="hint">Open de nieuwste aanmeldlink in hetzelfde browserprofiel. Cloudflare verwerkt daarna een eenmalige PKCE-code; access- en refresh-tokens horen nooit in de adresbalk.</p>'
     );
-
-  const otpScript = '  <script type="module" src="./otp-proof.js"></script>\n';
-  if (!generatedIndex.includes('otp-proof.js')) {
-    generatedIndex = generatedIndex.replace(
-      '  <script type="module" src="./interaction-proof.js"></script>\n',
-      `  <script type="module" src="./interaction-proof.js"></script>\n${otpScript}`
-    );
-  }
 
   const cleanupScript = '  <script type="module" src="./account-cleanup.js"></script>\n';
   if (!generatedIndex.includes('account-cleanup.js')) {
     generatedIndex = generatedIndex.replace('</body>', `${cleanupScript}</body>`);
   }
 
-  if (!generatedIndex.includes('email-otp-form') || !generatedIndex.includes('otp-proof.js')) {
-    throw new Error('Cloudflare staging e-mail OTP interface was not assembled');
+  if (!generatedIndex.includes('magic-link-form') || generatedIndex.includes('email-otp-form')) {
+    throw new Error('Cloudflare staging magic-link interface was not assembled correctly');
   }
 
   await Promise.all([
@@ -166,8 +160,9 @@ await writeFile(
     canonicalUrl: canonicalStagingUrl,
     containsServerSecrets: false,
     sharedBrowserAuthClient: true,
-    authFlow: 'email-otp-cloudflare-staging',
-    urlTokenCallbacksAccepted: false,
+    authFlow: 'pkce-magic-link-cloudflare-staging',
+    pkceCodeCallbacksAccepted: true,
+    implicitTokenFragmentsAccepted: false,
     providerAccountCleanup: true,
     realUserAdmissionAuthorized: false,
     buildCommit
@@ -184,5 +179,5 @@ await writeFile(
 console.log(`Cloudflare Pages staging artifact written for ${new URL(supabaseUrl).hostname}.`);
 console.log(`Canonical staging URL: ${canonicalStagingUrl}`);
 console.log(`Build commit marker: ${buildCommit}`);
-console.log('One shared browser Auth client handles e-mail OTP and all proof interactions.');
+console.log('One shared browser Auth client handles PKCE magic links and all proof interactions.');
 console.log('No database password, access token or Supabase secret key was passed to the browser build.');
