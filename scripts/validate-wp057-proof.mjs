@@ -12,11 +12,13 @@ const files = {
   signoutGuard: await readFile(resolve(source, 'proof-signout-guard.js'), 'utf8'),
   portraitGenerator: await readFile(resolve(source, 'proof-portrait-generator.js'), 'utf8'),
   cleanup: await readFile(resolve(source, 'account-cleanup.js'), 'utf8'),
+  styles: await readFile(resolve(source, 'styles.css'), 'utf8'),
   builtOrchestrator: await readFile(resolve(built, 'proof-orchestrator.js'), 'utf8'),
   builtUi: await readFile(resolve(built, 'proof-console-ui.js'), 'utf8'),
   builtObserver: await readFile(resolve(built, 'proof-log-observer.js'), 'utf8'),
   builtSignoutGuard: await readFile(resolve(built, 'proof-signout-guard.js'), 'utf8'),
-  builtPortraitGenerator: await readFile(resolve(built, 'proof-portrait-generator.js'), 'utf8')
+  builtPortraitGenerator: await readFile(resolve(built, 'proof-portrait-generator.js'), 'utf8'),
+  builtStyles: await readFile(resolve(built, 'styles.css'), 'utf8')
 };
 
 for (const marker of [
@@ -49,6 +51,20 @@ for (const marker of [
   'Gecontroleerd synthetisch testaccount actief'
 ]) {
   if (!files.ui.includes(marker)) throw new Error(`WP-057 console UI is missing ${marker}`);
+}
+if (files.ui.includes("createElement('style')") || files.ui.includes('style.textContent')) {
+  throw new Error('WP-057 console may not inject inline styles under the staging CSP');
+}
+for (const marker of [
+  '.proof-console',
+  '.proof-console-heading',
+  '.proof-actions',
+  '.proof-checklist',
+  '.proof-step.pass',
+  '.proof-step.blocked',
+  '.proof-evidence-details'
+]) {
+  if (!files.styles.includes(marker)) throw new Error(`WP-057 stylesheet is missing ${marker}`);
 }
 
 for (const marker of [
@@ -126,7 +142,8 @@ for (const [name, contents] of Object.entries({
   builtUi: files.builtUi,
   builtObserver: files.builtObserver,
   builtSignoutGuard: files.builtSignoutGuard,
-  builtPortraitGenerator: files.builtPortraitGenerator
+  builtPortraitGenerator: files.builtPortraitGenerator,
+  builtStyles: files.builtStyles
 })) {
   if (!contents.trim()) throw new Error(`${name} is empty in the Cloudflare artifact`);
   if (/sb_secret_|service_role|SUPABASE_DB_PASSWORD|SUPABASE_ACCESS_TOKEN/i.test(contents)) {
