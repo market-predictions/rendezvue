@@ -65,7 +65,7 @@ export function createAuthSessionAdapter(client) {
     },
 
     async signOut() {
-      unwrap(await auth.signOut({ scope: 'local' }), 'sign out');
+      unwrap(await auth.signOut({ scope: 'global' }), 'sign out');
       return true;
     }
   });
