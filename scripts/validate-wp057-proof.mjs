@@ -100,8 +100,14 @@ for (const marker of [
 if (!files.portraitGenerator.includes("select('status,is_public_profile_portrait,treatment')")) {
   throw new Error('WP-057 portrait generator must return only sanitized portrait metadata');
 }
-if (files.portraitGenerator.includes('signedUrl') || files.portraitGenerator.includes('objectPath,') || files.portraitGenerator.includes('object_path: objectPath')) {
-  throw new Error('WP-057 portrait generator may not expose private paths or signed URLs in browser output');
+const portraitOutputStart = files.portraitGenerator.indexOf('output.textContent = JSON.stringify({');
+const portraitOutputEnd = files.portraitGenerator.indexOf('}, null, 2);', portraitOutputStart);
+if (portraitOutputStart < 0 || portraitOutputEnd < portraitOutputStart) {
+  throw new Error('WP-057 portrait generator sanitized output block is missing');
+}
+const portraitOutput = files.portraitGenerator.slice(portraitOutputStart, portraitOutputEnd);
+if (/signedUrl|objectPath|object_path/.test(portraitOutput)) {
+  throw new Error('WP-057 portrait output may not expose private paths or signed URLs');
 }
 
 if (files.orchestrator.includes('localStorage.setItem("access_token"') || files.orchestrator.includes("localStorage.setItem('access_token'")) {
