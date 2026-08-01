@@ -2,6 +2,7 @@ import { supabase } from './app.js';
 import './proof-console-ui.js';
 import './proof-orchestrator.js';
 import './proof-log-observer.js';
+import './proof-signout-guard.js';
 
 const CONFIRMATION = 'DELETE_SYNTHETIC_ACCOUNT';
 const form = document.querySelector('#delete-account-form');
