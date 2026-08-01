@@ -5,11 +5,17 @@ const root = resolve(process.cwd());
 const source = resolve(root, 'apps/private-preview');
 const target = resolve(root, 'dist-private-preview');
 const canonicalStagingUrl = 'https://rendezvue-private-preview.pages.dev/';
+const cloudflareBranch = String(process.env.CF_PAGES_BRANCH ?? '').trim();
+const isCloudflarePreview = process.env.CF_PAGES === '1' && cloudflareBranch && cloudflareBranch !== 'main';
 
-function requireEnvironment(name) {
+function readEnvironment(name, previewFallback) {
   const value = String(process.env[name] ?? '').trim();
-  if (!value) throw new Error(`${name} is required for the Cloudflare Pages staging build`);
-  return value;
+  if (value) return value;
+  if (isCloudflarePreview && previewFallback) {
+    console.warn(`${name} is not available to this Cloudflare branch preview; using a non-functional browser-safe placeholder.`);
+    return previewFallback;
+  }
+  throw new Error(`${name} is required for the Cloudflare Pages production staging build`);
 }
 
 function validateSupabaseUrl(value) {
@@ -55,10 +61,10 @@ async function assembleSharedBrowserClient() {
   const cleanupHelper = [
     '',
     'function removeConsumedPkceCode() {',
-    "  const url = new URL(globalThis.location.href);",
+    '  const url = new URL(globalThis.location.href);',
     "  if (!url.searchParams.has('code')) return;",
     "  url.searchParams.delete('code');",
-    "  const next = `${url.pathname}${url.search}${url.hash}`;",
+    '  const next = `${url.pathname}${url.search}${url.hash}`;',
     "  globalThis.history.replaceState(null, '', next);",
     '}',
     ''
@@ -100,6 +106,13 @@ async function assembleSharedBrowserClient() {
       '      <p class="hint">Open de nieuwste aanmeldlink in hetzelfde browserprofiel. Cloudflare verwerkt daarna een eenmalige PKCE-code; access- en refresh-tokens horen nooit in de adresbalk.</p>'
     );
 
+  if (isCloudflarePreview) {
+    generatedIndex = generatedIndex.replace(
+      '<section class="warning">',
+      '<section class="warning"><strong>Branchpreview zonder backend.</strong> Deze deployment valideert uitsluitend het browserartifact; authenticatie en datamutaties zijn uitgeschakeld door placeholderconfiguratie.</section><section class="warning">'
+    );
+  }
+
   const cleanupScript = '  <script type="module" src="./account-cleanup.js"></script>\n';
   if (!generatedIndex.includes('account-cleanup.js')) {
     generatedIndex = generatedIndex.replace('</body>', `${cleanupScript}</body>`);
@@ -116,11 +129,20 @@ async function assembleSharedBrowserClient() {
   ]);
 }
 
-const supabaseUrl = validateSupabaseUrl(requireEnvironment('SUPABASE_URL'));
-const publishableKey = validatePublishableKey(requireEnvironment('SUPABASE_PUBLISHABLE_KEY'));
+const supabaseUrl = validateSupabaseUrl(readEnvironment('SUPABASE_URL', 'https://example.supabase.co'));
+const publishableKey = validatePublishableKey(readEnvironment(
+  'SUPABASE_PUBLISHABLE_KEY',
+  'sb_publishable_cloudflare_preview_placeholder_00000000000000000000'
+));
 const buildCommit = String(
   process.env.CF_PAGES_COMMIT_SHA ?? process.env.GITHUB_SHA ?? 'local'
 ).slice(0, 40);
+const remoteBackendConfigured = new URL(supabaseUrl).hostname !== 'example.supabase.co';
+const configurationMode = remoteBackendConfigured ? 'remote-supabase' : 'browser-safe-placeholder';
+
+if (!isCloudflarePreview && process.env.CF_PAGES === '1' && !remoteBackendConfigured) {
+  throw new Error('Cloudflare Pages production may not use placeholder Supabase configuration');
+}
 
 await readFile(resolve(source, 'index.html'), 'utf8');
 await rm(target, { recursive: true, force: true });
@@ -138,6 +160,8 @@ const runtimeConfig = {
   backendMode: 'supabase-proof',
   hostingPlatform: 'cloudflare-pages',
   canonicalStagingUrl,
+  configurationMode,
+  remoteBackendConfigured,
   supabaseUrl,
   supabasePublishableKey: publishableKey,
   authRedirectUrl: canonicalStagingUrl,
@@ -158,6 +182,9 @@ await writeFile(
     backendMode: 'supabase-proof',
     hostingPlatform: 'cloudflare-pages',
     canonicalUrl: canonicalStagingUrl,
+    configurationMode,
+    remoteBackendConfigured,
+    cloudflareBranch: cloudflareBranch || null,
     containsServerSecrets: false,
     sharedBrowserAuthClient: true,
     authFlow: 'pkce-magic-link-cloudflare-staging',
@@ -176,8 +203,9 @@ await writeFile(
   'utf8'
 );
 
-console.log(`Cloudflare Pages staging artifact written for ${new URL(supabaseUrl).hostname}.`);
+console.log(`Cloudflare Pages artifact written for ${new URL(supabaseUrl).hostname}.`);
 console.log(`Canonical staging URL: ${canonicalStagingUrl}`);
 console.log(`Build commit marker: ${buildCommit}`);
+console.log(`Configuration mode: ${configurationMode}`);
 console.log('One shared browser Auth client handles PKCE magic links and all proof interactions.');
 console.log('No database password, access token or Supabase secret key was passed to the browser build.');
