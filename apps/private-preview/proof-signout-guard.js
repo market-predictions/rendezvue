@@ -1,24 +1,25 @@
-const PROVEN_MARKER = 'rendezvue.wp057.global-signout-proven.v1';
+const PROVEN_MARKER_PREFIX = 'rendezvue.wp057.explicit-global-signout.v1.';
 const CONFIG_KEY = 'rendezvue.wp057.config.v1';
-const EVIDENCE_PREFIX = 'rendezvue.wp057.evidence.v1.';
 let cleanupStarted = false;
 
-function persistedGlobalSignOutPassed() {
+function currentMarkerKey() {
   try {
     const config = JSON.parse(localStorage.getItem(CONFIG_KEY) ?? 'null');
-    if (!config?.runId || !config?.role) return false;
-    const evidence = JSON.parse(localStorage.getItem(`${EVIDENCE_PREFIX}${config.runId}.${config.role}`) ?? 'null');
-    return evidence?.checks?.globalSignOut?.status === 'pass';
+    if (!config?.runId || !['a', 'b'].includes(config.role)) return null;
+    return `${PROVEN_MARKER_PREFIX}${config.runId}.${config.role}`;
   } catch {
-    return false;
+    return null;
   }
 }
 
 globalThis.addEventListener('rendezvue:proof-event', (event) => {
   const step = String(event.detail?.step ?? '');
 
+  // This event is emitted only after the explicit Afmelden button completed;
+  // account cleanup does not write that proof-log milestone.
   if (step === 'globalSignOut' && !cleanupStarted && event.detail?.status !== 'blocked') {
-    sessionStorage.setItem(PROVEN_MARKER, 'true');
+    const marker = currentMarkerKey();
+    if (marker) localStorage.setItem(marker, 'true');
     return;
   }
 
@@ -26,7 +27,8 @@ globalThis.addEventListener('rendezvue:proof-event', (event) => {
   cleanupStarted = true;
 
   setTimeout(() => {
-    if (sessionStorage.getItem(PROVEN_MARKER) === 'true' || persistedGlobalSignOutPassed()) return;
+    const marker = currentMarkerKey();
+    if (marker && localStorage.getItem(marker) === 'true') return;
     globalThis.dispatchEvent(new CustomEvent('rendezvue:proof-event', {
       detail: {
         step: 'globalSignOut',
