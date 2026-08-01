@@ -38,6 +38,7 @@ if (deployment.backendMode !== 'supabase-proof') throw new Error('Private artifa
 if (deployment.publicPilotChanged !== false) throw new Error('Private preview must not claim to change the public pilot');
 if (deployment.containsServerSecrets !== false) throw new Error('Private preview secret boundary is not asserted');
 if (deployment.sharedBrowserAuthClient !== true) throw new Error('Private preview does not assert one shared browser Auth client');
+if (deployment.authFlow !== 'implicit-static-proof') throw new Error('Private preview hosted callback flow is not explicit');
 if (deployment.providerAccountCleanup !== true) throw new Error('Private preview does not assert provider account cleanup');
 const redirect = new URL(deployment.authRedirectUrl);
 if (redirect.protocol !== 'https:' || !redirect.hostname.endsWith('.static.hf.space')) {
@@ -61,6 +62,9 @@ if (!index.includes('delete-account-form')) throw new Error('Private account del
 const app = await readFile(resolve(target, 'app.js'), 'utf8');
 if (!app.includes('export const supabase = createClient(')) {
   throw new Error('Private app does not export the shared Supabase client');
+}
+if (!app.includes("flowType: 'implicit'") || app.includes("flowType: 'pkce'")) {
+  throw new Error('Hosted private proof must use exactly the implicit static callback flow');
 }
 
 const interaction = await readFile(resolve(target, 'interaction-proof.js'), 'utf8');
