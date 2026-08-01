@@ -69,13 +69,13 @@ The private Static Space proved remote migrations, browser-safe configuration an
 
 ## WP-038 — Cloudflare Pages canonical staging
 
-**Status:** active; claimed in issue #35  
-Make `https://rendezvue-private-preview.pages.dev/` the sole canonical web-facing staging environment. Acceptance requires a production deployment from `main`, a commit-matched `deployment.json`, Cloudflare security headers and no runtime dependency on Hugging Face.
+**Status:** complete; evidence in issue #35  
+`https://rendezvue-private-preview.pages.dev/` is the sole canonical web-facing staging environment. Production serves merge commit `c1632fc4c6d5a5d22f27c256fdf066e5d6710966`, exposes commit-matched deployment metadata, passes Cloudflare security/no-store header checks and contains no Hugging Face runtime dependency.
 
 ## WP-039 — Cloudflare/Supabase runtime contract
 
-**Status:** active; claimed in issue #35  
-Provide the Cloudflare build with only `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`, use the free-tier default-provider PKCE magic link, set the Supabase Auth Site URL and allow-list to the fixed Pages URL, remove the consumed one-time callback code after exchange, disable implicit access/refresh token fragments, deploy the cleanup function and preserve RLS as the authorization boundary. Numeric e-mail OTP remains deferred until custom SMTP or a qualifying Supabase plan exists.
+**Status:** complete; evidence in issue #35  
+The production artifact uses real browser-safe Supabase configuration, the fixed Cloudflare Auth Site URL and allow-list, the free-tier default-provider PKCE magic link, consumed one-time callback-code cleanup, disabled implicit access/refresh-token fragments, the deployed authenticated cleanup function and RLS as the authorization boundary. Numeric e-mail OTP remains deferred until custom SMTP or a qualifying Supabase plan exists.
 
 ## WP-040 — Production liveness and privacy portrait
 
@@ -90,11 +90,11 @@ Server-authoritative attraction, match, one-time synthetic proof entitlement, co
 ## WP-055 — Backend proof validation
 
 **Status:** active  
-CI proves empty-database replay, pgTAP assertions, schema lint, cross-account isolation, publication gating, one-time proof entitlement, active-match portrait access, contact ending, true parallel races, block enforcement, moderation escalation and relational deletion/anonymisation. Remaining acceptance moves from Hugging Face to Cloudflare Pages.
+CI proves empty-database replay, pgTAP assertions, schema lint, cross-account isolation, publication gating, one-time proof entitlement, active-match portrait access, contact ending, true parallel races, block enforcement, moderation escalation and relational deletion/anonymisation. Cloudflare production deployment is proven; behavioural browser acceptance remains in WP-057.
 
 ## WP-057 — Controlled two-account remote proof
 
-**Status:** active; Cloudflare browser execution pending  
+**Status:** active; claimed in issue #41  
 Use two controlled synthetic adult accounts on the canonical Cloudflare staging URL to prove same-browser-profile PKCE magic links, consumed-code cleanup, session restore, persistent onboarding, publication, opposite-sex discovery, reciprocal likes, exactly one match, one-time contact entitlement, realtime chat, signed matched portrait, normal end-contact, block/report/private feedback and cross-account privacy isolation. Finish by invoking provider cleanup and proving object, Auth, relational and anonymised-audit outcomes.
 
 ## WP-058 — Provider account and object cleanup
@@ -104,7 +104,7 @@ The authenticated Edge Function removes UUID-scoped private portrait objects bef
 
 ## WP-059 — Hugging Face hosting retirement
 
-**Status:** implementation complete; remote artifact retirement remains optional operational cleanup  
+**Status:** complete; remote artifact removal remains optional operational cleanup  
 Public and private Hugging Face deployment workflows, active helpers and evidence automation are removed. Historical Spaces are non-canonical project history and are excluded from acceptance testing.
 
 ## WP-060 — Payments and entitlements
