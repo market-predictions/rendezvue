@@ -118,16 +118,52 @@ jobs:
       - name: Deploy authenticated account cleanup function
         run: supabase functions deploy delete-private-proof-account --project-ref "$SUPABASE_PROJECT_REF"
 
-      - name: Configure Supabase Auth for Cloudflare staging and e-mail OTP
+      - name: Configure Supabase Auth URL for Cloudflare staging
         shell: bash
         run: |
           set -euo pipefail
-          payload="$RUNNER_TEMP/cloudflare-auth-config.json"
-          response="$RUNNER_TEMP/cloudflare-auth-response.json"
+          payload="$RUNNER_TEMP/cloudflare-url-config.json"
+          response="$RUNNER_TEMP/cloudflare-url-response.json"
 
           node --input-type=module - "$payload" <<'NODE'
           import { writeFileSync } from 'node:fs';
           const staging = process.env.RENDEZVUE_STAGING_URL;
+          writeFileSync(process.argv[2], JSON.stringify({
+            site_url: staging,
+            uri_allow_list: staging
+          }));
+          NODE
+
+          status="$(curl --silent --show-error --output "$response" --write-out '%{http_code}' \
+            --request PATCH \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            --header 'content-type: application/json' \
+            --data-binary "@$payload" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/auth")"
+          if [[ "$status" != "200" ]]; then
+            echo "::error title=Cloudflare Auth URL configuration failed::Supabase Management API returned HTTP $status"
+            node --input-type=module --eval "
+              import { readFileSync } from 'node:fs';
+              const raw = readFileSync(process.argv[1], 'utf8');
+              try {
+                const error = JSON.parse(raw);
+                console.error(JSON.stringify({ message: error.message, error: error.error, code: error.code }));
+              } catch {
+                console.error(raw.slice(0, 1000));
+              }
+            " "$response"
+            exit 1
+          fi
+
+      - name: Configure callback-free e-mail OTP template
+        shell: bash
+        run: |
+          set -euo pipefail
+          payload="$RUNNER_TEMP/cloudflare-otp-config.json"
+          response="$RUNNER_TEMP/cloudflare-otp-response.json"
+
+          node --input-type=module - "$payload" <<'NODE'
+          import { writeFileSync } from 'node:fs';
           const template = [
             '<h2>Rendezvue aanmeldcode</h2>',
             '<p>Voer onderstaande code in het reeds geopende Rendezvue-tabblad in.</p>',
@@ -136,8 +172,6 @@ jobs:
             '<p>Deel deze code met niemand.</p>'
           ].join('');
           writeFileSync(process.argv[2], JSON.stringify({
-            site_url: staging,
-            uri_allow_list: staging,
             mailer_subjects_magic_link: 'Rendezvue aanmeldcode',
             mailer_templates_magic_link_content: template
           }));
@@ -150,16 +184,42 @@ jobs:
             --data-binary "@$payload" \
             "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/auth")"
           if [[ "$status" != "200" ]]; then
-            echo "::error title=Cloudflare Auth configuration failed::Supabase Management API returned HTTP $status"
+            echo "::error title=Cloudflare e-mail OTP configuration failed::Supabase Management API returned HTTP $status"
+            node --input-type=module --eval "
+              import { readFileSync } from 'node:fs';
+              const raw = readFileSync(process.argv[1], 'utf8');
+              try {
+                const error = JSON.parse(raw);
+                console.error(JSON.stringify({ message: error.message, error: error.error, code: error.code }));
+              } catch {
+                console.error(raw.slice(0, 1000));
+              }
+            " "$response"
             exit 1
           fi
+
+      - name: Verify Supabase Auth staging configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          response="$RUNNER_TEMP/cloudflare-auth-verification.json"
+          status="$(curl --silent --show-error --output "$response" --write-out '%{http_code}' \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/auth")"
+          [[ "$status" == "200" ]] || { echo "::error title=Auth configuration verification failed::HTTP $status"; exit 1; }
 
           node --input-type=module - "$response" <<'NODE'
           import { readFileSync } from 'node:fs';
           const expected = process.env.RENDEZVUE_STAGING_URL;
           const config = JSON.parse(readFileSync(process.argv[2], 'utf8'));
           if (config.site_url !== expected) throw new Error('Supabase Site URL does not match Cloudflare staging');
-          if (String(config.uri_allow_list ?? '') !== expected) throw new Error('Supabase redirect allow-list is not restricted to Cloudflare staging');
+          const allow = String(config.uri_allow_list ?? '')
+            .split(',')
+            .map((value) => value.trim())
+            .filter(Boolean);
+          if (allow.length !== 1 || allow[0] !== expected) {
+            throw new Error('Supabase redirect allow-list is not restricted to the canonical Cloudflare URL');
+          }
           const template = String(config.mailer_templates_magic_link_content ?? '');
           if (!template.includes('{{ .Token }}')) throw new Error('E-mail OTP token marker is missing');
           if (template.includes('{{ .ConfirmationURL }}')) throw new Error('Magic-link callback marker is still present');
