@@ -69,3 +69,14 @@ style.textContent = `
   }
 `;
 document.head.append(style);
+
+const userSummary = document.querySelector('#user-summary');
+if (userSummary) {
+  const scrubIdentity = () => {
+    if (userSummary.textContent !== '—' && userSummary.textContent !== 'Gecontroleerd synthetisch testaccount actief') {
+      userSummary.textContent = 'Gecontroleerd synthetisch testaccount actief';
+    }
+  };
+  new MutationObserver(scrubIdentity).observe(userSummary, { childList: true, characterData: true, subtree: true });
+  scrubIdentity();
+}
