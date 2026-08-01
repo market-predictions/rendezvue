@@ -4,77 +4,87 @@ Rendezvue is a Dutch-first, privacy-first platform concept for serious introduct
 
 Membership is **student-first, not student-only**. Students can eventually verify their status for a badge, Campus Mode, events and reduced contact pricing, while recent graduates, professionals, entrepreneurs and other eligible adults can participate in the same marketplace.
 
-## Hosted concept pilot
+## Canonical staging
 
-**Public review URL:** `https://solidprivacy-rendezvue.static.hf.space/`
+**Cloudflare Pages:** `https://rendezvue-private-preview.pages.dev/`
 
-Product baseline v1 is merged into GitHub `main`. The automated deployment workflow builds the accepted source, uploads the generated Static Space artifact and records hosted verification in issue #2.
+This is the sole web-facing staging environment. It connects to the non-production Supabase proof project and is restricted to controlled synthetic adult accounts. Real-user admission is not authorized.
 
-The concept pilot demonstrates:
+GitHub `main` is the source of truth. Cloudflare Pages builds `dist-private-preview` with:
 
-- progressive Dutch/English onboarding;
-- adult, single and serious-intent eligibility;
-- open membership with optional student verification;
-- man/woman community onboarding with derived opposite-sex discovery;
-- life stage, marital history, children and child preferences;
-- live camera capture with browser-local fuzzy privacy portraits;
-- profile preview and visibility controls;
-- pass, direct like, contextual like and swipe gestures;
-- reciprocal pilot match and simulated contact entitlement;
-- local text chat, block, report and end-contact feedback;
-- no public ratings or automatic feedback-based visibility penalty.
+- `npm run build:cloudflare`;
+- browser-safe `SUPABASE_URL`;
+- browser-safe `SUPABASE_PUBLISHABLE_KEY`;
+- commit-matched deployment metadata;
+- Cloudflare security and no-store headers.
 
-It does **not** provide production authentication, age assurance, marital-status verification, liveness classification, persistent multi-user data, real payments, moderation operations or legal readiness for real religious-profile data.
+Supabase provides Auth, PostgreSQL/RLS, private Storage, Realtime and Edge Functions. Passwordless authentication uses a numeric e-mail OTP verified inside the already-open application; access and refresh tokens are not accepted in application URLs.
+
+## Historical concept artifact
+
+`apps/web` remains the dependency-light local-demo concept source for product and interaction comparison. Its generated `dist` artifact is explicitly non-canonical and is not automatically deployed.
+
+The former public and private Hugging Face Spaces are retired application hosts. Existing Spaces may remain reachable as stale historical artifacts, but no workflow updates them and no acceptance testing is performed there.
 
 ## Backend proof
 
-Phase 2 has started on a separate development branch. The repository now contains:
+The repository contains:
 
-- a local Supabase configuration;
-- versioned PostgreSQL migrations;
+- versioned Supabase migrations;
 - Auth-linked account/profile boundaries;
 - Row Level Security;
 - private portrait storage;
 - server-authoritative likes, reciprocal matches and contact entitlements;
 - conversations, messages, blocks, feedback, reports, moderation and audit contracts;
-- a browser-safe backend adapter that defaults to `local-demo`.
+- resumable onboarding and server-side profile publication;
+- one-time synthetic contact proof;
+- active-match signed portrait access;
+- provider-orchestrated object and account cleanup;
+- ten seeded Auth-linked synthetic profiles and ten private portraits.
 
-No remote backend or real-user environment is configured. See [Backend proof](docs/BACKEND-PROOF.md).
-
-## Repository authority
-
-**GitHub is the sole source of truth.** Hugging Face is a one-way generated Static Space deployment target. Direct Space edits are unsupported and overwritten.
-
-## Architecture direction
+## Architecture
 
 ```text
 GitHub source and governance
         |
-        +--> Generated public Hugging Face PWA (synthetic local demo)
-        |
-        +--> Versioned backend migrations
-                   |
-                   v
-             Private proof environment
-             Auth + PostgreSQL/RLS + Storage + Realtime
+        +--> Cloudflare Pages previews and canonical staging
+        |           |
+        |           v
+        |      browser-safe Supabase client
+        |           |
+        +--> protected GitHub Actions configuration
+                    |
+                    v
+              Supabase Auth
+              PostgreSQL + RLS
+              private Storage
+              Realtime
+              Edge Functions
 ```
 
-Persistent state must never depend on Hugging Face. Real-user admission requires an external server-authoritative backend, row-level authorization, moderation and formal privacy/legal gates.
+Persistent state never depends on Cloudflare Pages. RLS and server operations remain the authorization boundary.
 
-## Local validation
+## Validation
 
 ```bash
+npm ci
 npm run check
-npm run dev
 ```
 
-Open `http://localhost:4173`.
+Cloudflare artifact validation uses browser-safe placeholders:
 
-After installing the Supabase CLI, the backend proof is intended to be validated with:
+```bash
+SUPABASE_URL=https://example.supabase.co \
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_ci_only_placeholder_00000000000000000000 \
+npm run check:cloudflare
+```
+
+After installing the Supabase CLI, backend validation is:
 
 ```bash
 supabase start
 supabase db reset
+supabase test db
 ```
 
 ## Governance and design
@@ -87,13 +97,13 @@ supabase db reset
 - [Onboarding](docs/ONBOARDING.md)
 - [Interaction and trust](docs/INTERACTION-AND-TRUST-MODEL.md)
 - [Privacy and safety](docs/PRIVACY-AND-SAFETY.md)
-- [Pilot protocol](docs/PILOT-PROTOCOL.md)
-- [UX principles](docs/UX-PRINCIPLES.md)
+- [Cloudflare staging proof](docs/PRIVATE-SUPABASE-PREVIEW.md)
 - [Work packages](docs/WORKPACKAGES.md)
 - [Work claims](docs/WORK-CLAIMS.md)
 - [Handover](docs/HANDOVER.md)
 - [Changelog](CHANGELOG.md)
+- [ADR-0008: Cloudflare Pages canonical staging](docs/decisions/ADR-0008-cloudflare-pages-canonical-staging.md)
 
 ## Security boundary
 
-Do not commit or enter real student documents, identity evidence, production credentials, source selfies, religious profiles or real conversations in this public prototype. Use synthetic data only.
+Do not commit or enter real student documents, identity evidence, production credentials, source selfies, religious profiles or real conversations. Use synthetic data only until legal, privacy, security, moderation and explicit real-user admission gates are complete.
