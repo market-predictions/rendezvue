@@ -26,8 +26,12 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm ci
+      - name: Generate reproducible synthetic portraits
+        run: |
+          python -m pip install 'Pillow==11.3.0'
+          python scripts/generate-synthetic-portraits.py
       - run: npm run check
-      - run: python -m py_compile scripts/huggingface_space.py scripts/huggingface_private_space.py
+      - run: python -m py_compile scripts/huggingface_space.py scripts/huggingface_private_space.py scripts/generate-synthetic-portraits.py
 
   private_preview:
     name: Hosted private preview and cleanup boundary
@@ -114,6 +118,53 @@ jobs:
         run: supabase test db
       - name: Run parallel match and entitlement race tests
         run: bash supabase/tests/concurrency/run.sh
+      - name: Execute and verify deterministic synthetic SQL seed
+        shell: bash
+        run: |
+          set -euo pipefail
+          log_file="$RUNNER_TEMP/synthetic-seed-sql.log"
+          db_container="$(docker ps --filter 'name=supabase_db_' --format '{{.Names}}' | head -n 1)"
+          if [[ -z "$db_container" ]]; then
+            echo 'No running local Supabase database container found.' | tee "$log_file"
+            exit 1
+          fi
+          docker exec "$db_container" rm -rf /tmp/synthetic-seed
+          docker cp synthetic-seed "$db_container:/tmp/synthetic-seed"
+
+          set +e
+          docker exec -w /tmp "$db_container" \
+            psql -U postgres -d postgres -v ON_ERROR_STOP=1 -v VERBOSITY=verbose -f synthetic-seed/seed.sql \
+            >"$log_file" 2>&1
+          seed_status=$?
+          set -e
+          cat "$log_file"
+          if [[ "$seed_status" -ne 0 ]]; then
+            echo "Synthetic SQL seed failed with exit status $seed_status" | tee -a "$log_file"
+            exit "$seed_status"
+          fi
+
+          counts="$(docker exec "$db_container" psql -U postgres -d postgres -Atc \
+            "select concat_ws('|',
+              (select count(*) from public.profiles where is_synthetic),
+              (select count(*) from public.profiles where is_synthetic and publication_status='published'),
+              (select count(*) from public.profile_interests pi join public.profiles p on p.user_id=pi.user_id where p.is_synthetic),
+              (select count(*) from public.profile_prompts pp join public.profiles p on p.user_id=pp.user_id where p.is_synthetic),
+              (select count(*) from public.privacy_portraits pp join public.profiles p on p.user_id=pp.user_id where p.is_synthetic and pp.is_public_profile_portrait)
+            );")"
+          echo "Synthetic seed counts: $counts" | tee -a "$log_file"
+          if [[ "$counts" != '10|10|50|20|10' ]]; then
+            echo "Unexpected synthetic seed counts: $counts" | tee -a "$log_file"
+            exit 1
+          fi
+          echo "Synthetic seed counts verified: $counts" | tee -a "$log_file"
+      - name: Upload synthetic seed diagnostic log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-seed-diagnostics
+          path: ${{ runner.temp }}/synthetic-seed-sql.log
+          if-no-files-found: ignore
+          retention-days: 3
       - name: Lint local database schema
         run: supabase db lint --local --level warning
       - name: Stop local database

@@ -1,0 +1,126 @@
+name: Seed synthetic Rendezvue profiles
+
+on:
+  workflow_run:
+    workflows: ['Deploy private Supabase preview']
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rendezvue-private-synthetic-seed
+  cancel-in-progress: false
+
+jobs:
+  seed:
+    name: Seed ten synthetic discovery profiles
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: rendezvue-private-preview
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - uses: supabase/setup-cli@v2
+        with:
+          version: latest
+          github-token: ${{ github.token }}
+
+      - name: Validate protected project configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in SUPABASE_ACCESS_TOKEN SUPABASE_PROJECT_REF SUPABASE_DB_PASSWORD SUPABASE_URL; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error title=Missing protected configuration::$name is not configured"
+              exit 1
+            fi
+          done
+          node --input-type=module <<'NODE'
+          const ref = process.env.SUPABASE_PROJECT_REF;
+          const url = new URL(process.env.SUPABASE_URL);
+          if (url.protocol !== 'https:' || url.hostname !== `${ref}.supabase.co`) {
+            throw new Error('SUPABASE_URL does not match SUPABASE_PROJECT_REF');
+          }
+          NODE
+
+      - run: npm ci
+
+      - name: Generate and validate seed package
+        run: |
+          python -m pip install 'Pillow==11.3.0'
+          python scripts/generate-synthetic-portraits.py
+          npm run validate:synthetic-seed
+
+      - name: Ensure repository migrations are applied
+        run: |
+          supabase link --project-ref "$SUPABASE_PROJECT_REF"
+          supabase db push
+
+      - name: Retrieve a server-only project API key
+        shell: bash
+        run: |
+          set -euo pipefail
+          response="$RUNNER_TEMP/supabase-api-keys.json"
+          status="$(curl --silent --show-error --output "$response" --write-out '%{http_code}' \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/api-keys?reveal=true")"
+          if [[ "$status" != "200" ]]; then
+            echo "::error title=API key retrieval failed::Supabase Management API returned HTTP $status"
+            exit 1
+          fi
+          node --input-type=module - "$response" "$GITHUB_ENV" <<'NODE'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          const keys = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+          const key = keys.find((item) => item.type === 'secret' && item.api_key)
+            ?? keys.find((item) => item.name === 'service_role' && item.api_key);
+          if (!key?.api_key) throw new Error('No revealed secret or service_role API key was returned');
+          console.log(`::add-mask::${key.api_key}`);
+          appendFileSync(process.argv[3], `SUPABASE_SECRET_KEY=${key.api_key}\n`);
+          NODE
+
+      - name: Generate run-scoped synthetic account password
+        shell: bash
+        run: |
+          set -euo pipefail
+          password="$(openssl rand -base64 48 | tr -d '\n')"
+          echo "::add-mask::$password"
+          printf 'RENDEZVUE_SYNTHETIC_PASSWORD=%s\n' "$password" >> "$GITHUB_ENV"
+
+      - name: Create accounts, relational records and private portraits
+        run: node synthetic-seed/seed-remote.mjs | tee "$RUNNER_TEMP/synthetic-seed-result.json"
+
+      - name: Write sanitized seed summary
+        shell: bash
+        run: |
+          node --input-type=module - "$RUNNER_TEMP/synthetic-seed-result.json" "$GITHUB_STEP_SUMMARY" <<'NODE'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          const result = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+          appendFileSync(process.argv[3], `## Rendezvue synthetic seed\n\n` +
+            `- Auth-linked synthetic profiles seeded: ${result.seeded}\n` +
+            `- Published synthetic discovery profiles: ${result.publishedSyntheticProfiles}\n` +
+            `- Selected private Storage portraits: ${result.selectedSyntheticPortraits}\n` +
+            `- Storage bucket: ${result.storageBucket}\n` +
+            `- Real-user admission authorized: ${result.realUserAdmissionAuthorized}\n`);
+          NODE
