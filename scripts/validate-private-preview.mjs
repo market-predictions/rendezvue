@@ -36,6 +36,14 @@ for (const file of required) {
   await readFile(resolve(target, file), 'utf8');
 }
 
+const wrangler = await readFile(resolve(root, 'wrangler.toml'), 'utf8');
+for (const marker of [
+  'name = "rendezvue-private-preview"',
+  'pages_build_output_dir = "dist-private-preview"'
+]) {
+  if (!wrangler.includes(marker)) throw new Error(`wrangler.toml is missing ${marker}`);
+}
+
 const deployment = JSON.parse(await readFile(resolve(target, 'deployment.json'), 'utf8'));
 if (deployment.backendMode !== 'supabase-proof') throw new Error('Staging artifact is not in supabase-proof mode');
 if (deployment.hostingPlatform !== 'cloudflare-pages') throw new Error('Staging artifact is not marked for Cloudflare Pages');
