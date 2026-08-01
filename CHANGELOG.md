@@ -16,12 +16,15 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Removed active Hugging Face deployment and deployment-evidence workflows and retired their helper code.
 - Rebased the roadmap, work packages, work claims, architecture, handover and private proof protocol on Cloudflare Pages.
 
-### Passwordless authentication correction
+### Passwordless authentication provider correction
 
-- Replaced private-host magic-link callbacks with a numeric e-mail OTP verified inside the already-open application.
-- Disabled automatic session extraction from URL query parameters and fragments.
-- Added cleanup of legacy callback parameters and prohibited access/refresh tokens in the staging URL.
-- Changed proof sign-out to revoke all refresh sessions for the proof account.
+- Remote execution proved that Supabase free-tier projects using the default mail provider cannot customize the passwordless e-mail template; numeric `{{ .Token }}` delivery requires custom SMTP or a qualifying plan.
+- Removed the unavailable numeric e-mail OTP interface, verification module and template-configuration workflow step.
+- Restored the default-provider magic link with Supabase PKCE and the fixed Cloudflare `emailRedirectTo` URL.
+- Required the magic link to be requested and opened in the same isolated browser profile so the local PKCE verifier is available.
+- Accepted only a one-time `?code=` callback and removed the consumed code from browser history after successful session exchange.
+- Disabled the implicit flow so access and refresh tokens never appear in URL fragments.
+- Retained global proof sign-out to revoke all refresh sessions for the proof account.
 
 ### Synthetic profile seed
 
@@ -41,7 +44,7 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ### Auth and resumable onboarding contracts
 
-- Added a provider-injectable passwordless/session adapter with email normalization, session restore, current-user lookup, auth-state subscription and sign-out.
+- Added a provider-injectable passwordless/session adapter with email normalization, redirect configuration, session restore, current-user lookup, auth-state subscription and sign-out.
 - Added owner-derived stage persistence with strict per-domain field allowlists.
 - Added versioned `onboarding_progress`, first-class prompts/interests and transactional personality save.
 - Added owner-only sanitized onboarding snapshots.
@@ -90,14 +93,18 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Provider cleanup PR #26 merged as `8400ebc7`.
 - Historical private Hugging Face architecture PR #29 merged as `37420b21`.
 - Synthetic seed PR #32 merged as `e058696b` and remote seed execution reported 10 Auth-linked profiles, 10 published profiles and 10 selected portraits.
-- OTP correction PR #34 merged as `85818340`.
+- Hosted callback experiments PR #33 and OTP experiment PR #34 documented the Hugging Face gateway and free-tier provider constraints; neither authentication route remains canonical.
+- Cloudflare canonical staging PR #36 merged as `fad220bc`.
+- Fail-closed migration evidence PR #37 merged as `d5947cc3`.
+- Cloudflare verifier/Auth deployment repair PR #38 merged as `544022a8`.
+- Remote run `30698614914` proved the canonical Cloudflare Site URL and allow-list were accepted, migrations were current and cleanup deployed; it then proved numeric OTP template modification is unavailable on the current free-tier/default-provider combination.
 - CI validates application artifacts, browser/server credential separation, Deno type checking, Edge Runtime/CORS/auth gates, Docker, clean migration replay, pgTAP assertions, true parallel match/contact races and schema lint.
 - Real-user admission remains unauthorized.
 
 ### Pending review and proof
 
-- Verify the fixed Cloudflare Pages production URL serves the merged commit.
-- Execute e-mail OTP, session recovery and sign-out using two controlled synthetic accounts in two isolated browser profiles.
+- Verify the fixed Cloudflare Pages production URL serves the merged PKCE-magic-link commit.
+- Execute same-browser-profile magic-link callback exchange, consumed-code removal, session recovery and global sign-out using two controlled synthetic accounts.
 - Execute persistent two-account onboarding, publication, reciprocal discovery/likes and exactly one match.
 - Execute remote one-time entitlement, realtime chat, signed portrait, end-contact, block/report and private feedback.
 - Execute authenticated deletion of private objects and both proof accounts, including relational cascades and retained audit anonymisation.
