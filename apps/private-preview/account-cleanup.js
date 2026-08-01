@@ -3,6 +3,7 @@ import './proof-console-ui.js';
 import './proof-orchestrator.js';
 import './proof-log-observer.js';
 import './proof-signout-guard.js';
+import './proof-portrait-generator.js';
 
 const CONFIRMATION = 'DELETE_SYNTHETIC_ACCOUNT';
 const form = document.querySelector('#delete-account-form');
