@@ -77,9 +77,10 @@ for (const marker of [
 }
 
 for (const marker of [
-  'global-signout-proven',
+  'explicit-global-signout',
   "step === 'globalSignOut'",
   "step !== 'cleanup'",
+  "localStorage.setItem(marker, 'true')",
   "status: 'blocked'",
   'vóór accountcleanup afzonderlijk worden bewezen'
 ]) {
