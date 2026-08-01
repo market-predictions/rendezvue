@@ -1,4 +1,7 @@
 import { supabase } from './app.js';
+import './proof-console-ui.js';
+import './proof-orchestrator.js';
+import './proof-log-observer.js';
 
 const CONFIRMATION = 'DELETE_SYNTHETIC_ACCOUNT';
 const form = document.querySelector('#delete-account-form');
@@ -34,12 +37,24 @@ form.addEventListener('submit', async (event) => {
     if (error) throw new Error(`Accountcleanup mislukt: ${error.message}`);
     if (!data?.deleted) throw new Error('De cleanupfunctie bevestigde geen accountverwijdering');
 
-    output.textContent = JSON.stringify({
+    const sanitizedResult = {
       deleted: true,
       removedPrivateObjects: Number(data.removedPrivateObjects ?? 0),
       retainedAuditIdentifiersAnonymised: data.retainedAuditIdentifiersAnonymised === true,
       signedOutLocally: true
-    }, null, 2);
+    };
+    output.textContent = JSON.stringify(sanitizedResult, null, 2);
+
+    globalThis.dispatchEvent(new CustomEvent('rendezvue:proof-event', {
+      detail: {
+        step: 'cleanup',
+        status: 'pass',
+        details: {
+          count: sanitizedResult.removedPrivateObjects,
+          present: sanitizedResult.retainedAuditIdentifiersAnonymised
+        }
+      }
+    }));
 
     // The remote Auth user no longer exists. Remove the now-stale local
     // browser session without attempting another server-side Auth mutation.
