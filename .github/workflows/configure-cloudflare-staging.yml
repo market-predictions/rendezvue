@@ -155,49 +155,6 @@ jobs:
             exit 1
           fi
 
-      - name: Configure callback-free e-mail OTP template
-        shell: bash
-        run: |
-          set -euo pipefail
-          payload="$RUNNER_TEMP/cloudflare-otp-config.json"
-          response="$RUNNER_TEMP/cloudflare-otp-response.json"
-
-          node --input-type=module - "$payload" <<'NODE'
-          import { writeFileSync } from 'node:fs';
-          const template = [
-            '<h2>Rendezvue aanmeldcode</h2>',
-            '<p>Voer onderstaande code in het reeds geopende Rendezvue-tabblad in.</p>',
-            '<p style="font-size:32px;letter-spacing:6px"><strong>{{ .Token }}</strong></p>',
-            '<p>Deze code verloopt binnenkort en kan slechts één keer worden gebruikt.</p>',
-            '<p>Deel deze code met niemand.</p>'
-          ].join('');
-          writeFileSync(process.argv[2], JSON.stringify({
-            mailer_subjects_magic_link: 'Rendezvue aanmeldcode',
-            mailer_templates_magic_link_content: template
-          }));
-          NODE
-
-          status="$(curl --silent --show-error --output "$response" --write-out '%{http_code}' \
-            --request PATCH \
-            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
-            --header 'content-type: application/json' \
-            --data-binary "@$payload" \
-            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/auth")"
-          if [[ "$status" != "200" ]]; then
-            echo "::error title=Cloudflare e-mail OTP configuration failed::Supabase Management API returned HTTP $status"
-            node --input-type=module --eval "
-              import { readFileSync } from 'node:fs';
-              const raw = readFileSync(process.argv[1], 'utf8');
-              try {
-                const error = JSON.parse(raw);
-                console.error(JSON.stringify({ message: error.message, error: error.error, code: error.code }));
-              } catch {
-                console.error(raw.slice(0, 1000));
-              }
-            " "$response"
-            exit 1
-          fi
-
       - name: Verify Supabase Auth staging configuration
         shell: bash
         run: |
@@ -220,9 +177,6 @@ jobs:
           if (allow.length !== 1 || allow[0] !== expected) {
             throw new Error('Supabase redirect allow-list is not restricted to the canonical Cloudflare URL');
           }
-          const template = String(config.mailer_templates_magic_link_content ?? '');
-          if (!template.includes('{{ .Token }}')) throw new Error('E-mail OTP token marker is missing');
-          if (template.includes('{{ .ConfirmationURL }}')) throw new Error('Magic-link callback marker is still present');
           NODE
 
       - name: Check remote Auth and Data API health
@@ -265,7 +219,7 @@ jobs:
           - Pending migrations applied: ${{ github.event_name == 'push' || inputs.apply_migrations }}
           - Remote Auth and Data API: passed
           - Supabase Site URL and allow-list: Cloudflare Pages only
-          - Passwordless delivery: in-app e-mail OTP
+          - Passwordless delivery: default-provider PKCE magic link
           - Authenticated account cleanup deployed: yes
           - Browser/server secret boundary: validated
           - Hugging Face deployment performed: no
@@ -285,7 +239,7 @@ jobs:
           - commit: \`${GITHUB_SHA}\`
           - workflow: $RUN_URL
           - Supabase Site URL and allow-list: \`$RENDEZVUE_STAGING_URL\`
-          - e-mail OTP template: verified
+          - passwordless flow: default-provider PKCE magic link
           - migrations, remote health, cleanup deployment and anonymous rejection: passed
           - browser artifact credential boundary: passed
           - real-user admission: not authorized
@@ -303,7 +257,7 @@ jobs:
 
           - commit: \`${GITHUB_SHA}\`
           - workflow: $RUN_URL
-          - result: migration, Supabase configuration, health, cleanup deployment or browser artifact validation did not complete
+          - result: migration, Supabase URL configuration, health, cleanup deployment or browser artifact validation did not complete
           - action: inspect the protected run; no backend or Cloudflare staging success is claimed
           - real-user admission: not authorized
           EOF

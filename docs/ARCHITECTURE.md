@@ -1,6 +1,6 @@
 # Rendezvue architecture
 
-**Version:** 2.0  
+**Version:** 2.1  
 **Updated:** 2026-08-01
 
 ## 1. Canonical staging topology
@@ -43,7 +43,7 @@ apps/web/
 
 apps/private-preview/
   canonical Supabase-connected staging harness
-  e-mail OTP, onboarding, discovery, matching, chat and cleanup controls
+  PKCE magic links, onboarding, discovery, matching, chat and cleanup controls
 ```
 
 The local-demo artifact remains useful as product-design source but is not a hosted authority. The Supabase-connected application is built into `dist-private-preview` for Cloudflare Pages.
@@ -70,17 +70,19 @@ The build rejects secret/service-role keys, database URLs, access tokens, passwo
 
 ## 4. Passwordless authentication
 
-Rendezvue staging uses a numeric e-mail OTP:
+Rendezvue staging uses the Supabase default-provider magic link with PKCE:
 
-1. the browser requests an OTP with `signInWithOtp`;
-2. Supabase sends `{{ .Token }}` rather than a confirmation URL;
-3. the code is entered in the already-open Cloudflare application;
-4. the browser verifies it with `verifyOtp({ type: 'email' })`;
-5. one shared Supabase client owns the session and all subsequent operations.
+1. the browser requests a magic link with `signInWithOtp` and the fixed Cloudflare `emailRedirectTo`;
+2. Supabase stores the PKCE verifier in the requesting browser profile and sends the default confirmation link;
+3. the newest link is opened in that same browser profile;
+4. Supabase redirects to Cloudflare with a short-lived one-time `?code=`;
+5. the shared Supabase client exchanges the code for a session;
+6. after successful exchange, Rendezvue removes the consumed code from browser history;
+7. the same shared client owns onboarding, interaction and cleanup operations.
 
-Automatic session extraction from URL query parameters or fragments is disabled. Legacy `?code=` and `#access_token=` callbacks are removed from browser history and ignored.
+`flowType: 'pkce'` and `detectSessionInUrl: true` are required. The implicit flow is disabled, so access and refresh tokens are not transported in URL fragments.
 
-The protected workflow configures the Supabase Auth Site URL and redirect allow-list to the fixed Cloudflare URL. The OTP flow itself does not depend on redirect transport.
+The protected workflow configures the Supabase Auth Site URL and redirect allow-list to the fixed Cloudflare URL. Remote execution proved that free-tier projects using the Supabase default mail provider cannot customize the passwordless e-mail template. Numeric `{{ .Token }}` delivery therefore requires custom SMTP or a qualifying plan and is not part of this proof.
 
 ## 5. Server-authoritative domain boundaries
 
@@ -131,7 +133,7 @@ Portrait objects are private and owner-scoped. An active matched participant may
 ## 7. Data exposure rules
 
 - private profile domains are owner-only;
-- `discovery_profiles` exposes only approved discovery fields;
+- `discovery_profiles` exposes only approved published fields;
 - full family and faith data remain fail-closed;
 - incoming likes are not directly queryable by the recipient;
 - participants can read only their matches, conversations and messages;
@@ -146,7 +148,9 @@ Portrait objects are private and owner-scoped. An active matched participant may
 - persistent state never depends on Cloudflare Pages;
 - GitHub source and migrations are authoritative;
 - only browser-safe configuration enters the Pages artifact;
-- URL access and refresh tokens are not accepted as an authentication transport;
+- only a short-lived PKCE authorization code is accepted in the callback URL;
+- implicit access and refresh token fragments are disabled;
+- consumed PKCE codes are removed from browser history;
 - account identity and student evidence are separate;
 - age assurance and student verification are independent;
 - source media and public portrait are separate data classes;
@@ -168,8 +172,8 @@ GitHub Actions validates application code, the Cloudflare artifact, credential b
 Relevant accepted changes trigger:
 
 1. Cloudflare Pages production deployment through the existing GitHub integration;
-2. protected Supabase configuration, migration, health and Edge Function checks;
-3. polling verification that production `deployment.json` matches the merged commit.
+2. protected Supabase URL configuration, migration, health and Edge Function checks;
+3. polling verification that production `deployment.json` matches the merged commit and declares PKCE magic-link authentication.
 
 ### Production
 

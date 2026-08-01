@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 2.0  
+**Version:** 2.1  
 **Updated:** 2026-08-01
 
 ## Operating doctrine
@@ -36,22 +36,26 @@ Acceptance criteria:
 
 ### 0B. Supabase staging configuration
 
-**Status:** active.
+**Status:** active; canonical Cloudflare URL accepted remotely, final end-to-end run pending.
 
 Acceptance criteria:
 
 - Supabase Auth Site URL and redirect allow-list use the fixed Cloudflare Pages URL;
-- passwordless sign-in uses a numeric e-mail OTP verified inside the already-open application;
-- URL access/refresh tokens and legacy callback fragments are ignored and removed;
+- passwordless sign-in uses the free-tier default-provider magic link with PKCE;
+- the link is requested and opened in the same isolated browser profile;
+- only a one-time `?code=` callback is accepted and removed after successful exchange;
+- implicit access- and refresh-token URL fragments remain disabled;
 - remote migrations, platform health, Edge Function deployment and anonymous cleanup rejection remain automatically checked.
+
+Provider constraint proven on 2026-08-01: numeric `{{ .Token }}` e-mail delivery is unavailable on a free-tier project using Supabase's default mail provider. It requires custom SMTP or a plan change and is therefore outside this proof.
 
 ### 0C. Hugging Face retirement
 
-**Status:** active.
+**Status:** implementation complete; historical remote artifacts may remain reachable.
 
 Acceptance criteria:
 
-- public and private Hugging Face deployment workflows are disabled or removed;
+- public and private Hugging Face deployment workflows are removed;
 - active Hugging Face helper code and deployment-evidence automation are removed;
 - historical deployment evidence remains documented but is not presented as current architecture;
 - no further acceptance testing is performed on Hugging Face.
@@ -120,19 +124,21 @@ Demonstrated:
 
 Delivered:
 
-- browser e-mail OTP and persistent session adapter;
+- browser PKCE magic-link and persistent session adapter;
 - one shared browser Supabase client for authentication, onboarding, interaction and cleanup;
+- consumed PKCE callback-code removal after successful session exchange;
+- implicit access/refresh token fragments disabled;
 - owner-derived onboarding persistence with prompts/interests and sanitized snapshot;
 - server-side publication gate and cross-account draft isolation;
 - recursive browser-artifact credential scanning;
 - authenticated provider-orchestrated private object and Auth-account cleanup;
-- protected remote migration/function/configuration workflow;
+- protected remote migration/function/URL configuration workflow;
 - deterministic synthetic seed with ten Auth-linked published profiles and ten private portraits.
 
 Still required:
 
 - production Pages deployment verified against the merged commit;
-- controlled e-mail OTP and session-recovery execution;
+- controlled same-browser-profile magic-link and session-recovery execution;
 - recovery and duplicate-account controls;
 - abandonment retention policy and cleanup job.
 
@@ -143,15 +149,16 @@ Still required:
 Execute only on canonical Cloudflare staging:
 
 1. create or use two controlled synthetic adult accounts in isolated browser profiles;
-2. prove e-mail OTP, session restore, sign-out and sign-in;
-3. persist and publish one synthetic man and one synthetic woman profile;
-4. prove draft/family/faith/object isolation cross-account;
-5. prove opposite-sex eligible discovery and exactly one reciprocal match;
-6. claim one proof contact right and open exactly one conversation;
-7. exchange realtime synthetic text messages;
-8. validate signed portrait delivery, end-contact, block, report and feedback enforcement;
-9. invoke provider cleanup for both accounts;
-10. prove private object, Auth, relational and anonymised-audit outcomes.
+2. request and open each magic link in the same corresponding browser profile;
+3. prove PKCE callback exchange, consumed-code removal, session restore, sign-out and sign-in;
+4. persist and publish one synthetic man and one synthetic woman profile;
+5. prove draft/family/faith/object isolation cross-account;
+6. prove opposite-sex eligible discovery and exactly one reciprocal match;
+7. claim one proof contact right and open exactly one conversation;
+8. exchange realtime synthetic text messages;
+9. validate signed portrait delivery, end-contact, block, report and feedback enforcement;
+10. invoke provider cleanup for both accounts;
+11. prove private object, Auth, relational and anonymised-audit outcomes.
 
 ### 2E. Institution and student-benefit verification
 

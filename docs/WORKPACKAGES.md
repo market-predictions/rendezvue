@@ -55,7 +55,7 @@ Target-user research, Article 9 basis, withdrawal/deletion and anti-discriminati
 ## WP-030 — Production account and eligibility stack
 
 **Status:** active  
-Auth-linked account/profile domains, RLS, email OTP/session adapter, versioned onboarding progress, owner-derived stage writes, prompts/interests and server-side publication are implemented. Remaining: controlled Cloudflare session/deletion proof, recovery, duplicate-account controls and abandonment retention.
+Auth-linked account/profile domains, RLS, PKCE magic-link/session adapter, versioned onboarding progress, owner-derived stage writes, prompts/interests and server-side publication are implemented. Remaining: controlled Cloudflare session/deletion proof, recovery, duplicate-account controls and abandonment retention.
 
 ## WP-035 — Resumable onboarding persistence
 
@@ -75,7 +75,7 @@ Make `https://rendezvue-private-preview.pages.dev/` the sole canonical web-facin
 ## WP-039 — Cloudflare/Supabase runtime contract
 
 **Status:** active; claimed in issue #35  
-Provide the Cloudflare build with only `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`, keep email OTP verification inside the application, set the Supabase Auth Site URL and allow-list to the fixed Pages URL, deploy the cleanup function and preserve RLS as the authorization boundary.
+Provide the Cloudflare build with only `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`, use the free-tier default-provider PKCE magic link, set the Supabase Auth Site URL and allow-list to the fixed Pages URL, remove the consumed one-time callback code after exchange, disable implicit access/refresh token fragments, deploy the cleanup function and preserve RLS as the authorization boundary. Numeric e-mail OTP remains deferred until custom SMTP or a qualifying Supabase plan exists.
 
 ## WP-040 — Production liveness and privacy portrait
 
@@ -95,7 +95,7 @@ CI proves empty-database replay, pgTAP assertions, schema lint, cross-account is
 ## WP-057 — Controlled two-account remote proof
 
 **Status:** active; Cloudflare browser execution pending  
-Use two controlled synthetic adult accounts on the canonical Cloudflare staging URL to prove email OTP, session restore, persistent onboarding, publication, opposite-sex discovery, reciprocal likes, exactly one match, one-time contact entitlement, realtime chat, signed matched portrait, normal end-contact, block/report/private feedback and cross-account privacy isolation. Finish by invoking provider cleanup and proving object, Auth, relational and anonymised-audit outcomes.
+Use two controlled synthetic adult accounts on the canonical Cloudflare staging URL to prove same-browser-profile PKCE magic links, consumed-code cleanup, session restore, persistent onboarding, publication, opposite-sex discovery, reciprocal likes, exactly one match, one-time contact entitlement, realtime chat, signed matched portrait, normal end-contact, block/report/private feedback and cross-account privacy isolation. Finish by invoking provider cleanup and proving object, Auth, relational and anonymised-audit outcomes.
 
 ## WP-058 — Provider account and object cleanup
 
@@ -104,8 +104,8 @@ The authenticated Edge Function removes UUID-scoped private portrait objects bef
 
 ## WP-059 — Hugging Face hosting retirement
 
-**Status:** active; claimed in issue #35  
-Disable public and private Hugging Face deployment workflows, remove active deployment helpers and evidence automation, stop referencing Hugging Face URLs as current application endpoints and preserve historical evidence only as non-canonical project history.
+**Status:** implementation complete; remote artifact retirement remains optional operational cleanup  
+Public and private Hugging Face deployment workflows, active helpers and evidence automation are removed. Historical Spaces are non-canonical project history and are excluded from acceptance testing.
 
 ## WP-060 — Payments and entitlements
 
