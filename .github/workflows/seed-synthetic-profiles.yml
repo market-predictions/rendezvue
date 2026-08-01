@@ -2,7 +2,7 @@ name: Seed synthetic Rendezvue profiles
 
 on:
   workflow_run:
-    workflows: ['Deploy private Supabase preview']
+    workflows: ['Configure Cloudflare staging backend']
     types: [completed]
   workflow_dispatch:
 
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: rendezvue-private-synthetic-seed
+  group: rendezvue-cloudflare-synthetic-seed
   cancel-in-progress: false
 
 jobs:
@@ -122,5 +122,6 @@ jobs:
             `- Published synthetic discovery profiles: ${result.publishedSyntheticProfiles}\n` +
             `- Selected private Storage portraits: ${result.selectedSyntheticPortraits}\n` +
             `- Storage bucket: ${result.storageBucket}\n` +
+            `- Canonical frontend: Cloudflare Pages\n` +
             `- Real-user admission authorized: ${result.realUserAdmissionAuthorized}\n`);
           NODE
