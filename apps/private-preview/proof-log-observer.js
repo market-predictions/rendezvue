@@ -63,7 +63,7 @@ function confirmRevocation(status, source) {
   revocationConfirmed = true;
   clearRevokedInteractionUi();
   dispatchProof('contactRevoked', { revoked: true, status });
-  appendSanitizedLog(`Nieuwe gesprek- en portrettoegang zijn ingetrokken; bewijsbron: ${source}.`);
+  appendSanitizedLog(`Nieuwe gesprek- en portrettoegang zijn server-side ingetrokken; bewijsbron: ${source}.`);
 }
 
 function verifyTerminalUiFallback() {
