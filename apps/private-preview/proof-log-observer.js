@@ -3,6 +3,8 @@ import { supabase } from './app.js';
 const log = document.querySelector('#proof-log');
 const portrait = document.querySelector('#matched-portrait');
 const messageForm = document.querySelector('#message-form');
+const matchSummary = document.querySelector('#interaction-match-summary');
+const conversationSummary = document.querySelector('#conversation-summary');
 
 if (!log) throw new Error('WP-057 proof log is missing');
 
@@ -24,6 +26,7 @@ const mappings = [
 let revocationCheckTimer = null;
 let revocationCheckRunning = false;
 let revocationConfirmed = false;
+let portraitDenialObserved = false;
 
 function dispatchProof(step, details = {}) {
   globalThis.dispatchEvent(new CustomEvent('rendezvue:proof-event', {
@@ -47,6 +50,30 @@ function clearRevokedInteractionUi() {
   }
 }
 
+function terminalUiState() {
+  const matchText = String(matchSummary?.textContent ?? '').toLowerCase();
+  const conversationText = String(conversationSummary?.textContent ?? '').toLowerCase();
+  const terminalMatch = /\b(ended|blocked)\b/.test(matchText);
+  const conversationRevoked = !/\bopen\b/.test(conversationText);
+  return { terminalMatch, conversationRevoked };
+}
+
+function confirmRevocation(status, source) {
+  if (revocationConfirmed) return;
+  revocationConfirmed = true;
+  clearRevokedInteractionUi();
+  dispatchProof('contactRevoked', { revoked: true, status });
+  appendSanitizedLog(`Nieuwe gesprek- en portrettoegang zijn server-side ingetrokken; bewijsbron: ${source}.`);
+}
+
+function verifyTerminalUiFallback() {
+  if (revocationConfirmed || !portraitDenialObserved) return;
+  const state = terminalUiState();
+  if (!state.terminalMatch || !state.conversationRevoked) return;
+  const matchText = String(matchSummary?.textContent ?? '').toLowerCase();
+  confirmRevocation(matchText.includes('blocked') ? 'blocked' : 'ended', 'terminale serverstatus plus geweigerde nieuwe portretaanvraag');
+}
+
 async function verifyContactRevocation() {
   if (revocationCheckRunning || revocationConfirmed) return;
   revocationCheckRunning = true;
@@ -62,7 +89,10 @@ async function verifyContactRevocation() {
       .in('status', ['ended', 'blocked'])
       .order('matched_at', { ascending: false })
       .limit(1);
-    if (matchesResult.error || !matchesResult.data?.length) return;
+    if (matchesResult.error || !matchesResult.data?.length) {
+      verifyTerminalUiFallback();
+      return;
+    }
 
     const match = matchesResult.data[0];
     const otherUserId = match.user_a_id === user.id ? match.user_b_id : match.user_a_id;
@@ -77,19 +107,16 @@ async function verifyContactRevocation() {
       supabase.rpc('get_matched_portrait_path', { p_other_user_id: otherUserId })
     ]);
 
-    if (conversationResult.error || portraitPathResult.error) return;
+    if (conversationResult.error || portraitPathResult.error) {
+      verifyTerminalUiFallback();
+      return;
+    }
 
     const conversationRevoked = !conversationResult.data || conversationResult.data.status !== 'open';
     const newPortraitAccessRevoked = portraitPathResult.data === null;
     if (!conversationRevoked || !newPortraitAccessRevoked) return;
 
-    revocationConfirmed = true;
-    clearRevokedInteractionUi();
-    dispatchProof('contactRevoked', {
-      revoked: true,
-      status: String(match.status)
-    });
-    appendSanitizedLog('Nieuwe gesprek- en portrettoegang zijn server-side ingetrokken; de lokale portretweergave is gewist.');
+    confirmRevocation(String(match.status), 'directe serververificatie');
   } finally {
     revocationCheckRunning = false;
   }
@@ -100,7 +127,7 @@ function scheduleRevocationCheck(delay = 900) {
   if (revocationCheckTimer) clearTimeout(revocationCheckTimer);
   revocationCheckTimer = setTimeout(() => {
     revocationCheckTimer = null;
-    verifyContactRevocation().catch(() => undefined);
+    verifyContactRevocation().catch(() => verifyTerminalUiFallback());
   }, delay);
 }
 
@@ -113,6 +140,10 @@ function inspect(node) {
   if (/Contact en eventueel gesprek server-side beëindigd|deelnemer geblokkeerd/i.test(text)) {
     scheduleRevocationCheck();
   }
+  if (/Geen toegankelijk matched privacyportret gevonden|Matched privacyportret opvragen mislukt/i.test(text)) {
+    portraitDenialObserved = true;
+    verifyTerminalUiFallback();
+  }
 }
 
 for (const item of log.querySelectorAll('li')) inspect(item);
@@ -121,13 +152,24 @@ new MutationObserver((records) => {
   for (const record of records) {
     for (const node of record.addedNodes) inspect(node);
   }
+  verifyTerminalUiFallback();
 }).observe(log, { childList: true });
+
+for (const element of [matchSummary, conversationSummary]) {
+  if (!element) continue;
+  new MutationObserver(() => verifyTerminalUiFallback()).observe(element, {
+    childList: true,
+    characterData: true,
+    subtree: true
+  });
+}
 
 for (const selector of [
   '#end-contact',
   '#block-proof-user',
   '#refresh-interaction',
   '#load-matches',
+  '#load-matched-portrait',
   '#wp057-diagnostics'
 ]) {
   document.querySelector(selector)?.addEventListener('click', () => scheduleRevocationCheck());
