@@ -24,6 +24,7 @@ const mappings = [
 let revocationCheckTimer = null;
 let revocationCheckRunning = false;
 let revocationConfirmed = false;
+let lastRevocationDiagnostic = '';
 
 function dispatchProof(step, details = {}) {
   globalThis.dispatchEvent(new CustomEvent('rendezvue:proof-event', {
@@ -37,6 +38,12 @@ function appendSanitizedLog(message) {
   log.prepend(item);
 }
 
+function appendRevocationDiagnostic(message) {
+  if (!message || message === lastRevocationDiagnostic) return;
+  lastRevocationDiagnostic = message;
+  appendSanitizedLog(message);
+}
+
 function clearRevokedInteractionUi() {
   if (portrait) {
     portrait.hidden = true;
@@ -47,49 +54,54 @@ function clearRevokedInteractionUi() {
   }
 }
 
+function firstRpcRow(data) {
+  if (Array.isArray(data)) return data[0] ?? null;
+  return data && typeof data === 'object' ? data : null;
+}
+
 async function verifyContactRevocation() {
   if (revocationCheckRunning || revocationConfirmed) return;
   revocationCheckRunning = true;
 
   try {
     const sessionResult = await supabase.auth.getSession();
-    if (sessionResult.error || !sessionResult.data?.session?.user) return;
-    const user = sessionResult.data.session.user;
+    if (sessionResult.error || !sessionResult.data?.session?.user) {
+      appendRevocationDiagnostic('Revocatiecontrole wacht: geen actieve synthetische browsersessie.');
+      return;
+    }
 
-    const matchesResult = await supabase
-      .from('matches')
-      .select('id,user_a_id,user_b_id,status,matched_at')
-      .in('status', ['ended', 'blocked'])
-      .order('matched_at', { ascending: false })
-      .limit(1);
-    if (matchesResult.error || !matchesResult.data?.length) return;
+    const stateResult = await supabase.rpc('get_contact_revocation_state');
+    if (stateResult.error) {
+      appendRevocationDiagnostic('Revocatiecontrole kon de gesanitiseerde serverstatus niet lezen.');
+      return;
+    }
 
-    const match = matchesResult.data[0];
-    const otherUserId = match.user_a_id === user.id ? match.user_b_id : match.user_a_id;
-    if (!otherUserId) return;
+    const state = firstRpcRow(stateResult.data);
+    if (!state?.terminal_match_found) {
+      appendRevocationDiagnostic('Revocatiecontrole wacht: geen beëindigde of geblokkeerde match gevonden.');
+      return;
+    }
 
-    const [conversationResult, portraitPathResult] = await Promise.all([
-      supabase
-        .from('conversations')
-        .select('status')
-        .eq('match_id', match.id)
-        .maybeSingle(),
-      supabase.rpc('get_matched_portrait_path', { p_other_user_id: otherUserId })
-    ]);
+    const conversationClosed = state.conversation_closed === true;
+    const portraitRevoked = state.new_portrait_access_revoked === true;
+    const messageWriteRevoked = state.message_write_revoked === true;
 
-    if (conversationResult.error || portraitPathResult.error) return;
-
-    const conversationRevoked = !conversationResult.data || conversationResult.data.status !== 'open';
-    const newPortraitAccessRevoked = portraitPathResult.data === null;
-    if (!conversationRevoked || !newPortraitAccessRevoked) return;
+    if (!conversationClosed || !portraitRevoked || !messageWriteRevoked) {
+      appendRevocationDiagnostic(
+        `Revocatiecontrole wacht: gesprekGesloten=${conversationClosed}, nieuwPortretpadIngetrokken=${portraitRevoked}, berichtschrijvenIngetrokken=${messageWriteRevoked}.`
+      );
+      return;
+    }
 
     revocationConfirmed = true;
     clearRevokedInteractionUi();
     dispatchProof('contactRevoked', {
       revoked: true,
-      status: String(match.status)
+      status: String(state.match_status ?? 'terminal')
     });
     appendSanitizedLog('Nieuwe gesprek- en portrettoegang zijn server-side ingetrokken; de lokale portretweergave is gewist.');
+  } catch {
+    appendRevocationDiagnostic('Revocatiecontrole is tijdelijk niet beschikbaar; probeer Diagnostiek uitvoeren opnieuw.');
   } finally {
     revocationCheckRunning = false;
   }
