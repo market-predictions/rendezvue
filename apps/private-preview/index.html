@@ -5,234 +5,215 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://esm.sh; style-src 'self'; img-src 'self' blob: data: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://esm.sh; base-uri 'none'; form-action 'self'">
-  <title>Rendezvue private backend proof</title>
+  <title>Rendezvue account preview</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <main class="shell">
-    <header class="hero">
-      <div>
-        <p class="eyebrow">PRIVATE · SYNTHETIC PROOF ONLY</p>
-        <h1>Rendezvue backend preview</h1>
-        <p>Deze afzonderlijke testinterface valideert authenticatie, hervatbare onboarding, profielpublicatie, discovery, matching, contactrechten, realtime chat en veiligheidsacties tegen de private Supabase-omgeving.</p>
-      </div>
-      <div class="status-stack" aria-live="polite">
-        <span id="config-status" class="badge">Configuratie controleren…</span>
-        <span id="session-status" class="badge muted">Niet aangemeld</span>
+  <main class="shell product-shell">
+    <header class="product-header">
+      <a class="brand" href="./" aria-label="Rendezvue">Rendezvue</a>
+      <div class="language-switch" aria-label="Language / Taal">
+        <button type="button" class="language-button" data-language="nl" aria-pressed="true" data-i18n="language.nl">Nederlands</button>
+        <button type="button" class="language-button" data-language="en" aria-pressed="false" data-i18n="language.en">English</button>
       </div>
     </header>
 
-    <section class="warning">
-      <strong>Geen echte persoonsgegevens.</strong>
-      Gebruik uitsluitend gecontroleerde synthetische volwassen testaccounts, synthetische portretten en synthetische gespreksinhoud. Dit is geen publieke of productieomgeving.
+    <section class="product-hero">
+      <div>
+        <p class="eyebrow" data-i18n="account.eyebrow">PRIVATE · SYNTHETIC PROOF ONLY</p>
+        <h1 data-i18n="account.title">Welkom bij Rendezvue</h1>
+        <p class="lead" data-i18n="account.intro">Log in om je profiel te bekijken, of maak bewust een nieuw account aan.</p>
+      </div>
+      <span id="product-backend-status" class="product-status">Testbackend controleren…</span>
     </section>
 
-    <section class="panel" id="auth-panel">
-      <h2>Aanmelden met magic link</h2>
-      <form id="magic-link-form" class="stack">
-        <label>
-          E-mailadres van gecontroleerd testaccount
-          <input id="email" name="email" type="email" autocomplete="email" required placeholder="proof-account@example.test">
-        </label>
-        <button type="submit">Magic link aanvragen</button>
+    <section class="staging-notice" role="note">
+      <span aria-hidden="true">◇</span>
+      <p data-i18n="account.stagingNotice">Deze omgeving is nog niet geopend voor echte gebruikers. Gebruik uitsluitend gecontroleerde synthetische volwassen testaccounts.</p>
+    </section>
+
+    <section class="account-card" id="auth-panel">
+      <div class="account-card-heading">
+        <span class="step-mark" aria-hidden="true">1</span>
+        <div>
+          <h2 data-i18n="account.signinTitle">Inloggen</h2>
+          <p data-i18n="account.signinIntro">Je ontvangt een eenmalige link per e-mail. Er wordt nooit stilzwijgend een nieuw account aangemaakt.</p>
+        </div>
+      </div>
+
+      <div id="auth-callback-status" class="account-message warning" role="alert" hidden></div>
+
+      <form id="magic-link-form" class="account-form">
+        <label for="email" data-i18n="account.emailLabel">E-mailadres</label>
+        <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required data-i18n-placeholder="account.emailPlaceholder" placeholder="jij@voorbeeld.nl">
+        <button type="submit" value="existing_account" data-i18n="account.existingAction">Aanmeldlink sturen</button>
       </form>
-      <p class="hint">De redirect-URL moet exact in Supabase Auth → URL Configuration zijn toegestaan.</p>
+
+      <div id="account-request-status" class="account-message success" role="status" aria-live="polite" hidden></div>
+      <p class="privacy-hint" data-i18n="account.privacyHint">Om je privacy te beschermen vertellen we niet of een adres al bij Rendezvue bekend is.</p>
+
+      <details id="recovery-help" class="recovery-help">
+        <summary data-i18n="account.recoverySummary">Geen toegang meer tot je e-mailadres?</summary>
+        <div class="recovery-content">
+          <p data-i18n="account.recoveryIntro">Support kan in uitzonderlijke gevallen je loginadres vervangen nadat is gecontroleerd dat het account van jou is.</p>
+          <ol>
+            <li data-i18n="account.recoveryStepOne">Neem contact op met support en noem alleen het adres waarmee je je hebt geregistreerd.</li>
+            <li data-i18n="account.recoveryStepTwo">We vragen passend bewijs van eigendom. We vragen nooit om je wachtwoord of een volledige mailboxcode.</li>
+            <li data-i18n="account.recoveryStepThree">Een tweede medewerker controleert de beslissing voordat het loginadres kan worden gewijzigd.</li>
+          </ol>
+          <p class="recovery-warning" data-i18n="account.recoveryWarning">Maak niet direct een tweede account aan: daarmee ontstaan losse matches en gesprekken die niet automatisch kunnen worden samengevoegd.</p>
+        </div>
+      </details>
     </section>
 
     <section id="authenticated-area" hidden>
-      <section class="panel identity-bar">
-        <div>
-          <h2>Actieve proofsessie</h2>
-          <p id="user-summary">—</p>
+      <section class="account-card signed-in-card">
+        <div class="account-card-heading">
+          <span class="step-mark success" aria-hidden="true">✓</span>
+          <div>
+            <h2 data-i18n="account.signedIn">Je bent ingelogd</h2>
+            <p id="account-state-copy" data-signed-in="true" data-i18n="account.signedInIntro">Dit is het account dat in dit browserprofiel actief is.</p>
+          </div>
         </div>
-        <button id="sign-out" class="secondary" type="button">Afmelden</button>
-      </section>
-
-      <section class="panel">
-        <h2>Synthetisch profiel opslaan</h2>
-        <form id="profile-form" class="grid-form">
-          <label>
-            Schermnaam
-            <input id="nickname" value="Proof Noor" maxlength="80" required>
-          </label>
-          <label>
-            Sekse
-            <select id="sex">
-              <option value="woman">Vrouw</option>
-              <option value="man">Man</option>
-            </select>
-          </label>
-          <label>
-            Regio
-            <input id="city" value="Utrecht" maxlength="120" required>
-          </label>
-          <label>
-            Levensfase
-            <select id="life-stage">
-              <option value="student">Student</option>
-              <option value="recent_graduate">Recent afgestudeerd</option>
-              <option value="employed">Werkend</option>
-              <option value="self_employed">Zelfstandig</option>
-            </select>
-          </label>
-          <label>
-            Huwelijksverleden
-            <select id="marital-history">
-              <option value="never_married">Nooit getrouwd</option>
-              <option value="divorced">Gescheiden</option>
-              <option value="widowed">Weduwe/weduwnaar</option>
-            </select>
-          </label>
-          <label>
-            Relatie-intentie
-            <input id="relationship-intent" value="Serieuze kennismaking met huwelijk als doel" required>
-          </label>
-          <label class="wide">
-            Korte bio
-            <textarea id="bio" maxlength="1200">Synthetisch proofprofiel voor het testen van Rendezvue.</textarea>
-          </label>
-          <label class="wide">
-            Prompt 1
-            <input id="prompt-one" value="Een rustige wandeling en een goed gesprek." required>
-          </label>
-          <label class="wide">
-            Prompt 2
-            <input id="prompt-two" value="Betrouwbaarheid, humor en duidelijke intenties." required>
-          </label>
-          <label class="wide">
-            Interesses, komma-gescheiden
-            <input id="interests" value="boeken,wandelen,koken,technologie" required>
-          </label>
-          <button class="wide" type="submit">Profiel en onboarding opslaan</button>
-        </form>
-      </section>
-
-      <section class="panel">
-        <h2>Privacyportret uploaden</h2>
-        <form id="portrait-form" class="stack">
-          <label>
-            Synthetisch JPEG-, PNG- of WebP-bestand
-            <input id="portrait-file" type="file" accept="image/jpeg,image/png,image/webp" required>
-          </label>
-          <button type="submit">Uploaden en als profielportret selecteren</button>
-        </form>
-        <p class="hint">Het object wordt privé opgeslagen onder de UUID-map van het aangemelde account. De database registreert uitsluitend status <code>pending</code>.</p>
-      </section>
-
-      <section class="panel action-grid">
-        <button id="publish-profile" type="button">Profiel publiceren</button>
-        <button id="load-snapshot" class="secondary" type="button">Onboardingsnapshot laden</button>
-        <button id="load-discovery" class="secondary" type="button">Discovery laden</button>
-        <button id="load-matches" class="secondary" type="button">Matches laden</button>
-      </section>
-
-      <section class="panel">
-        <h2>Discoveryproof</h2>
-        <div id="discovery-list" class="cards empty">Nog niet geladen.</div>
-      </section>
-
-      <section class="panel">
-        <h2>Match, contactrecht en gesprek</h2>
-        <p id="interaction-match-summary" class="hint">Meld je aan en laad daarna de matchstatus.</p>
-        <p id="conversation-summary" class="hint">Nog geen gesprek geladen.</p>
-        <div class="action-grid compact-actions">
-          <button id="refresh-interaction" class="secondary" type="button">Matchstatus vernieuwen</button>
-          <button id="claim-proof-entitlement" type="button">Proof-contactrecht claimen</button>
-          <button id="open-conversation" type="button">Gesprek openen</button>
-          <button id="load-matched-portrait" class="secondary" type="button">Matched portret laden</button>
+        <div class="account-identity">
+          <span data-i18n="account.maskedEmail">Ingelogd als</span>
+          <strong id="account-email-summary">—</strong>
         </div>
-        <img id="matched-portrait" class="matched-portrait" alt="Tijdelijk geladen matched privacyportret" hidden>
+        <button id="sign-out" class="secondary full-width-mobile" type="button" data-i18n="account.signOut">Uitloggen op alle apparaten</button>
       </section>
 
-      <section class="panel">
-        <h2>Realtime tekstgesprek</h2>
-        <div id="message-list" class="message-list empty">Nog geen berichten.</div>
-        <form id="message-form" class="message-form">
-          <label>
-            Synthetisch testbericht
-            <input id="message-body" maxlength="4000" required placeholder="Schrijf uitsluitend synthetische testinhoud">
-          </label>
-          <button type="submit">Bericht versturen</button>
-        </form>
+      <section class="account-card settings-card">
+        <h2 data-i18n="account.settingsTitle">Account en toegang</h2>
+        <p data-i18n="account.settingsIntro">Beheer hier je toegang en verwijder je account wanneer dat nodig is.</p>
+        <details class="delete-account-details">
+          <summary data-i18n="account.deleteSummary">Account verwijderen</summary>
+          <div class="delete-account-content">
+            <p data-i18n="account.deleteIntro">Je account, profiel en private portretten worden verwijderd. Bewijs- en veiligheidsregistraties kunnen alleen geanonimiseerd bewaard blijven wanneer dat noodzakelijk is.</p>
+            <form id="delete-account-form" class="account-form destructive-form">
+              <label for="delete-account-confirmation" data-i18n="account.deleteLabel">Typ exact DELETE_SYNTHETIC_ACCOUNT</label>
+              <input id="delete-account-confirmation" autocomplete="off" spellcheck="false" required>
+              <button class="danger" type="submit" data-i18n="account.deleteAction">Testaccount definitief verwijderen</button>
+            </form>
+          </div>
+        </details>
       </section>
 
-      <section class="panel danger-zone">
-        <h2>Contact beëindigen en veiligheid</h2>
-        <div class="action-grid compact-actions">
-          <button id="end-contact" class="secondary" type="button">Contact normaal beëindigen</button>
-          <button id="block-proof-user" class="danger" type="button">Andere proofaccount blokkeren</button>
+      <details class="advanced-tools">
+        <summary>
+          <span data-i18n="account.advancedSummary">Geavanceerde synthetische testtools</span>
+          <small data-i18n="account.advancedIntro">Deze onderdelen zijn uitsluitend bedoeld voor gecontroleerde backendtests en horen niet bij de normale gebruikerservaring.</small>
+        </summary>
+        <div class="advanced-tools-body">
+          <section class="hero proof-hero">
+            <div>
+              <p class="eyebrow">CLOUDFLARE STAGING · SYNTHETIC PROOF ONLY</p>
+              <h2>Rendezvue backend preview</h2>
+              <p>Deze afzonderlijke testinterface valideert authenticatie, hervatbare onboarding, profielpublicatie, discovery, matching, contactrechten, realtime chat en veiligheidsacties tegen de private Supabase-omgeving.</p>
+            </div>
+            <div class="status-stack" aria-live="polite">
+              <span id="config-status" class="badge">Configuratie controleren…</span>
+              <span id="session-status" class="badge muted">Niet aangemeld</span>
+            </div>
+          </section>
+
+          <section class="warning">
+            <strong>Geen echte persoonsgegevens.</strong>
+            Gebruik uitsluitend gecontroleerde synthetische volwassen testaccounts, synthetische portretten en synthetische gespreksinhoud.
+          </section>
+
+          <section class="panel identity-bar">
+            <div>
+              <h2>Actieve proofsessie</h2>
+              <p id="user-summary">—</p>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2>Synthetisch profiel opslaan</h2>
+            <form id="profile-form" class="grid-form">
+              <label>Schermnaam<input id="nickname" value="Proof Noor" maxlength="80" required></label>
+              <label>Sekse<select id="sex"><option value="woman">Vrouw</option><option value="man">Man</option></select></label>
+              <label>Regio<input id="city" value="Utrecht" maxlength="120" required></label>
+              <label>Levensfase<select id="life-stage"><option value="student">Student</option><option value="recent_graduate">Recent afgestudeerd</option><option value="employed">Werkend</option><option value="self_employed">Zelfstandig</option></select></label>
+              <label>Huwelijksverleden<select id="marital-history"><option value="never_married">Nooit getrouwd</option><option value="divorced">Gescheiden</option><option value="widowed">Weduwe/weduwnaar</option></select></label>
+              <label>Relatie-intentie<input id="relationship-intent" value="Serieuze kennismaking met huwelijk als doel" required></label>
+              <label class="wide">Korte bio<textarea id="bio" maxlength="1200">Synthetisch proofprofiel voor het testen van Rendezvue.</textarea></label>
+              <label class="wide">Prompt 1<input id="prompt-one" value="Een rustige wandeling en een goed gesprek." required></label>
+              <label class="wide">Prompt 2<input id="prompt-two" value="Betrouwbaarheid, humor en duidelijke intenties." required></label>
+              <label class="wide">Interesses, komma-gescheiden<input id="interests" value="boeken,wandelen,koken,technologie" required></label>
+              <button class="wide" type="submit">Profiel en onboarding opslaan</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <h2>Privacyportret uploaden</h2>
+            <form id="portrait-form" class="stack">
+              <label>Synthetisch JPEG-, PNG- of WebP-bestand<input id="portrait-file" type="file" accept="image/jpeg,image/png,image/webp" required></label>
+              <button type="submit">Uploaden en als profielportret selecteren</button>
+            </form>
+            <p class="hint">Het object wordt privé opgeslagen onder de UUID-map van het aangemelde account. De database registreert uitsluitend status <code>pending</code>.</p>
+          </section>
+
+          <section class="panel action-grid">
+            <button id="publish-profile" type="button">Profiel publiceren</button>
+            <button id="load-snapshot" class="secondary" type="button">Onboardingsnapshot laden</button>
+            <button id="load-discovery" class="secondary" type="button">Discovery laden</button>
+            <button id="load-matches" class="secondary" type="button">Matches laden</button>
+          </section>
+
+          <section class="panel"><h2>Discoveryproof</h2><div id="discovery-list" class="cards empty">Nog niet geladen.</div></section>
+
+          <section class="panel">
+            <h2>Match, contactrecht en gesprek</h2>
+            <p id="interaction-match-summary" class="hint">Meld je aan en laad daarna de matchstatus.</p>
+            <p id="conversation-summary" class="hint">Nog geen gesprek geladen.</p>
+            <div class="action-grid compact-actions">
+              <button id="refresh-interaction" class="secondary" type="button">Matchstatus vernieuwen</button>
+              <button id="claim-proof-entitlement" type="button">Proof-contactrecht claimen</button>
+              <button id="open-conversation" type="button">Gesprek openen</button>
+              <button id="load-matched-portrait" class="secondary" type="button">Matched portret laden</button>
+            </div>
+            <img id="matched-portrait" class="matched-portrait" alt="Tijdelijk geladen matched privacyportret" hidden>
+          </section>
+
+          <section class="panel">
+            <h2>Realtime tekstgesprek</h2>
+            <div id="message-list" class="message-list empty">Nog geen berichten.</div>
+            <form id="message-form" class="message-form">
+              <label>Synthetisch testbericht<input id="message-body" maxlength="4000" required placeholder="Schrijf uitsluitend synthetische testinhoud"></label>
+              <button type="submit">Bericht versturen</button>
+            </form>
+          </section>
+
+          <section class="panel danger-zone">
+            <h2>Contact beëindigen en veiligheid</h2>
+            <div class="action-grid compact-actions">
+              <button id="end-contact" class="secondary" type="button">Contact normaal beëindigen</button>
+              <button id="block-proof-user" class="danger" type="button">Andere proofaccount blokkeren</button>
+            </div>
+            <form id="report-form" class="grid-form separated-form">
+              <label>Rapportcategorie<select id="report-category"><option value="hidden_relationship">Mogelijk verborgen relatie</option><option value="scam_money">Geldvraag of scam</option><option value="harassment">Ongepaste druk of intimidatie</option><option value="other_proof">Andere synthetische proofmelding</option></select></label>
+              <label>Toelichting<input id="report-description" maxlength="4000" value="Synthetische veiligheidsmelding voor de private proof."></label>
+              <button class="wide" type="submit">Private rapportage indienen</button>
+            </form>
+            <form id="feedback-form" class="grid-form separated-form">
+              <label>Positief signaal<select id="feedback-positive"><option value="respectful">Respectvol</option><option value="honest_profile">Profiel leek eerlijk</option><option value="serious_intent">Intentie leek serieus</option><option value="">Geen positief label</option></select></label>
+              <label>Zorgsignaal<select id="feedback-concern"><option value="">Geen zorgsignaal</option><option value="low_response">Reageerde nauwelijks</option><option value="pressure">Zette druk</option><option value="possibly_not_single">Leek mogelijk niet single</option></select></label>
+              <label class="wide">Private toelichting<input id="feedback-comment" maxlength="2000" value="Synthetische private feedback; geen publieke rating."></label>
+              <button class="wide" type="submit">Private feedback opslaan</button>
+            </form>
+          </section>
+
+          <section class="panel"><h2>Gesanitiseerd proofresultaat</h2><pre id="result-output">Nog geen bewerking uitgevoerd.</pre></section>
+          <section class="panel log-panel"><h2>Prooflog</h2><ol id="proof-log" aria-live="polite"></ol></section>
         </div>
-
-        <form id="report-form" class="grid-form separated-form">
-          <label>
-            Rapportcategorie
-            <select id="report-category">
-              <option value="hidden_relationship">Mogelijk verborgen relatie</option>
-              <option value="scam_money">Geldvraag of scam</option>
-              <option value="harassment">Ongepaste druk of intimidatie</option>
-              <option value="other_proof">Andere synthetische proofmelding</option>
-            </select>
-          </label>
-          <label>
-            Toelichting
-            <input id="report-description" maxlength="4000" value="Synthetische veiligheidsmelding voor de private proof.">
-          </label>
-          <button class="wide" type="submit">Private rapportage indienen</button>
-        </form>
-
-        <form id="feedback-form" class="grid-form separated-form">
-          <label>
-            Positief signaal
-            <select id="feedback-positive">
-              <option value="respectful">Respectvol</option>
-              <option value="honest_profile">Profiel leek eerlijk</option>
-              <option value="serious_intent">Intentie leek serieus</option>
-              <option value="">Geen positief label</option>
-            </select>
-          </label>
-          <label>
-            Zorgsignaal
-            <select id="feedback-concern">
-              <option value="">Geen zorgsignaal</option>
-              <option value="low_response">Reageerde nauwelijks</option>
-              <option value="pressure">Zette druk</option>
-              <option value="possibly_not_single">Leek mogelijk niet single</option>
-            </select>
-          </label>
-          <label class="wide">
-            Private toelichting
-            <input id="feedback-comment" maxlength="2000" value="Synthetische private feedback; geen publieke rating.">
-          </label>
-          <button class="wide" type="submit">Private feedback opslaan</button>
-        </form>
-      </section>
-
-      <section class="panel deletion-zone">
-        <h2>Proofaccount en private objecten verwijderen</h2>
-        <p class="hint">Deze serverfunctie verwijdert eerst alle objecten onder de eigen UUID-map en daarna het Auth-account. Relationele records vallen via foreign-key cascades weg; behouden audit-ID's worden geanonimiseerd.</p>
-        <form id="delete-account-form" class="stack">
-          <label>
-            Typ exact <code>DELETE_SYNTHETIC_ACCOUNT</code>
-            <input id="delete-account-confirmation" autocomplete="off" spellcheck="false" required>
-          </label>
-          <button class="danger" type="submit">Synthetisch proofaccount definitief verwijderen</button>
-        </form>
-      </section>
-
-      <section class="panel">
-        <h2>Sanitized proofresultaat</h2>
-        <pre id="result-output">Nog geen bewerking uitgevoerd.</pre>
-      </section>
-    </section>
-
-    <section class="panel log-panel">
-      <h2>Prooflog</h2>
-      <ol id="proof-log" aria-live="polite"></ol>
+      </details>
     </section>
   </main>
 
   <script src="./runtime-config.js"></script>
   <script type="module" src="./app.js"></script>
+  <script type="module" src="./account-shell.js"></script>
   <script type="module" src="./interaction-proof.js"></script>
 </body>
 </html>

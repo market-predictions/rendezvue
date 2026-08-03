@@ -20,6 +20,7 @@ async function collectFiles(directory) {
 const required = [
   'index.html',
   'app.js',
+  'account-shell.js',
   'interaction-proof.js',
   'account-cleanup.js',
   'styles.css',
@@ -28,7 +29,8 @@ const required = [
   '_headers',
   'src/auth-session.js',
   'src/backend-contract.js',
-  'src/onboarding-repository.js'
+  'src/onboarding-repository.js',
+  'src/account-experience.js'
 ];
 
 for (const file of required) {
@@ -126,7 +128,12 @@ const index = await readFile(resolve(target, 'index.html'), 'utf8');
 for (const marker of [
   'CLOUDFLARE STAGING',
   'magic-link-form',
-  'Magic link aanvragen',
+  'account-shell.js',
+  'account-request-status',
+  'auth-callback-status',
+  'recovery-help',
+  'account-email-summary',
+  'advanced-tools',
   'interaction-proof.js',
   'account-cleanup.js',
   'claim-proof-entitlement',
@@ -134,6 +141,9 @@ for (const marker of [
   'delete-account-form'
 ]) {
   if (!index.includes(marker)) throw new Error(`Cloudflare staging index is missing ${marker}`);
+}
+if (!index.includes('data-language="nl"') || !index.includes('data-language="en"')) {
+  throw new Error('Account shell does not expose Dutch and English controls');
 }
 if (index.includes('email-otp-form') || index.includes('otp-proof.js')) {
   throw new Error('Generated staging index still contains the unavailable numeric OTP flow');
@@ -168,6 +178,47 @@ if (!adapter.includes('emailRedirectTo: redirectTo')) {
 }
 if (!adapter.includes("signOut({ scope: 'global' })")) {
   throw new Error('Proof sign-out must revoke every refresh session for the account');
+}
+if (!adapter.includes('shouldCreateUser: registration')) {
+  throw new Error('Registration and existing-account entry are no longer explicitly separated');
+}
+
+const accountExperience = await readFile(resolve(target, 'src/account-experience.js'), 'utf8');
+for (const marker of [
+  'account.recoverySummary',
+  'account.recoveryStepOne',
+  'account.recoveryStepTwo',
+  'account.recoveryStepThree',
+  'account.callbackUnusable',
+  'account.callbackPending',
+  'genericAccountRequestMessage',
+  'maskAccountEmail',
+  "Object.freeze(['nl', 'en'])"
+]) {
+  if (!accountExperience.includes(marker)) throw new Error(`Account experience contract is missing ${marker}`);
+}
+if (/account (?:exists|does not exist)|unknown account|adres bestaat|adres is onbekend/i.test(accountExperience)) {
+  throw new Error('Account experience contains an account-enumerating response');
+}
+
+const accountShell = await readFile(resolve(target, 'account-shell.js'), 'utf8');
+if (!accountShell.startsWith("import { supabase } from './app.js';")) {
+  throw new Error('Account shell does not import the shared Supabase client');
+}
+if (!accountShell.includes("from './src/account-experience.js'")) {
+  throw new Error('Account shell does not use the tested account-experience contract');
+}
+for (const marker of [
+  'genericAccountRequestMessage',
+  'classifyAuthCallback',
+  'maskAccountEmail',
+  'rendezvue.interface-language',
+  'aria-pressed'
+]) {
+  if (!accountShell.includes(marker)) throw new Error(`Account shell is missing ${marker}`);
+}
+if (accountShell.includes('createClient(') || /auth\.admin|functions\.invoke\(['"]execute-account-email-replacement/i.test(accountShell)) {
+  throw new Error('Account shell may not create another client or invoke support mutation');
 }
 
 const interaction = await readFile(resolve(target, 'interaction-proof.js'), 'utf8');

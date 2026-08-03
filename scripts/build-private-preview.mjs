@@ -167,18 +167,15 @@ async function assembleSharedBrowserClient() {
     interactionSource.slice(interactionBodyStart)
   ].join('\n');
 
-  let generatedIndex = indexSource
-    .replace('PRIVATE · SYNTHETIC PROOF ONLY', 'CLOUDFLARE STAGING · SYNTHETIC PROOF ONLY')
-    .replace('<h1>Rendezvue backend preview</h1>', '<h1>Rendezvue Cloudflare staging</h1>')
-    .replace(
-      '      <p class="hint">De redirect-URL moet exact in Supabase Auth → URL Configuration zijn toegestaan.</p>',
-      '      <p class="hint">Open de nieuwste aanmeldlink in hetzelfde browserprofiel. Cloudflare verwerkt daarna een eenmalige PKCE-code; access- en refresh-tokens horen nooit in de adresbalk.</p>'
-    );
+  let generatedIndex = indexSource.replace(
+    'PRIVATE · SYNTHETIC PROOF ONLY',
+    'CLOUDFLARE STAGING · SYNTHETIC PROOF ONLY'
+  );
 
   if (isCloudflarePreview) {
     generatedIndex = generatedIndex.replace(
-      '<section class="warning">',
-      '<section class="warning"><strong>Branchpreview zonder backend.</strong> Deze deployment valideert uitsluitend het browserartifact; authenticatie en datamutaties zijn uitgeschakeld door placeholderconfiguratie.</section><section class="warning">'
+      '<section class="staging-notice" role="note">',
+      '<section class="warning"><strong>Branchpreview zonder backend.</strong> Deze deployment valideert uitsluitend het browserartifact; authenticatie en datamutaties zijn uitgeschakeld door placeholderconfiguratie.</section><section class="staging-notice" role="note">'
     );
   }
 
@@ -189,6 +186,9 @@ async function assembleSharedBrowserClient() {
 
   if (!generatedIndex.includes('magic-link-form') || generatedIndex.includes('email-otp-form')) {
     throw new Error('Cloudflare staging magic-link interface was not assembled correctly');
+  }
+  if (!generatedIndex.includes('account-shell.js') || !generatedIndex.includes('recovery-help')) {
+    throw new Error('Product-facing account and recovery shell was not assembled correctly');
   }
 
   await Promise.all([
@@ -219,7 +219,7 @@ await mkdir(target, { recursive: true });
 await cp(source, target, { recursive: true });
 await mkdir(resolve(target, 'src'), { recursive: true });
 
-for (const file of ['auth-session.js', 'backend-contract.js', 'onboarding-repository.js']) {
+for (const file of ['auth-session.js', 'backend-contract.js', 'onboarding-repository.js', 'account-experience.js']) {
   await cp(resolve(root, 'apps/web/src', file), resolve(target, 'src', file));
 }
 
@@ -278,6 +278,3 @@ console.log(`Cloudflare Pages artifact written for ${new URL(supabaseUrl).hostna
 console.log(`Canonical staging URL: ${canonicalStagingUrl}`);
 console.log(`Build commit marker: ${buildCommit}`);
 console.log(`Configuration mode: ${configurationMode}`);
-console.log(`Configuration source: ${configurationSource}`);
-console.log('One shared browser Auth client handles PKCE magic links and all proof interactions.');
-console.log('No database password, access token or Supabase secret key was passed to the browser build.');
