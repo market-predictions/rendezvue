@@ -31,18 +31,35 @@ export function createAuthSessionAdapter(client, options = {}) {
   const auth = requireAuthClient(client);
   const redirectTo = String(options.redirectTo ?? '').trim();
 
+  async function requestEmailLink(emailValue, mode) {
+    const email = normaliseAccountEmail(emailValue);
+    const registration = mode === 'registration';
+    const result = await auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: registration,
+        ...(redirectTo ? { emailRedirectTo: redirectTo } : {})
+      }
+    });
+    unwrap(result, registration ? 'registration magic-link request' : 'existing-account magic-link request');
+    return Object.freeze({
+      email,
+      requested: true,
+      mode: registration ? 'registration' : 'existing_account'
+    });
+  }
+
   return Object.freeze({
     async requestMagicLink(emailValue) {
-      const email = normaliseAccountEmail(emailValue);
-      const result = await auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: true,
-          ...(redirectTo ? { emailRedirectTo: redirectTo } : {})
-        }
-      });
-      unwrap(result, 'magic-link request');
-      return Object.freeze({ email, requested: true });
+      return requestEmailLink(emailValue, 'existing_account');
+    },
+
+    async requestExistingAccountMagicLink(emailValue) {
+      return requestEmailLink(emailValue, 'existing_account');
+    },
+
+    async requestRegistrationMagicLink(emailValue) {
+      return requestEmailLink(emailValue, 'registration');
     },
 
     async restoreSession() {
