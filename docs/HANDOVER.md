@@ -1,7 +1,7 @@
 # Project handover
 
 **Updated:** 2026-08-03  
-**Milestone:** WP-065D support-safe recovery investigation foundation remotely accepted
+**Milestone:** WP-065E identity evidence and dual-control support decisions remotely accepted
 
 ## GitHub state
 
@@ -10,7 +10,8 @@
 - Cloudflare migration evidence: issue #35.
 - Completed controlled browser proof: issue #41 / WP-057.
 - Account lifecycle evidence: issue #54 / `docs/WP-065-ACCOUNT-LIFECYCLE.md`.
-- Account-support foundation evidence: issue #62 / PR #63.
+- Account-support case foundation: issue #62 / PR #63.
+- Evidence and dual-control decision foundation: issue #65 / PR #66.
 - Detailed WP-057 completion record: `docs/WP-057-COMPLETION.md`.
 - Supabase project: `RendezvueProject`, Healthy, West EU (Ireland), Nano.
 - Real-user admission is not authorized.
@@ -96,7 +97,35 @@ Evidence:
 - protected staging migration run `30843752237`;
 - protected remote verifier run `30843828895` confirming schema present, cases/events `0 / 0`, ordinary-user access denied, direct service writes denied and only controlled functions allowed.
 
-WP-065D does not establish which identity evidence is sufficient and does not authorize any account merge, e-mail change or restoration action.
+## Accepted WP-065E outcome
+
+WP-065E is complete as an evidence-classification and four-eyes decision foundation.
+
+Demonstrated:
+
+- controlled evidence categories and subject scopes;
+- evidence strength is derived by the server from category rather than selected freely by an operator;
+- opaque token references only; mailbox-address-shaped evidence is rejected;
+- outcomes are constrained to insufficient evidence, rejected, approved for action or escalated;
+- approval requires two distinct supportive categories, at least one strong category and no conflict;
+- duplicate-account approval requires coverage for both accounts;
+- mailbox-loss approval requires two qualifying primary-account assertions;
+- conflicts block approval and require rejection or escalation;
+- proposals snapshot case state, state timestamp and an evidence fingerprint;
+- evidence or case changes invalidate stale review;
+- proposer and reviewer must be different operators;
+- append-only decision events and sanitized audits;
+- ordinary users have no access;
+- service role can read and invoke controlled evidence/proposal/review functions but cannot write tables directly;
+- approval does not execute an account action or mutate Auth users.
+
+Evidence:
+
+- issue #65;
+- PR #66 merged as `98af90a56954db689c50bd6ebbb201e056328d53`;
+- 62 pgTAP assertions;
+- protected staging migration run `30850758553`;
+- protected verifier run `30850822452` confirming schema present, evidence/decisions/events `0 / 0 / 0`, ordinary-user access denied, direct service writes denied, controlled functions allowed and dangerous mutation functions absent.
 
 ## Current validated backend/browser scope
 
@@ -116,17 +145,20 @@ Validated:
 - audit identifier anonymisation;
 - post-cleanup session non-restoration;
 - non-destructive lifecycle state, retention holds and service-only candidate enumeration;
-- service-only duplicate/mailbox-loss investigation cases with controlled transitions and retained sanitized history.
+- service-only duplicate/mailbox-loss investigation cases;
+- controlled identity-evidence assertions and independent decision review;
+- stale-case and stale-evidence rejection;
+- classification-only approval without account mutation.
 
 ## Immediate next work
 
-### 1. Define support decision and action policy
+### 1. Make the account-action decision
 
-- define acceptable identity evidence for duplicate-account and mailbox-loss cases;
-- define rejection, escalation, appeal and user-notification rules;
-- decide whether any account merge, e-mail change or access restoration is legally and technically acceptable;
-- when acceptable, design that action as a separate package with dual control, idempotency, audit, rollback and explicit user notification;
-- do not extend the current investigation functions into Auth mutation.
+- decide whether account merge, Auth e-mail change or mailbox-loss restoration should exist at all;
+- approve an operational identity-evidence policy and operator playbook before using WP-065E with real requests;
+- if an action is approved, define only one narrowly scoped action in a separate package;
+- require fresh user reauthentication where possible, dual control, idempotency, before/after audit, notifications, rollback, rate limits and incident procedures;
+- keep `approved_for_action` disconnected from all mutation until that separate package passes.
 
 ### 2. Define retention-hold operations and WP-065C decision
 
@@ -167,8 +199,9 @@ Before any real-user admission:
 
 ## Explicit limitations
 
-- no approved identity-proof standard for duplicate-account or mailbox-loss cases;
+- WP-065E is a technical evidence/decision contract, not an approved real-world identity-proof policy;
 - no account merge, Auth identity change or mailbox-access restoration function;
+- no downstream action connected to `approved_for_action`;
 - no approved abandonment-retention schedule or active retention policy;
 - no scheduled or automatic deletion;
 - no production age or liveness assurance;
