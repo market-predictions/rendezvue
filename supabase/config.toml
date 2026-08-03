@@ -41,3 +41,8 @@ file_size_limit = "10MiB"
 # Authentication is handled inside the function with @supabase/server so the
 # same user-auth pattern works with the current publishable/asymmetric key model.
 verify_jwt = false
+
+[functions.execute-account-email-replacement]
+# Internal service authorization is validated inside the function. Browser or
+# ordinary authenticated-user calls are rejected before any database action.
+verify_jwt = false
