@@ -43,32 +43,46 @@ test('personal email is trimmed and normalized', () => {
   assert.throws(() => normaliseAccountEmail('not-an-email'), /valid personal email/);
 });
 
-test('magic link uses the canonical Cloudflare redirect', async () => {
+test('existing-account magic link is fail-closed and cannot create a user', async () => {
   const fake = makeAuthClient();
   const auth = createAuthSessionAdapter(fake.client, {
     redirectTo: 'https://rendezvue-private-preview.pages.dev/'
   });
   assert.deepEqual(await auth.requestMagicLink('USER@EXAMPLE.NL'), {
     email: 'user@example.nl',
-    requested: true
+    requested: true,
+    mode: 'existing_account'
   });
   assert.deepEqual(fake.calls[0], [
     'signInWithOtp',
     {
       email: 'user@example.nl',
       options: {
-        shouldCreateUser: true,
+        shouldCreateUser: false,
         emailRedirectTo: 'https://rendezvue-private-preview.pages.dev/'
       }
     }
   ]);
 });
 
-test('magic link can omit a redirect for local provider tests', async () => {
+test('explicit registration magic link is the only path that may create a user', async () => {
+  const fake = makeAuthClient();
+  const auth = createAuthSessionAdapter(fake.client, {
+    redirectTo: 'https://rendezvue-private-preview.pages.dev/'
+  });
+  assert.deepEqual(await auth.requestRegistrationMagicLink('new@example.nl'), {
+    email: 'new@example.nl',
+    requested: true,
+    mode: 'registration'
+  });
+  assert.equal(fake.calls[0][1].options.shouldCreateUser, true);
+});
+
+test('existing-account alias and local requests remain fail-closed', async () => {
   const fake = makeAuthClient();
   const auth = createAuthSessionAdapter(fake.client);
-  await auth.requestMagicLink('user@example.nl');
-  assert.deepEqual(fake.calls[0][1].options, { shouldCreateUser: true });
+  await auth.requestExistingAccountMagicLink('user@example.nl');
+  assert.deepEqual(fake.calls[0][1].options, { shouldCreateUser: false });
 });
 
 test('session restore and current user unwrap provider data', async () => {
@@ -99,10 +113,17 @@ test('sign out revokes every proof session for the account', async () => {
 
 test('provider errors are surfaced with operation context', async () => {
   const fake = makeAuthClient({
-    async getSession() {
-      return { data: null, error: { message: 'token rejected' } };
+    async signInWithOtp() {
+      return { data: null, error: { message: 'request rejected' } };
     }
   });
   const auth = createAuthSessionAdapter(fake.client);
-  await assert.rejects(() => auth.restoreSession(), /session restore failed: token rejected/);
+  await assert.rejects(
+    () => auth.requestExistingAccountMagicLink('user@example.nl'),
+    /existing-account magic-link request failed: request rejected/
+  );
+  await assert.rejects(
+    () => auth.requestRegistrationMagicLink('user@example.nl'),
+    /registration magic-link request failed: request rejected/
+  );
 });
