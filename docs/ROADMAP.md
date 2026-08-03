@@ -1,7 +1,7 @@
 # Rendezvue roadmap
 
-**Version:** 2.8  
-**Updated:** 2026-08-03
+**Version:** 2.9  
+**Updated:** 2026-08-04
 
 ## Operating doctrine
 
@@ -53,19 +53,19 @@ Four browser-local fuzzy variants, no raw-selfie option and downsampling fallbac
 
 ### 1D. Product baseline v1 and onboarding redefinition
 
-**Status:** complete in source.
+**Status:** complete in source and integrated product shell.
 
 Adult/single/serious membership, student-first positioning, eligibility, life stage, family context, privacy portraits, profile preview, community promise and man/woman onboarding with derived opposite-sex discovery.
 
 ### 1E. Interaction, contact and feedback concept
 
-**Status:** complete in source; field review remains.
+**Status:** complete in source and integrated product shell; field review remains.
 
 Pass, direct/contextual likes, swipes, reciprocal match, contact entitlement, text conversation, end-contact feedback and safety controls without public ratings or automatic feedback penalties.
 
 ## Phase 2 — External backend proof
 
-**Status:** core controlled proof complete; production-readiness work continues.
+**Status:** core controlled proof and integrated synthetic product shell complete; production-readiness work continues.
 
 ### 2A. Backend foundation and migration contract
 
@@ -93,9 +93,9 @@ Demonstrated:
 
 ### 2C. Authentication, resumable onboarding and Cloudflare deployment
 
-**Status:** controlled proof complete; product-facing account entry integrated; operational recovery remains unauthorized.
+**Status:** controlled proof complete; product-facing account and signed-in product journeys integrated; operational recovery remains unauthorized.
 
-Demonstrated in the canonical Cloudflare browser proof and WP-065A/B/D/E/F plus WP-066:
+Demonstrated in the canonical Cloudflare browser proof, WP-065A/B/D/E/F, WP-066 and WP-067:
 
 - same-browser-profile PKCE magic-link exchange for two isolated accounts;
 - consumed callback handling and session restoration;
@@ -111,6 +111,14 @@ Demonstrated in the canonical Cloudflare browser proof and WP-065A/B/D/E/F plus 
 - plain-language expired, used and wrong-browser magic-link guidance;
 - user-facing mailbox-loss guidance without internal support terminology;
 - masked signed-in address, global sign-out and understandable deletion consequences;
+- mobile product navigation for Start, Profile, Discover, Matches and Account;
+- resumable eligibility, identity, life-stage, family, faith, personality and portrait flow;
+- woman/man-only sex selection with opposite-sex discovery derived automatically;
+- private portrait upload, profile preview and server-side publication;
+- ten synthetic portrait-backed discovery profiles;
+- pass, direct like and contextual like through server-authoritative signals;
+- match, one synthetic contact right, participant-only Realtime conversation and safety actions;
+- product-safe visible projections without account, match, conversation or private-object identifiers;
 - complete synthetic proof controls retained behind an advanced disclosure;
 - server-authoritative lifecycle state and service-only non-destructive retention candidates;
 - service-only audited investigation cases for duplicate-account and mailbox-access-loss requests;
@@ -126,12 +134,13 @@ Demonstrated in the canonical Cloudflare browser proof and WP-065A/B/D/E/F plus 
 
 Still required:
 
-- a disposable synthetic mailbox/account for a controlled remote e-mail-replacement execution proof;
+- owner-led desktop and mobile field review of the integrated product journey;
+- controlled disposable-account exercise of the new product shell when suitable mailboxes are available;
+- a disposable synthetic mailbox/account for the controlled remote e-mail-replacement execution proof;
 - approve an operational identity-evidence policy and operator procedures;
 - build secure support tooling and user-notification/objection flows;
 - define fraud, rollback, escalation and incident controls;
 - keep duplicate-account merging outside scope unless separately approved;
-- integrate onboarding, privacy portraits, discovery, matching and conversation into the same polished product shell;
 - approve retention policy, user notification and operational ownership;
 - guarded cleanup dry-run and scheduling only after policy and DPIA approval;
 - direct Cloudflare Pages environment variables instead of the transition bootstrap.
@@ -278,6 +287,41 @@ Completed:
 
 Detailed evidence: `docs/WP-066-ACCOUNT-RECOVERY-UX.md`.
 
+### 2L. Integrated onboarding, discovery and conversation product shell
+
+**Status:** complete for controlled synthetic staging; accepted in issue #74.
+
+WP-067 integrated the already-proven backend contracts into the normal signed-in product experience.
+
+Completed:
+
+- five-tab mobile product navigation;
+- resumable multi-section onboarding;
+- derived opposite-sex discovery without a separate partner selector;
+- private synthetic portrait upload and preview;
+- server-authoritative profile publication;
+- ten synthetic portrait-backed discovery cards;
+- pass, direct like and contextual like;
+- match and synthetic contact-right handling;
+- participant-only Realtime chat;
+- normal end-contact, block and private safety report paths;
+- Dutch default and English key parity;
+- product-safe visible projections with internal identifiers excluded;
+- one shared browser client and no browser-accessible admin, support executor or server credential;
+- 51 application tests and complete repository regression pass;
+- PR #75 merged as `21596e03ddf624f4eca5b272c77539985617e742`;
+- protected backend run `30860142461` passed;
+- stale production-verifier marker repaired in PR #76, merged as `2bcd6f884ab6cc7a4ef68291b46e03e754be845b`;
+- strengthened canonical product run `30860701792` passed account/product markers, synthetic asset delivery, privileged-capability scan, PKCE, no-store and security headers.
+
+Not yet proven:
+
+- a new signed-in end-to-end journey through the integrated shell using disposable accounts;
+- owner acceptance on representative desktop and mobile devices;
+- real-user usability, accessibility, scale or operational readiness.
+
+Detailed evidence: `docs/WP-067-INTEGRATED-PRODUCT-SHELL.md`.
+
 ## Phase 3 — Closed city-based PWA pilot
 
 **Status:** not authorized.
@@ -290,8 +334,8 @@ Detailed evidence: `docs/WP-066-ACCOUNT-RECOVERY-UX.md`.
 - controlled end-to-end e-mail-replacement proof completed or the capability explicitly disabled;
 - secure support tooling, user notifications, objection and incident procedures approved;
 - retention policy, DPIA alignment, notification and operational ownership approved;
-- integrated mobile UX and privacy-portrait review accepted;
-- broader onboarding, discovery, matching and conversation product shell accepted;
+- owner-led integrated mobile UX and privacy-portrait review accepted;
+- controlled disposable-account product-shell field proof completed;
 - legal basis, DPIA and privacy notices approved;
 - age/liveness and student-benefit verification decisions approved;
 - moderation, support, incident and deletion operations staffed;
@@ -309,6 +353,14 @@ National institution coverage and local-density expansion, followed only then by
 ## Phase 6 — Native shells
 
 Add thin iOS/Android shells only where app-store distribution, push reliability, camera controls, calling or device security justify the complexity.
+
+## Immediate next work
+
+1. Owner-led desktop and mobile review of the complete account-to-conversation journey.
+2. Controlled disposable-account execution of WP-067 and the separate WP-065F mailbox-replacement proof when suitable mailboxes are available.
+3. Product refinements from field review: portrait attractiveness, profile density, navigation clarity and representative Dutch/English terminology.
+4. Operational support, retention/DPIA, moderation, accessibility, security and legal readiness.
+5. Explicit closed-city pilot decision only after all entry gates pass.
 
 ## Stop or reconsider criteria
 
