@@ -1,8 +1,10 @@
 # WP-067 — Integrated product shell
 
-**Status:** implementation merged; canonical acceptance evidence pending at dossier creation  
+**Status:** complete for controlled synthetic staging  
 **Implementation PR:** #75  
 **Implementation merge:** `21596e03ddf624f4eca5b272c77539985617e742`  
+**Verifier repair PR:** #76  
+**Accepted canonical commit:** `2bcd6f884ab6cc7a4ef68291b46e03e754be845b`  
 **Environment:** canonical Cloudflare Pages staging, controlled synthetic adults only
 
 ## Objective
@@ -159,6 +161,39 @@ Implementation head `80f0fa275ed4617f6827c7aa26744c504b5f8ec4` passed:
 - all existing WP-057, WP-065, WP-065F and WP-066 gates.
 
 The initial WP-067 validator run identified a false positive in its visible-identifier regular expression. The check was narrowed to actual `textContent` assignment lines without weakening the no-identifier requirement. The corrected full run passed.
+
+## Canonical acceptance and verifier repair
+
+After implementation PR #75 merged, protected backend run `30860142461` passed for commit `21596e03ddf624f4eca5b272c77539985617e742`, including migrations, remote health, cleanup deployment, anonymous rejection and the browser credential boundary.
+
+The first post-merge production verifier run `30860142392` failed even though deployment metadata was commit-matched and remote Supabase configuration was correct. Root cause was a stale acceptance marker: the workflow still searched for the retired pre-WP-066 label `Magic link aanvragen`, while the accepted account experience deliberately uses `Aanmeldlink sturen`.
+
+PR #76 repaired and strengthened the production verifier without changing application, Auth, database, RLS or user data. It now verifies:
+
+- the WP-066 account-entry and recovery shell;
+- the WP-067 product-shell module, model and styling;
+- derived opposite-sex discovery policy;
+- server-authoritative discovery and conversation markers;
+- Realtime messaging markers;
+- the ten-profile synthetic-only portrait manifest;
+- actual WebP portrait delivery;
+- absence of service-role, secret, Auth-admin and support-executor material;
+- remote Supabase configuration, PKCE callbacks, disabled implicit fragments, no-store and security headers;
+- absence of Hugging Face runtime references;
+- real-user admission remains false.
+
+PR #76 merged as `2bcd6f884ab6cc7a4ef68291b46e03e754be845b`. Canonical production verification run `30860701792` then passed and recorded:
+
+- commit-matched deployment metadata;
+- remote Supabase configuration from `previous-canonical-deployment`;
+- account entry/recovery shell passed;
+- integrated onboarding/discovery/conversation shell passed;
+- synthetic portrait manifest and delivery passed;
+- PKCE magic-link interface passed;
+- implicit access/refresh token fragments disabled;
+- no-store and security headers passed;
+- privileged browser-capability scan passed;
+- real-user admission not authorized.
 
 ## What is not yet claimed
 
