@@ -17,12 +17,65 @@ node --input-type=module - "$request" <<'NODE'
 import { writeFileSync } from 'node:fs';
 
 const query = `
+  with active_policy as (
+    select policy.version, policy.abandoned_draft_after, policy.grace_period
+    from public.account_retention_policies policy
+    where policy.status = 'active'
+      and policy.effective_at <= timezone('utc', now())
+    order by policy.effective_at desc
+    limit 1
+  ), account_activity as (
+    select
+      lifecycle.user_id,
+      lifecycle.state,
+      greatest(
+        lifecycle.last_activity_at,
+        coalesce(users.last_sign_in_at, users.created_at),
+        users.created_at
+      ) as observed_activity_at
+    from public.account_lifecycle lifecycle
+    join auth.users users on users.id = lifecycle.user_id
+  ), candidate_rows as (
+    select activity.user_id
+    from account_activity activity
+    cross join active_policy policy
+    join public.profiles profile on profile.user_id = activity.user_id
+    where activity.state <> 'retention_hold'
+      and profile.publication_status = 'draft'
+      and activity.observed_activity_at + policy.abandoned_draft_after + policy.grace_period <= timezone('utc', now())
+      and not exists (
+        select 1
+        from public.account_retention_holds hold
+        where hold.user_id = activity.user_id
+          and hold.released_at is null
+          and hold.starts_at <= timezone('utc', now())
+          and (hold.ends_at is null or hold.ends_at > timezone('utc', now()))
+      )
+      and not exists (
+        select 1
+        from public.matches matched
+        where matched.status = 'active'
+          and (matched.user_a_id = activity.user_id or matched.user_b_id = activity.user_id)
+      )
+      and not exists (
+        select 1
+        from public.safety_reports report
+        where (report.reporter_user_id = activity.user_id or report.subject_user_id = activity.user_id)
+          and report.status not in ('dismissed', 'closed')
+      )
+      and not exists (
+        select 1
+        from public.moderation_cases moderation
+        where moderation.subject_user_id = activity.user_id
+          and moderation.status not in ('dismissed', 'closed')
+      )
+  )
   select
     to_regclass('public.account_lifecycle') is not null as lifecycle_present,
     to_regclass('public.account_retention_policies') is not null as policies_present,
     to_regclass('public.account_retention_holds') is not null as holds_present,
-    (select count(*)::int from public.account_retention_policies where status = 'active') as active_policy_count,
-    (select count(*)::int from public.list_account_retention_candidates(timezone('utc', now()))) as candidate_count,
+    (select count(*)::int from active_policy) as active_policy_count,
+    (select count(*)::int from candidate_rows) as candidate_count,
     has_function_privilege('anon', 'public.list_account_retention_candidates(timestamptz)', 'EXECUTE') as anon_can_enumerate,
     has_function_privilege('authenticated', 'public.list_account_retention_candidates(timestamptz)', 'EXECUTE') as authenticated_can_enumerate,
     has_function_privilege('service_role', 'public.list_account_retention_candidates(timestamptz)', 'EXECUTE') as service_role_can_enumerate;
