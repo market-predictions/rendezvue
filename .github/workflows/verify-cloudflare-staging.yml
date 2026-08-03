@@ -11,7 +11,10 @@ on:
       - 'apps/web/src/backend-contract.js'
       - 'apps/web/src/onboarding-repository.js'
       - 'scripts/build-private-preview.mjs'
+      - 'scripts/copy-product-assets.mjs'
       - 'scripts/validate-private-preview.mjs'
+      - 'scripts/validate-wp066-account-experience.mjs'
+      - 'scripts/validate-wp067-product-shell.mjs'
       - 'package.json'
       - 'package-lock.json'
   workflow_dispatch:
@@ -88,17 +91,90 @@ jobs:
           echo "configuration_source=$configuration_source" >> "$GITHUB_OUTPUT"
           cat "$metadata"
 
-      - name: Verify application marker and security headers
+      - name: Verify product application, assets and security headers
         shell: bash
         run: |
           set -euo pipefail
+
+          fetch_artifact() {
+            local relative_path="$1"
+            local destination="$2"
+            local status
+            status="$(curl --silent --show-error --location \
+              --output "$destination" --write-out '%{http_code}' \
+              --header 'cache-control: no-cache' \
+              "${STAGING_URL}${relative_path}?commit=${GITHUB_SHA}" || true)"
+            if [[ "$status" != "200" ]]; then
+              echo "::error title=Cloudflare artifact missing::${relative_path} returned HTTP ${status}."
+              exit 1
+            fi
+          }
+
+          require_marker() {
+            local file="$1"
+            local marker="$2"
+            local label="$3"
+            if ! grep -Fq "$marker" "$file"; then
+              echo "::error title=Cloudflare product marker missing::${label} is missing ${marker}."
+              exit 1
+            fi
+          }
+
           index="$RUNNER_TEMP/index.html"
-          curl --silent --show-error --location --fail \
+          account_shell="$RUNNER_TEMP/account-shell.js"
+          product_shell="$RUNNER_TEMP/product-shell.js"
+          product_model="$RUNNER_TEMP/product-model.js"
+          product_css="$RUNNER_TEMP/product-shell.css"
+          portrait_manifest="$RUNNER_TEMP/profile-manifest.json"
+
+          fetch_artifact '' "$index"
+          fetch_artifact 'account-shell.js' "$account_shell"
+          fetch_artifact 'product-shell.js' "$product_shell"
+          fetch_artifact 'product-model.js' "$product_model"
+          fetch_artifact 'product-shell.css' "$product_css"
+          fetch_artifact 'assets/profiles/manifest.json' "$portrait_manifest"
+
+          require_marker "$index" 'CLOUDFLARE STAGING' 'advanced synthetic-test boundary'
+          require_marker "$index" 'magic-link-form' 'account entry form'
+          require_marker "$index" 'Aanmeldlink sturen' 'Dutch existing-account action'
+          require_marker "$index" 'advanced-tools' 'advanced proof disclosure'
+          require_marker "$index" './account-shell.js' 'account-shell module reference'
+          require_marker "$account_shell" "import './product-shell.js';" 'integrated product-shell import'
+          require_marker "$account_shell" 'rendezvue:language-change' 'shared language-change event'
+          require_marker "$product_shell" 'rendezvue-product-app' 'integrated signed-in product application'
+          require_marker "$product_shell" 'record_attraction_signal' 'server-authoritative discovery action'
+          require_marker "$product_shell" 'open_match_conversation' 'server-authoritative conversation action'
+          require_marker "$product_shell" 'postgres_changes' 'Realtime message subscription'
+          require_marker "$product_shell" 'operator-synthetic-only' 'operator proof boundary'
+          require_marker "$product_model" 'derivePartnerSex' 'derived opposite-sex discovery policy'
+          require_marker "$product_model" 'projectDiscoveryProfile' 'product-safe discovery projection'
+          require_marker "$product_css" '.rv-nav' 'mobile product navigation'
+          require_marker "$product_css" '.rv-discovery-card' 'product discovery cards'
+          require_marker "$product_css" '.rv-bubble' 'product conversation bubbles'
+
+          node --input-type=module --eval "
+            import { readFileSync } from 'node:fs';
+            const manifest = JSON.parse(readFileSync(process.argv[1], 'utf8'));
+            const expected = ['yasmin','bilal','amina','idris','maryam','samir','noura','youssef','hafsa','omar'];
+            if (manifest.syntheticOnly !== true) throw new Error('portrait manifest is not synthetic-only');
+            if (manifest.count !== expected.length) throw new Error('portrait manifest count is not ten');
+            if (JSON.stringify(manifest.names) !== JSON.stringify(expected)) throw new Error('portrait manifest names differ');
+          " "$portrait_manifest"
+
+          portrait_headers="$RUNNER_TEMP/portrait-headers.txt"
+          portrait_status="$(curl --silent --show-error --location --head \
+            --output "$portrait_headers" --write-out '%{http_code}' \
             --header 'cache-control: no-cache' \
-            "${STAGING_URL}?commit=${GITHUB_SHA}" > "$index"
-          grep -q 'CLOUDFLARE STAGING' "$index"
-          grep -q 'magic-link-form' "$index"
-          grep -q 'Magic link aanvragen' "$index"
+            "${STAGING_URL}assets/profiles/yasmin.webp?commit=${GITHUB_SHA}" || true)"
+          [[ "$portrait_status" == "200" ]] || {
+            echo "::error title=Synthetic product asset missing::Yasmin portrait returned HTTP ${portrait_status}."
+            exit 1
+          }
+          grep -Eiq '^content-type:[[:space:]]*image/webp' "$portrait_headers" || {
+            echo '::error title=Synthetic product asset type invalid::Yasmin portrait is not served as image/webp.'
+            exit 1
+          }
+
           if grep -q 'Branchpreview zonder backend' "$index"; then
             echo '::error title=Placeholder deployment::Production is serving the non-functional branch-preview artifact.'
             exit 1
@@ -111,14 +187,27 @@ jobs:
             echo '::error title=Stale hosting reference::Production index still references Hugging Face.'
             exit 1
           fi
+          if grep -Eiq 'service_role|sb_secret_|SUPABASE_SERVICE_ROLE_KEY|execute-account-email-replacement' "$product_shell"; then
+            echo '::error title=Privileged browser capability exposed::Product shell contains prohibited privileged material.'
+            exit 1
+          fi
 
           headers="$RUNNER_TEMP/runtime-headers.txt"
           curl --silent --show-error --location --head \
             --header 'cache-control: no-cache' \
             "${STAGING_URL}runtime-config.js?commit=${GITHUB_SHA}" > "$headers"
-          grep -Eiq '^cache-control:.*no-store' "$headers"
-          grep -Eiq '^x-content-type-options:[[:space:]]*nosniff' "$headers"
-          grep -Eiq '^x-frame-options:[[:space:]]*DENY' "$headers"
+          grep -Eiq '^cache-control:.*no-store' "$headers" || {
+            echo '::error title=Runtime cache contract failed::runtime-config.js is not served with no-store.'
+            exit 1
+          }
+          grep -Eiq '^x-content-type-options:[[:space:]]*nosniff' "$headers" || {
+            echo '::error title=Security header missing::X-Content-Type-Options nosniff is absent.'
+            exit 1
+          }
+          grep -Eiq '^x-frame-options:[[:space:]]*DENY' "$headers" || {
+            echo '::error title=Security header missing::X-Frame-Options DENY is absent.'
+            exit 1
+          }
 
       - name: Write verification summary
         shell: bash
@@ -130,11 +219,14 @@ jobs:
           - Commit matched: \`$GITHUB_SHA\`
           - Supabase configuration: remote, not placeholder
           - Configuration source: \`${{ steps.deployment.outputs.configuration_source }}\`
-          - Application marker: passed
+          - Account entry and recovery shell: passed
+          - Integrated onboarding/discovery/conversation shell: passed
+          - Ten synthetic product portraits and manifest: passed
           - Passwordless interface: PKCE magic link
           - Implicit access/refresh token fragments: disabled
           - Runtime configuration cache: no-store
           - Security headers: passed
+          - Privileged browser capability scan: passed
           - Hugging Face runtime reference: absent
           - Real-user admission authorized: no
           EOF
@@ -147,7 +239,7 @@ jobs:
           RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           gh issue comment 35 --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
-          ## Cloudflare Pages production deployment verified
+          ## Cloudflare Pages product deployment verified
 
           - canonical URL: $STAGING_URL
           - commit: \`$GITHUB_SHA\`
@@ -155,9 +247,13 @@ jobs:
           - deployment metadata: commit-matched
           - Supabase configuration: remote, not placeholder
           - configuration source: \`${{ steps.deployment.outputs.configuration_source }}\`
+          - account entry/recovery shell: passed
+          - integrated onboarding/discovery/conversation shell: passed
+          - synthetic portrait asset manifest and delivery: passed
           - passwordless interface: default-provider PKCE magic link
           - implicit access/refresh token fragments: disabled
           - runtime no-store and security headers: passed
+          - privileged browser capability scan: passed
           - Hugging Face runtime dependency: absent
           - real-user admission: not authorized
           EOF
@@ -170,12 +266,12 @@ jobs:
           RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           gh issue comment 35 --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
-          ## Cloudflare Pages production verification failed
+          ## Cloudflare Pages product verification failed
 
           - canonical URL: $STAGING_URL
           - expected commit: \`$GITHUB_SHA\`
           - workflow: $RUN_URL
-          - result: production did not become commit-matched with real Supabase configuration from an approved source or failed the application/header/auth-flow contract
-          - action: inspect the linked run and Cloudflare Pages production deployment; no staging success is claimed
+          - result: deployment metadata, account/product markers, synthetic assets, privileged-capability scan or security headers did not pass
+          - action: inspect the linked run; no canonical product deployment success is claimed
           - real-user admission: not authorized
           EOF
