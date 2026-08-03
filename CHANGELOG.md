@@ -4,6 +4,26 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
+### Product-facing account and recovery experience completed
+
+- Completed WP-066 through issue #71 and PR #72, merged as `45461d51a4cc6ad09b019e0b9165a9bb54ed4cb1`.
+- Replaced the operator-first Cloudflare landing view with a mobile-first product account experience.
+- Kept Dutch as the default and added explicit English copy parity and language switching.
+- Presented separate sign-in and account-creation actions while retaining `shouldCreateUser: false` for existing-account entry.
+- Added generic request confirmations that do not reveal account existence, provider state or delivery success.
+- Added language-aware guidance for expired, used and wrong-browser magic links and removed provider error parameters from the address bar.
+- Added plain-language `Geen toegang meer tot je e-mailadres?` guidance explaining identity review, independent approval and the prohibition on asking for passwords or complete mailbox codes.
+- Warned users not to create a duplicate account because matches and conversations are not merged automatically.
+- Added a masked signed-in e-mail summary, global sign-out and understandable account-deletion consequences.
+- Added responsive mobile styling and visible keyboard focus.
+- Retained the full WP-057 profile, portrait, discovery, matching, entitlement, chat, reporting, blocking, cleanup and proof harness under an advanced synthetic-test disclosure.
+- Added a shared bilingual account-experience module and unit tests for copy parity, generic messages, masking and callback classification.
+- Added a dedicated WP-066 validator that enforces Dutch default, language parity, shared-client reuse, non-enumerating copy and absence of browser-callable Auth admin or WP-065F execution.
+- Full application, artifact, Cloudflare, Docker, migration replay, pgTAP, concurrency, seed and schema-lint checks passed.
+- Canonical production run `30857567262` verified a commit-matched deployment with remote Supabase configuration, PKCE magic links, disabled implicit token fragments and security/no-store headers.
+- Protected backend run `30857567127` passed canonical Auth URL/allow-list, remote health, cleanup deployment, anonymous cleanup rejection and browser credential boundaries.
+- No operational support console or real-user admission was introduced.
+
 ### Dual-controlled registered-email replacement foundation completed
 
 - Implemented the user-approved mailbox-loss recovery option through WP-065F and PR #69, merged as `2a5579101a04d801ef4383c9b2e8237766474b0e`.
@@ -106,8 +126,9 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Marked WP-058 complete for controlled provider cleanup.
 - Marked WP-065A, WP-065B, WP-065D and WP-065E complete and remotely verified.
 - Marked the WP-065F technical foundation complete and remotely verified while leaving controlled mailbox execution proof and operational activation pending.
+- Marked WP-066 complete for controlled synthetic staging and promoted the product-facing account/recovery shell to canonical Cloudflare staging.
 - Kept WP-065C blocked pending retention-policy, DPIA and operational approval.
-- Advanced the roadmap to disposable-mailbox execution proof, secure support tooling, operational identity policy and closed-pilot readiness.
+- Advanced the roadmap to broader product-shell integration, disposable-mailbox execution proof, secure support tooling, operational identity policy and closed-pilot readiness.
 - Real-user admission remains unauthorized.
 
 ### Cloudflare Pages canonical staging
@@ -165,6 +186,8 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ### Remaining gates
 
+- Integrate onboarding, privacy portraits, profile preview, discovery, matching and conversation into the WP-066 product shell.
+- Complete desktop/mobile field review and representative Dutch/English/faith terminology review.
 - Provide a disposable synthetic account and mailbox for the controlled WP-065F remote execution proof.
 - Approve an operational identity-evidence policy and operator playbook; WP-065E/F remain technical contracts only.
 - Build secure support tooling, old/new-address notification, objection, fraud, rollback and incident procedures before operational use.
@@ -173,8 +196,6 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Approve retention periods, grace period, user notifications, DPIA alignment and operational ownership before WP-065C activation.
 - Keep scheduled or automatic deletion disabled until synthetic dry-run, rollback and support procedures pass.
 - Replace the transition Cloudflare bootstrap with direct Pages environment variables when operationally available.
-- Integrate proof contracts into the polished Cloudflare product interface.
-- Complete desktop/mobile camera and privacy-portrait review.
 - Complete legal, DPIA, sensitive-data, age/liveness, accessibility, moderation, support and security readiness.
 - Authorize a constrained real-user city pilot explicitly before admitting any real users.
 
