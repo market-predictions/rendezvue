@@ -54,8 +54,8 @@ Target-user research, Article 9 basis, withdrawal/deletion and anti-discriminati
 
 ## WP-030 — Production account and eligibility stack
 
-**Status:** active; controlled Auth, lifecycle, support-decision and e-mail-replacement foundations complete  
-Auth-linked account/profile domains, RLS, PKCE magic-link sessions, resumable onboarding, publication, sign-out/re-authentication, provider cleanup, fail-closed existing-account recovery, non-destructive lifecycle state, support cases, four-eyes evidence decisions and a dual-controlled registered-email replacement foundation are proven for controlled synthetic infrastructure. Remaining: remote disposable-mailbox execution proof, operational identity/support policy, secure support tooling and abandonment-retention approval.
+**Status:** active; controlled Auth, lifecycle, support-decision, e-mail-replacement and account-UX foundations complete  
+Auth-linked account/profile domains, RLS, PKCE magic-link sessions, resumable onboarding, publication, sign-out/re-authentication, provider cleanup, fail-closed existing-account recovery, non-destructive lifecycle state, support cases, four-eyes evidence decisions, a dual-controlled registered-email replacement foundation and a product-facing bilingual account/recovery shell are proven for controlled synthetic infrastructure. Remaining: remote disposable-mailbox execution proof, operational identity/support policy, secure support tooling and abandonment-retention approval.
 
 ## WP-035 — Resumable onboarding persistence
 
@@ -116,6 +116,11 @@ No payment provider or money movement is configured. The synthetic proof entitle
 
 **Status:** active — WP-065A/B/D/E complete; WP-065F foundation complete; WP-065C blocked  
 WP-065A separates registration from existing-account recovery. WP-065B adds non-destructive lifecycle candidates and holds. WP-065D adds audited duplicate-account/mailbox-loss cases. WP-065E adds controlled evidence and independent decisions. WP-065F adds a mailbox-loss-only, dual-controlled registered-email replacement foundation with hashed addresses, idempotency, expiry, cooldown, collision protection and an internal executor. Protected runs `30841983060`, `30843828895`, `30850822452`, `30854571921` and `30854641803` prove the remote boundaries. Remaining: a disposable-mailbox end-to-end execution proof, operational support authorization and WP-065C policy/DPIA approval.
+
+## WP-066 — Product-facing account and recovery UX
+
+**Status:** complete for controlled synthetic staging; accepted in issue #71  
+Canonical Cloudflare staging now opens with a Dutch-first, English-capable, mobile-first account experience. It clearly separates sign-in from registration, uses non-enumerating request messages, explains expired/wrong-browser links and mailbox-loss support in plain language, masks the signed-in address, exposes global sign-out and understandable deletion, and retains the complete proof harness only under an advanced synthetic-test disclosure. PR #72 merged as `45461d51a4cc6ad09b019e0b9165a9bb54ed4cb1`; canonical runs `30857567262` and `30857567127` passed. Operational support and real-user admission remain unauthorized. Detailed evidence: `docs/WP-066-ACCOUNT-RECOVERY-UX.md`.
 
 ## WP-070 — Trust and safety operations
 
