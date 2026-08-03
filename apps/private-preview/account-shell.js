@@ -1,4 +1,5 @@
 import { supabase } from './app.js';
+import './product-shell.js';
 import {
   accountCopy,
   classifyAuthCallback,
@@ -98,6 +99,10 @@ function applyLanguage(nextLanguage) {
   } catch {
     // Language persistence is optional. The active page still updates.
   }
+
+  globalThis.dispatchEvent(new CustomEvent('rendezvue:language-change', {
+    detail: Object.freeze({ language })
+  }));
 }
 
 for (const button of languageButtons) {
