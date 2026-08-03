@@ -15,6 +15,7 @@ const userSummary = document.querySelector('#user-summary');
 const output = document.querySelector('#result-output');
 const logList = document.querySelector('#proof-log');
 const discoveryList = document.querySelector('#discovery-list');
+const magicLinkForm = document.querySelector('#magic-link-form');
 
 function appendLog(message, level = 'info') {
   const item = document.createElement('li');
@@ -53,6 +54,27 @@ function setSession(user) {
     : '—';
 }
 
+function configureAccountEntryActions() {
+  const heading = authPanel.querySelector('h2');
+  if (heading) heading.textContent = 'Aanmelden, herstellen of registreren';
+
+  const recoveryButton = magicLinkForm.querySelector('button[type="submit"]');
+  recoveryButton.value = 'existing_account';
+  recoveryButton.textContent = 'Bestaand account aanmelden of herstellen';
+
+  const registrationButton = document.createElement('button');
+  registrationButton.type = 'submit';
+  registrationButton.value = 'registration';
+  registrationButton.className = 'secondary';
+  registrationButton.textContent = 'Nieuw synthetisch account registreren';
+  magicLinkForm.append(registrationButton);
+
+  const hint = authPanel.querySelector('.hint');
+  if (hint) {
+    hint.textContent = 'Aanmelden/herstellen maakt nooit een nieuw account aan. Registratie is een afzonderlijke, expliciete actie. De reactie maakt niet bekend of een account bestaat.';
+  }
+}
+
 if (!configuration.ready || backendConfig.mode !== 'supabase-proof') {
   configStatus.textContent = `Configuratiefout: ${configuration.reason}`;
   configStatus.className = 'badge error';
@@ -77,6 +99,7 @@ const supabase = createClient(backendConfig.url, backendConfig.publishableKey, {
 const auth = createAuthSessionAdapter(supabase, { redirectTo: runtime.authRedirectUrl });
 const onboarding = createOnboardingRepository(supabase);
 
+configureAccountEntryActions();
 configStatus.textContent = `Verbonden met ${new URL(backendConfig.url).hostname}`;
 configStatus.className = 'badge';
 appendLog(`Browserclient geconfigureerd voor ${new URL(backendConfig.url).hostname}.`);
@@ -102,19 +125,30 @@ try {
   appendLog(errorMessage(error), 'error');
 }
 
-document.querySelector('#magic-link-form').addEventListener('submit', async (event) => {
+magicLinkForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const button = event.submitter;
-  button.disabled = true;
+  const mode = button?.value === 'registration' ? 'registration' : 'existing_account';
+  const email = document.querySelector('#email').value;
+  for (const actionButton of magicLinkForm.querySelectorAll('button')) actionButton.disabled = true;
   try {
-    const email = document.querySelector('#email').value;
-    const result = await auth.requestMagicLink(email);
-    showResult({ requested: true, email: result.email, redirectTo: runtime.authRedirectUrl });
-    appendLog(`Magic link aangevraagd voor ${result.email}.`);
-  } catch (error) {
-    appendLog(errorMessage(error), 'error');
+    if (mode === 'registration') {
+      await auth.requestRegistrationMagicLink(email);
+    } else {
+      await auth.requestExistingAccountMagicLink(email);
+    }
+  } catch {
+    // Deliberately keep the browser response identical so account existence,
+    // provider identity and delivery state cannot be inferred from this UI.
   } finally {
-    button.disabled = false;
+    const action = mode === 'registration' ? 'registratie' : 'aanmelding of herstel';
+    showResult({
+      requested: true,
+      mode,
+      message: `Als dit adres geldig is voor ${action}, wordt een magic link verzonden.`
+    });
+    appendLog(`Magic-linkverzoek voor ${action} verwerkt zonder accountstatus vrij te geven.`);
+    for (const actionButton of magicLinkForm.querySelectorAll('button')) actionButton.disabled = false;
   }
 });
 
