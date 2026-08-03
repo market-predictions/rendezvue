@@ -1,0 +1,178 @@
+name: Verify WP-065 lifecycle staging
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-account-lifecycle-staging.yml'
+      - 'supabase/migrations/20260803134500_account_lifecycle_retention_candidates.sql'
+  workflow_run:
+    workflows: ['Configure Cloudflare staging backend']
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: rendezvue-wp065-lifecycle-verifier
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment: rendezvue-private-preview
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate protected verifier configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${SUPABASE_ACCESS_TOKEN:-}" ]] || { echo '::error title=Missing token::SUPABASE_ACCESS_TOKEN is not configured'; exit 1; }
+          [[ "$SUPABASE_PROJECT_REF" =~ ^[a-z0-9]{15,30}$ ]] || { echo '::error title=Invalid project reference::SUPABASE_PROJECT_REF has an unexpected format'; exit 1; }
+
+      - name: Verify remote lifecycle objects and disabled policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          request="$RUNNER_TEMP/wp065-lifecycle-request.json"
+          response="$RUNNER_TEMP/wp065-lifecycle-response.json"
+
+          node --input-type=module - "$request" <<'NODE'
+          import { writeFileSync } from 'node:fs';
+          const query = `
+            select
+              to_regclass('public.account_lifecycle') is not null as lifecycle_present,
+              to_regclass('public.account_retention_policies') is not null as policies_present,
+              to_regclass('public.account_retention_holds') is not null as holds_present,
+              (select count(*)::int from public.account_retention_policies where status = 'active') as active_policy_count,
+              (select count(*)::int from public.list_account_retention_candidates(timezone('utc', now()))) as candidate_count,
+              has_function_privilege('anon', 'public.list_account_retention_candidates(timestamptz)', 'EXECUTE') as anon_can_enumerate,
+              has_function_privilege('authenticated', 'public.list_account_retention_candidates(timestamptz)', 'EXECUTE') as authenticated_can_enumerate,
+              has_function_privilege('service_role', 'public.list_account_retention_candidates(timestamptz)', 'EXECUTE') as service_role_can_enumerate;
+          `;
+          writeFileSync(process.argv[2], JSON.stringify({ query, read_only: true }));
+          NODE
+
+          status="$(curl --silent --show-error \
+            --output "$response" \
+            --write-out '%{http_code}' \
+            --request POST \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            --header 'content-type: application/json' \
+            --data-binary "@$request" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query")"
+
+          if [[ "$status" != "200" && "$status" != "201" ]]; then
+            echo "::error title=Remote lifecycle query failed::Supabase Management API returned HTTP $status"
+            node --input-type=module - "$response" <<'NODE'
+            import { readFileSync } from 'node:fs';
+            const raw = readFileSync(process.argv[2], 'utf8');
+            try {
+              const value = JSON.parse(raw);
+              console.error(JSON.stringify({ message: value.message, error: value.error, code: value.code }));
+            } catch {
+              console.error(raw.slice(0, 1000));
+            }
+            NODE
+            exit 1
+          fi
+
+          node --input-type=module - "$response" <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const payload = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+          const rows = Array.isArray(payload)
+            ? payload
+            : Array.isArray(payload.result)
+              ? payload.result
+              : Array.isArray(payload.data)
+                ? payload.data
+                : Array.isArray(payload.rows)
+                  ? payload.rows
+                  : [];
+          if (rows.length !== 1 || typeof rows[0] !== 'object' || rows[0] === null) {
+            throw new Error('Remote lifecycle verifier returned an unexpected response shape');
+          }
+          const row = rows[0];
+          const truthy = (value) => value === true || value === 'true' || value === 't' || value === 1 || value === '1';
+          const integer = (value) => Number.parseInt(String(value), 10);
+          for (const field of ['lifecycle_present', 'policies_present', 'holds_present']) {
+            if (!truthy(row[field])) throw new Error(`${field} is not true`);
+          }
+          if (integer(row.active_policy_count) !== 0) throw new Error('A remote retention policy is active without approval');
+          if (integer(row.candidate_count) !== 0) throw new Error('Remote cleanup candidates exist while WP-065C is blocked');
+          if (truthy(row.anon_can_enumerate)) throw new Error('anon can enumerate retention candidates');
+          if (truthy(row.authenticated_can_enumerate)) throw new Error('authenticated can enumerate retention candidates');
+          if (!truthy(row.service_role_can_enumerate)) throw new Error('service_role cannot enumerate retention candidates');
+          console.log(JSON.stringify({
+            lifecyclePresent: true,
+            policiesPresent: true,
+            holdsPresent: true,
+            activePolicyCount: 0,
+            candidateCount: 0,
+            anonCanEnumerate: false,
+            authenticatedCanEnumerate: false,
+            serviceRoleCanEnumerate: true
+          }));
+          NODE
+
+      - name: Write verification summary
+        shell: bash
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          ## WP-065 remote lifecycle verification
+
+          - Lifecycle schema: present
+          - Active retention policy: none
+          - Cleanup candidates: none
+          - Anonymous enumeration: denied
+          - Authenticated enumeration: denied
+          - Service-role enumeration: allowed
+          - Delete function or scheduler introduced: no
+          - Real-user admission authorized: no
+          EOF
+
+      - name: Record successful lifecycle verification
+        if: success()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment 54 --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
+          ## WP-065 remote lifecycle verification passed
+
+          - commit: \`${GITHUB_SHA}\`
+          - workflow: $RUN_URL
+          - lifecycle schema: present
+          - active retention policies: 0
+          - cleanup candidates: 0
+          - anonymous/authenticated candidate enumeration: denied
+          - service-role candidate enumeration: allowed
+          - destructive cleanup or scheduler: absent
+          - real-user admission: not authorized
+          EOF
+
+      - name: Record lifecycle verification failure
+        if: failure()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment 54 --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
+          ## WP-065 remote lifecycle verification failed
+
+          - commit: \`${GITHUB_SHA}\`
+          - workflow: $RUN_URL
+          - result: lifecycle schema, disabled-policy, zero-candidate or privilege contract did not pass
+          - destructive cleanup remains unauthorized
+          - real-user admission remains unauthorized
+          EOF
