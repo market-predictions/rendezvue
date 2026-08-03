@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 2.7  
+**Version:** 2.8  
 **Updated:** 2026-08-03
 
 ## Operating doctrine
@@ -93,9 +93,9 @@ Demonstrated:
 
 ### 2C. Authentication, resumable onboarding and Cloudflare deployment
 
-**Status:** controlled proof complete; recovery, lifecycle, support-decision and e-mail-replacement foundations complete; operational recovery remains unauthorized.
+**Status:** controlled proof complete; product-facing account entry integrated; operational recovery remains unauthorized.
 
-Demonstrated in the canonical Cloudflare browser proof and WP-065A/B/D/E/F:
+Demonstrated in the canonical Cloudflare browser proof and WP-065A/B/D/E/F plus WP-066:
 
 - same-browser-profile PKCE magic-link exchange for two isolated accounts;
 - consumed callback handling and session restoration;
@@ -106,6 +106,12 @@ Demonstrated in the canonical Cloudflare browser proof and WP-065A/B/D/E/F:
 - no session restoration after final cleanup;
 - existing-account access cannot silently create a new account;
 - explicit registration remains the only account-creation action;
+- Dutch-first and English-capable product account entry;
+- generic request messages that do not reveal account existence or delivery state;
+- plain-language expired, used and wrong-browser magic-link guidance;
+- user-facing mailbox-loss guidance without internal support terminology;
+- masked signed-in address, global sign-out and understandable deletion consequences;
+- complete synthetic proof controls retained behind an advanced disclosure;
 - server-authoritative lifecycle state and service-only non-destructive retention candidates;
 - service-only audited investigation cases for duplicate-account and mailbox-access-loss requests;
 - controlled evidence categories and case-kind approval thresholds;
@@ -125,6 +131,7 @@ Still required:
 - build secure support tooling and user-notification/objection flows;
 - define fraud, rollback, escalation and incident controls;
 - keep duplicate-account merging outside scope unless separately approved;
+- integrate onboarding, privacy portraits, discovery, matching and conversation into the same polished product shell;
 - approve retention policy, user notification and operational ownership;
 - guarded cleanup dry-run and scheduling only after policy and DPIA approval;
 - direct Cloudflare Pages environment variables instead of the transition bootstrap.
@@ -246,6 +253,31 @@ Not yet proven or authorized:
 
 Detailed evidence: `docs/WP-065-ACCOUNT-LIFECYCLE.md`, `docs/WP-065F-EMAIL-REPLACEMENT-FOUNDATION.md`, issue #54, issue #62, issue #65 and issue #68.
 
+### 2K. Product-facing account and recovery experience
+
+**Status:** complete for controlled synthetic staging; accepted in issue #71.
+
+WP-066 replaced the operator-first landing view with a mobile-first account experience while retaining the proof harness under an advanced disclosure.
+
+Completed:
+
+- Dutch remains the default language;
+- English copy parity and an explicit language switch;
+- separate sign-in and account-creation actions;
+- generic non-enumerating request messages;
+- language-aware expired/used/wrong-browser callback guidance;
+- plain-language mailbox-loss support explanation and duplicate-account warning;
+- masked signed-in e-mail address;
+- global sign-out and understandable deletion consequences;
+- responsive layout and visible keyboard focus;
+- shared Supabase browser client retained;
+- no browser-callable Auth admin or WP-065F executor;
+- dedicated source and built-artifact regression validator;
+- canonical production run `30857567262` commit-matched to PR #72 merge `45461d51a4cc6ad09b019e0b9165a9bb54ed4cb1`;
+- protected backend run `30857567127` passed remote health, Auth URL/allow-list, cleanup deployment, anonymous rejection and browser credential boundary.
+
+Detailed evidence: `docs/WP-066-ACCOUNT-RECOVERY-UX.md`.
+
 ## Phase 3 — Closed city-based PWA pilot
 
 **Status:** not authorized.
@@ -259,6 +291,7 @@ Detailed evidence: `docs/WP-065-ACCOUNT-LIFECYCLE.md`, `docs/WP-065F-EMAIL-REPLA
 - secure support tooling, user notifications, objection and incident procedures approved;
 - retention policy, DPIA alignment, notification and operational ownership approved;
 - integrated mobile UX and privacy-portrait review accepted;
+- broader onboarding, discovery, matching and conversation product shell accepted;
 - legal basis, DPIA and privacy notices approved;
 - age/liveness and student-benefit verification decisions approved;
 - moderation, support, incident and deletion operations staffed;
