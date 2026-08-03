@@ -54,8 +54,8 @@ Target-user research, Article 9 basis, withdrawal/deletion and anti-discriminati
 
 ## WP-030 — Production account and eligibility stack
 
-**Status:** active; controlled Auth, lifecycle and support-decision foundations complete  
-Auth-linked account/profile domains, RLS, PKCE magic-link sessions, resumable onboarding, publication, sign-out/re-authentication, provider cleanup, fail-closed existing-account recovery intent, non-destructive lifecycle state, service-only support cases and four-eyes evidence decisions are proven for controlled synthetic infrastructure. Remaining: decide whether any separately gated account identity mutation/restoration action should exist, plus abandonment-retention approval and operational policy activation.
+**Status:** active; controlled Auth, lifecycle, support-decision and e-mail-replacement foundations complete  
+Auth-linked account/profile domains, RLS, PKCE magic-link sessions, resumable onboarding, publication, sign-out/re-authentication, provider cleanup, fail-closed existing-account recovery, non-destructive lifecycle state, support cases, four-eyes evidence decisions and a dual-controlled registered-email replacement foundation are proven for controlled synthetic infrastructure. Remaining: remote disposable-mailbox execution proof, operational identity/support policy, secure support tooling and abandonment-retention approval.
 
 ## WP-035 — Resumable onboarding persistence
 
@@ -75,7 +75,7 @@ The private Static Space is no longer an application host or acceptance environm
 ## WP-039 — Cloudflare/Supabase runtime contract
 
 **Status:** complete; evidence in issue #35  
-The production artifact uses browser-safe Supabase configuration, fixed Cloudflare Auth URLs, PKCE magic links, disabled implicit token fragments, the authenticated cleanup function and RLS as the authorization boundary.
+The production artifact uses browser-safe Supabase configuration, fixed Cloudflare Auth URLs, PKCE magic links, disabled implicit token fragments, authenticated internal Edge Functions and RLS as the authorization boundary.
 
 ## WP-040 — Production liveness and privacy portrait
 
@@ -90,7 +90,7 @@ Server-authoritative attraction, match, one-time proof entitlement, conversation
 ## WP-055 — Backend proof validation
 
 **Status:** complete for current backend scope  
-CI proves empty-database replay, pgTAP, schema lint, cross-account isolation, publication gating, one-time proof entitlement, portrait access/revocation, true parallel races, moderation escalation, account cleanup, lifecycle candidate safety, support-case access/state contracts and evidence/dual-control decision invariants.
+CI proves empty-database replay, pgTAP, schema lint, cross-account isolation, publication gating, one-time proof entitlement, portrait access/revocation, true parallel races, moderation escalation, account cleanup, lifecycle candidate safety, support-case state, evidence/dual-control decisions and WP-065F e-mail-replacement action invariants.
 
 ## WP-057 — Controlled two-account remote proof
 
@@ -114,8 +114,8 @@ No payment provider or money movement is configured. The synthetic proof entitle
 
 ## WP-065 — Account recovery and lifecycle controls
 
-**Status:** active — WP-065A/B/D/E complete; WP-065C blocked  
-WP-065A separates registration from existing-account recovery. WP-065B adds non-destructive lifecycle candidates and holds. WP-065D adds audited duplicate-account/mailbox-loss investigation cases. WP-065E adds controlled evidence categories, case-kind thresholds, conflict handling, stale-proposal protection and independent reviewer approval without any downstream action. Protected runs `30841983060`, `30843828895` and `30850822452` proved the remote lifecycle, case and decision privilege boundaries. Remaining: decide whether any account mutation/restoration action should exist and complete policy/DPIA/operational approval before scheduled deletion.
+**Status:** active — WP-065A/B/D/E complete; WP-065F foundation complete; WP-065C blocked  
+WP-065A separates registration from existing-account recovery. WP-065B adds non-destructive lifecycle candidates and holds. WP-065D adds audited duplicate-account/mailbox-loss cases. WP-065E adds controlled evidence and independent decisions. WP-065F adds a mailbox-loss-only, dual-controlled registered-email replacement foundation with hashed addresses, idempotency, expiry, cooldown, collision protection and an internal executor. Protected runs `30841983060`, `30843828895`, `30850822452`, `30854571921` and `30854641803` prove the remote boundaries. Remaining: a disposable-mailbox end-to-end execution proof, operational support authorization and WP-065C policy/DPIA approval.
 
 ## WP-070 — Trust and safety operations
 
