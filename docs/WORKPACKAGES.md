@@ -124,8 +124,8 @@ Canonical Cloudflare staging opens with a Dutch-first, English-capable, mobile-f
 
 ## WP-067 — Integrated onboarding, discovery and conversation product shell
 
-**Status:** implementation complete; canonical automated acceptance pending final post-merge evidence  
-The signed-in Cloudflare experience now provides mobile product navigation, resumable onboarding, derived opposite-sex discovery, private portrait upload, profile preview/publication, synthetic portrait-backed discovery, pass/direct/contextual likes, match/contact flow, Realtime conversation and plain-language safety actions. Internal IDs and proof terminology remain outside visible product projections, while the diagnostic harness stays behind the advanced synthetic-test boundary. PR #75 merged as `21596e03ddf624f4eca5b272c77539985617e742`; implementation head passed CI run `30859823200` and full validation run `30859823366`. Manual disposable-account field proof remains pending. Detailed evidence: `docs/WP-067-INTEGRATED-PRODUCT-SHELL.md`.
+**Status:** complete for controlled synthetic staging; accepted in issue #74  
+The signed-in Cloudflare experience provides mobile product navigation, resumable onboarding, derived opposite-sex discovery, private portrait upload, profile preview/publication, synthetic portrait-backed discovery, pass/direct/contextual likes, match/contact flow, Realtime conversation and plain-language safety actions. Internal IDs and proof terminology remain outside visible product projections, while the diagnostic harness stays behind the advanced synthetic-test boundary. PR #75 merged as `21596e03ddf624f4eca5b272c77539985617e742`; verifier repair PR #76 merged as `2bcd6f884ab6cc7a4ef68291b46e03e754be845b`; canonical product verification run `30860701792` passed. Manual disposable-account field proof and owner mobile review remain pending. Detailed evidence: `docs/WP-067-INTEGRATED-PRODUCT-SHELL.md`.
 
 ## WP-070 — Trust and safety operations
 
