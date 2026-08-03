@@ -1,7 +1,7 @@
 # Project handover
 
-**Updated:** 2026-08-03  
-**Milestone:** WP-066 product-facing account and recovery UX accepted on canonical staging
+**Updated:** 2026-08-04  
+**Milestone:** WP-067 integrated onboarding, discovery and conversation product shell accepted on canonical staging
 
 ## GitHub state
 
@@ -14,6 +14,7 @@
 - Evidence and dual-control decision foundation: issue #65 / PR #66.
 - Registered-email replacement foundation: issue #68 / PR #69 / `docs/WP-065F-EMAIL-REPLACEMENT-FOUNDATION.md`.
 - Product-facing account/recovery UX: issue #71 / PR #72 / `docs/WP-066-ACCOUNT-RECOVERY-UX.md`.
+- Integrated product shell: issue #74 / PR #75 / verifier repair PR #76 / `docs/WP-067-INTEGRATED-PRODUCT-SHELL.md`.
 - Detailed WP-057 completion record: `docs/WP-057-COMPLETION.md`.
 - Supabase project: `RendezvueProject`, Healthy, West EU (Ireland), Nano.
 - Real-user admission is not authorized.
@@ -23,6 +24,13 @@
 GitHub is the sole source of truth. Cloudflare Pages is the only web-facing staging host. Supabase provides Auth, PostgreSQL/RLS, private Storage, Realtime and Edge Functions.
 
 The former public and private Hugging Face Spaces are historical, non-canonical artifacts. No further functional acceptance testing is performed there.
+
+The canonical browser artifact contains two deliberately separated layers:
+
+1. a normal product journey for account entry, onboarding, profile, discovery, matches, conversation and account management;
+2. a collapsed advanced synthetic-test harness for operator diagnostics and proof evidence.
+
+Both layers reuse one shared Supabase browser client. RLS, RPCs, private Storage, Realtime and Edge Functions remain authoritative.
 
 ## Accepted WP-057 outcome
 
@@ -196,6 +204,45 @@ Evidence:
 
 WP-066 does not create a browser support console or authorize real users. Detailed evidence: `docs/WP-066-ACCOUNT-RECOVERY-UX.md`.
 
+## Accepted WP-067 outcome
+
+WP-067 is complete as the integrated signed-in product experience on canonical synthetic staging.
+
+Demonstrated:
+
+- five-tab navigation for Start, Profile, Discover, Matches and Account;
+- resumable eligibility, identity, life-stage, family, faith, personality and portrait onboarding;
+- sex limited to woman/man with opposite-sex discovery derived automatically;
+- no separate partner selector;
+- exact adult-date validation in the product model;
+- private synthetic portrait upload with object rollback if registration fails;
+- account portrait preview and server-authoritative publication;
+- ten deterministic synthetic WebP portraits bundled into the Cloudflare artifact;
+- product-safe discovery projections that keep target IDs outside visible copy;
+- pass, direct like and contextual like through `record_attraction_signal`;
+- match state, one controlled synthetic contact right and idempotent conversation opening;
+- participant-only message reads/writes and Realtime updates;
+- temporary matched-portrait access while contact is active;
+- normal end-contact, block and private safety report actions;
+- Dutch default and complete English product-copy key parity;
+- normal screens exclude UUIDs, raw snapshots, private paths and proof terminology;
+- diagnostic controls remain behind the advanced synthetic-test boundary;
+- no second browser client, service-role key, Auth-admin call, support executor, account merge or retention action.
+
+Evidence:
+
+- issue #74;
+- PR #75 merged as `21596e03ddf624f4eca5b272c77539985617e742`;
+- implementation head `80f0fa275ed4617f6827c7aa26744c504b5f8ec4`;
+- ordinary CI run `30859823200`;
+- full validation run `30859823366` with 51 Node tests and complete backend regression;
+- protected backend run `30860142461` passed for the implementation merge;
+- initial production verifier run `30860142392` exposed a stale pre-WP-066 text marker rather than an application failure;
+- PR #76 repaired and strengthened the verifier, merged as `2bcd6f884ab6cc7a4ef68291b46e03e754be845b`;
+- canonical product verification run `30860701792` passed account and product markers, synthetic portrait manifest/delivery, privileged-capability scan, remote Supabase, PKCE, no-store and security headers.
+
+WP-067 has not yet received a new manual disposable-account end-to-end field proof or owner mobile acceptance. Detailed evidence: `docs/WP-067-INTEGRATED-PRODUCT-SHELL.md`.
+
 ## Current validated backend/browser scope
 
 Validated:
@@ -211,8 +258,14 @@ Validated:
 - fail-closed registration versus existing-account recovery intent;
 - non-enumerating request responses and callback guidance;
 - masked signed-in identity, global sign-out and deletion explanation;
+- integrated mobile product navigation;
 - resumable owner-scoped onboarding and server publication;
-- Realtime participant-only messaging;
+- private synthetic portrait upload and product preview;
+- synthetic portrait-backed product discovery;
+- pass, direct and contextual signals;
+- match/contact and Realtime participant-only conversation;
+- product-safe visible projections without internal identifiers;
+- end-contact, block and private safety report paths;
 - provider-orchestrated object/Auth/relational cleanup;
 - audit identifier anonymisation;
 - post-cleanup session non-restoration;
@@ -226,16 +279,23 @@ Validated:
 
 ## Immediate next work
 
-### 1. Broader product-shell integration
+### 1. Owner field review of the integrated product
 
-- bring onboarding, privacy-portrait selection, profile preview, discovery, matching and conversation into the same polished shell as WP-066;
-- remove operator and proof terminology from normal screens;
-- retain synthetic diagnostic controls behind an advanced/operator boundary;
-- complete desktop and mobile field review;
-- review camera and privacy-portrait attractiveness/privacy balance;
-- complete representative Dutch/English and faith terminology review.
+- review the complete account-to-conversation journey on representative desktop and mobile devices;
+- evaluate navigation, form density, profile readability, portrait attractiveness and chat clarity;
+- review Dutch/English and faith/family terminology with representative users;
+- record actionable defects as separate, testable work packages;
+- retain synthetic-only restrictions during review.
 
-### 2. Complete the controlled WP-065F execution proof
+### 2. Controlled disposable-account product proof
+
+- provide two private disposable mailboxes and isolated browser profiles;
+- register or reuse controlled synthetic accounts;
+- execute onboarding, portrait selection, publication, discovery, reciprocal match, contact opening, Realtime chat, end-contact/block and cleanup through the normal WP-067 product shell;
+- confirm normal screens never display internal identifiers or proof output;
+- collect only sanitized evidence.
+
+### 3. Complete the controlled WP-065F execution proof
 
 - provide one disposable synthetic account with an old address and a disposable target mailbox that can receive a PKCE magic link;
 - open a synthetic mailbox-loss case, register evidence, obtain independent decision and action approval;
@@ -244,24 +304,13 @@ Validated:
 - prove the action/event/audit history remains sanitized and idempotent;
 - clean up the disposable account after evidence collection.
 
-### 3. Define operational support policy
+### 4. Operational governance
 
-- approve real-world identity evidence and rejection/escalation thresholds;
-- name proposer, reviewer and executor roles;
+- approve real-world identity evidence and support roles;
 - build secure support tooling rather than direct database/workflow use;
-- approve old/new-address notification, objection and appeal language;
-- define fraud, rollback, rate-limit and incident procedures;
-- keep duplicate-account merging out of scope unless separately approved.
-
-### 4. Define retention-hold operations and WP-065C decision
-
-- define who may create, review and release a hold;
-- approve retention periods and policy version;
-- align DPIA, legal basis and privacy notices;
-- design grace period and user notifications;
-- name the operational owner and review cadence;
-- prove synthetic dry-run, rollback and support procedures;
-- keep all scheduling and destructive automation disabled until those gates pass.
+- approve notification, objection, fraud, rollback, rate-limit and incident procedures;
+- define retention-hold operations and decide WP-065C policy/DPIA gates;
+- keep duplicate-account merging, support password changes and destructive scheduling disabled.
 
 ### 5. Closed-pilot readiness
 
@@ -286,6 +335,7 @@ Before any real-user admission:
 
 - WP-065E/F are technical contracts, not an approved real-world identity/support policy;
 - WP-066 is a product-facing explanation, not a secure operational support console;
+- WP-067 is canonically deployed and contract-tested, but lacks a new disposable-account field execution and owner mobile acceptance;
 - no remote WP-065F e-mail replacement has yet been executed;
 - no disposable target mailbox is currently available to complete that proof;
 - no account merging or support password change;
@@ -297,4 +347,4 @@ Before any real-user admission:
 - no operational moderation console or SLA;
 - no approved Article 9 basis or completed DPIA;
 - no real-user authorization;
-- the staging proof remains restricted to controlled synthetic adults.
+- staging remains restricted to controlled synthetic adults.

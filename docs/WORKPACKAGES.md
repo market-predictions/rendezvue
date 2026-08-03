@@ -54,13 +54,13 @@ Target-user research, Article 9 basis, withdrawal/deletion and anti-discriminati
 
 ## WP-030 — Production account and eligibility stack
 
-**Status:** active; controlled Auth, lifecycle, support-decision, e-mail-replacement and account-UX foundations complete  
-Auth-linked account/profile domains, RLS, PKCE magic-link sessions, resumable onboarding, publication, sign-out/re-authentication, provider cleanup, fail-closed existing-account recovery, non-destructive lifecycle state, support cases, four-eyes evidence decisions, a dual-controlled registered-email replacement foundation and a product-facing bilingual account/recovery shell are proven for controlled synthetic infrastructure. Remaining: remote disposable-mailbox execution proof, operational identity/support policy, secure support tooling and abandonment-retention approval.
+**Status:** active; controlled Auth, lifecycle, support-decision, e-mail-replacement and product-UX foundations complete  
+Auth-linked account/profile domains, RLS, PKCE magic-link sessions, resumable onboarding, publication, sign-out/re-authentication, provider cleanup, fail-closed existing-account recovery, non-destructive lifecycle state, support cases, four-eyes evidence decisions, a dual-controlled registered-email replacement foundation and the integrated bilingual product shell are proven for controlled synthetic infrastructure. Remaining: remote disposable-mailbox execution proof, operational identity/support policy, secure support tooling and abandonment-retention approval.
 
 ## WP-035 — Resumable onboarding persistence
 
-**Status:** complete for controlled proof  
-Owner-only snapshot, stage allowlists, progress save, transactional personality save, publication gating and two-account remote persistence are demonstrated. Product UX refinement remains outside this package.
+**Status:** complete for controlled proof and product-shell integration  
+Owner-only snapshot, stage allowlists, progress save, transactional personality save, publication gating and two-account remote persistence are demonstrated and consumed by WP-067. Owner field review remains.
 
 ## WP-037 — Legacy private Hugging Face proof
 
@@ -84,8 +84,8 @@ Randomized challenge analysis, replay threat model, short retention, fair portra
 
 ## WP-050 — Persistent application services
 
-**Status:** complete for controlled proof; product integration active elsewhere  
-Server-authoritative attraction, match, one-time proof entitlement, conversation, Realtime messages, end-contact, block, feedback, report and portrait-access contracts completed the two-account browser slice.
+**Status:** complete for controlled proof and integrated synthetic product shell  
+Server-authoritative attraction, match, one-time proof entitlement, conversation, Realtime messages, end-contact, block, feedback, report and portrait-access contracts completed the two-account browser slice and now power the WP-067 product experience.
 
 ## WP-055 — Backend proof validation
 
@@ -120,7 +120,12 @@ WP-065A separates registration from existing-account recovery. WP-065B adds non-
 ## WP-066 — Product-facing account and recovery UX
 
 **Status:** complete for controlled synthetic staging; accepted in issue #71  
-Canonical Cloudflare staging now opens with a Dutch-first, English-capable, mobile-first account experience. It clearly separates sign-in from registration, uses non-enumerating request messages, explains expired/wrong-browser links and mailbox-loss support in plain language, masks the signed-in address, exposes global sign-out and understandable deletion, and retains the complete proof harness only under an advanced synthetic-test disclosure. PR #72 merged as `45461d51a4cc6ad09b019e0b9165a9bb54ed4cb1`; canonical runs `30857567262` and `30857567127` passed. Operational support and real-user admission remain unauthorized. Detailed evidence: `docs/WP-066-ACCOUNT-RECOVERY-UX.md`.
+Canonical Cloudflare staging opens with a Dutch-first, English-capable, mobile-first account experience. It clearly separates sign-in from registration, uses non-enumerating request messages, explains expired/wrong-browser links and mailbox-loss support in plain language, masks the signed-in address, exposes global sign-out and understandable deletion, and retains the complete proof harness only under an advanced synthetic-test disclosure. Detailed evidence: `docs/WP-066-ACCOUNT-RECOVERY-UX.md`.
+
+## WP-067 — Integrated onboarding, discovery and conversation product shell
+
+**Status:** complete for controlled synthetic staging; accepted in issue #74  
+The signed-in Cloudflare experience provides mobile product navigation, resumable onboarding, derived opposite-sex discovery, private portrait upload, profile preview/publication, synthetic portrait-backed discovery, pass/direct/contextual likes, match/contact flow, Realtime conversation and plain-language safety actions. Internal IDs and proof terminology remain outside visible product projections, while the diagnostic harness stays behind the advanced synthetic-test boundary. PR #75 merged as `21596e03ddf624f4eca5b272c77539985617e742`; verifier repair PR #76 merged as `2bcd6f884ab6cc7a4ef68291b46e03e754be845b`; canonical product verification run `30860701792` passed. Manual disposable-account field proof and owner mobile review remain pending. Detailed evidence: `docs/WP-067-INTEGRATED-PRODUCT-SHELL.md`.
 
 ## WP-070 — Trust and safety operations
 
