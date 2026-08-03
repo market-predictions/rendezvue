@@ -4,6 +4,22 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
+### Account recovery and lifecycle controls advanced
+
+- Completed WP-065A through PR #55: existing-account sign-in/recovery now uses `shouldCreateUser: false`; explicit registration is the only passwordless action allowed to create a new Auth user.
+- Added separate recovery/sign-in and registration actions to the Cloudflare proof interface while keeping the user response generic to prevent account enumeration.
+- Added unit and artifact regression gates that fail if existing-account recovery can create users or the UI intent separation disappears.
+- Completed non-destructive WP-065B through PR #56.
+- Added server-authoritative account lifecycle/activity state for new and existing Auth users.
+- Added versioned retention policies with no active default and explicit time-bounded or open-ended retention holds.
+- Added service-role-only candidate enumeration for inactive draft accounts with exclusions for recent activity, publication, active matches, unresolved safety/moderation work and active holds.
+- Added pgTAP coverage for policy-off behaviour, privileges, exclusions, hold release and activity-based removal from candidacy.
+- Added a protected read-only Supabase staging verifier in PR #58.
+- Repaired its YAML heredoc runtime failure in PR #59 without changing remote account data or lifecycle permissions.
+- Retained the service-role-only function boundary in PR #60 and calculated protected aggregate candidates through the same read-only CTE and exclusions because the Management API query role correctly could not execute the protected function.
+- Protected run `30841983060` verified remotely: lifecycle schema present, active retention policies `0`, cleanup candidates `0`, anonymous/authenticated enumeration denied and service-role enumeration allowed.
+- No retention policy, delete function, scheduler or real-user admission was activated.
+
 ### Controlled two-account Cloudflare proof completed
 
 - Completed WP-057 in issue #41 using two isolated browser profiles and two controlled synthetic adult accounts.
@@ -36,8 +52,9 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Marked WP-055 complete for the current backend proof scope.
 - Marked WP-057 complete.
 - Marked WP-058 complete for controlled provider cleanup.
-- Added WP-065 for account recovery, duplicate-account resolution, abandonment retention and scheduled cleanup.
-- Advanced the roadmap from browser-proof execution to lifecycle controls, integrated mobile review and closed-pilot readiness.
+- Marked WP-065A and WP-065B complete and remotely verified.
+- Kept WP-065C blocked pending retention-policy, DPIA and operational approval.
+- Advanced the roadmap from browser-proof execution to support-safe account recovery, integrated mobile review and closed-pilot readiness.
 - Real-user admission remains unauthorized.
 
 ### Cloudflare Pages canonical staging
@@ -95,8 +112,10 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ### Remaining gates
 
-- Implement account recovery and duplicate-account controls.
-- Approve abandonment retention and scheduled cleanup.
+- Define support-led duplicate-account investigation and resolution.
+- Define restoration/recovery when the registered mailbox is unavailable.
+- Approve retention periods, grace period, user notifications, DPIA alignment and operational ownership before WP-065C activation.
+- Keep scheduled or automatic deletion disabled until synthetic dry-run, rollback and support procedures pass.
 - Replace the transition Cloudflare bootstrap with direct Pages environment variables when operationally available.
 - Integrate proof contracts into the polished Cloudflare product interface.
 - Complete desktop/mobile camera and privacy-portrait review.

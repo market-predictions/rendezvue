@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 2.3  
+**Version:** 2.4  
 **Updated:** 2026-08-03
 
 ## Operating doctrine
@@ -92,9 +92,9 @@ Demonstrated:
 
 ### 2C. Authentication, resumable onboarding and Cloudflare deployment
 
-**Status:** controlled proof complete; recovery and lifecycle controls remain.
+**Status:** controlled proof complete; recovery-intent and lifecycle foundations complete; operational recovery remains.
 
-Demonstrated in the canonical Cloudflare browser proof:
+Demonstrated in the canonical Cloudflare browser proof and WP-065A/B:
 
 - same-browser-profile PKCE magic-link exchange for two isolated accounts;
 - consumed callback handling and session restoration;
@@ -102,13 +102,17 @@ Demonstrated in the canonical Cloudflare browser proof:
 - persistent onboarding and server-side profile publication;
 - browser/server credential separation;
 - authenticated provider-orchestrated cleanup;
-- no session restoration after final cleanup.
+- no session restoration after final cleanup;
+- existing-account access cannot silently create a new account;
+- explicit registration remains the only account-creation action;
+- server-authoritative lifecycle state and service-only non-destructive retention candidates.
 
 Still required:
 
-- account recovery controls;
-- duplicate-account prevention and resolution;
-- abandonment retention policy and scheduled cleanup;
+- support-led resolution of genuinely duplicated accounts;
+- recovery/restoration when the registered mailbox is unavailable;
+- approved retention policy, user notification and operational ownership;
+- guarded cleanup dry-run and scheduling only after policy and DPIA approval;
 - direct Cloudflare Pages environment variables instead of the transition bootstrap.
 
 ### 2D. Controlled two-account interaction and cleanup slice
@@ -186,6 +190,30 @@ Detailed evidence: `docs/WP-057-COMPLETION.md`.
 - explainable limitations and appeals;
 - manual moderation console and audit workflow.
 
+### 2J. Account recovery and lifecycle controls
+
+**Status:** WP-065A/B complete; WP-065C blocked.
+
+Completed:
+
+- fail-closed distinction between existing-account recovery/sign-in and registration;
+- browser response that does not disclose account existence or delivery state;
+- server-authoritative lifecycle/activity state;
+- versioned retention policies with no active default;
+- explicit retention holds;
+- service-role-only non-destructive candidate enumeration;
+- local pgTAP and protected remote verification;
+- protected run `30841983060`: schema present, active policies `0`, candidates `0`, ordinary-user enumeration denied.
+
+Blocked until policy and operational approval:
+
+- activation of any retention policy;
+- user grace-period and notification workflow;
+- scheduled cleanup;
+- real-user deletion automation.
+
+Detailed evidence: `docs/WP-065-ACCOUNT-LIFECYCLE.md` and issue #54.
+
 ## Phase 3 — Closed city-based PWA pilot
 
 **Status:** not authorized.
@@ -194,7 +222,8 @@ Detailed evidence: `docs/WP-057-COMPLETION.md`.
 
 **Entry gates:**
 
-- recovery, duplicate-account and retention controls complete;
+- support-safe duplicate-account and mailbox-loss recovery procedures complete;
+- retention policy, DPIA alignment, notification and operational ownership approved;
 - integrated mobile UX and privacy-portrait review accepted;
 - legal basis, DPIA and privacy notices approved;
 - age/liveness and student-benefit verification decisions approved;

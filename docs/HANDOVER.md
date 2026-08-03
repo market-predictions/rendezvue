@@ -1,7 +1,7 @@
 # Project handover
 
 **Updated:** 2026-08-03  
-**Milestone:** controlled two-account Cloudflare proof complete
+**Milestone:** WP-065A/B account-entry and lifecycle proof remotely accepted
 
 ## GitHub state
 
@@ -9,7 +9,8 @@
 - Canonical staging URL: `https://rendezvue-private-preview.pages.dev/`.
 - Cloudflare migration evidence: issue #35.
 - Completed controlled browser proof: issue #41 / WP-057.
-- Detailed completion record: `docs/WP-057-COMPLETION.md`.
+- Account lifecycle evidence: issue #54 / `docs/WP-065-ACCOUNT-LIFECYCLE.md`.
+- Detailed WP-057 completion record: `docs/WP-057-COMPLETION.md`.
 - Supabase project: `RendezvueProject`, Healthy, West EU (Ireland), Nano.
 - Real-user admission is not authorized.
 
@@ -54,6 +55,36 @@ PR #52:
 
 Protected staging run `30805876163` applied the migration, redeployed the cleanup function and passed migration, health, anonymous-rejection and artifact gates. Both account cleanups then succeeded.
 
+## Accepted WP-065A/B outcome
+
+WP-065A and WP-065B are complete; WP-065C remains blocked.
+
+Demonstrated:
+
+- existing-account sign-in/recovery uses `shouldCreateUser: false`;
+- explicit registration is the only magic-link action that may create an Auth user;
+- the browser response does not reveal account existence or delivery state;
+- the Cloudflare artifact has a regression gate for registration/recovery separation;
+- lifecycle records are created for new and existing Auth users;
+- relevant profile, onboarding, portrait, attraction and message activity updates lifecycle state;
+- retention policies are versioned and inactive by default;
+- explicit retention holds are supported;
+- only inactive draft accounts can become candidates;
+- recent activity, publication, active matches, unresolved safety/moderation work and active holds exclude candidacy;
+- `anon` and `authenticated` cannot enumerate candidates;
+- `service_role` can enumerate candidates;
+- no delete function or scheduler exists.
+
+Protected run `30841983060` verified the remote staging state:
+
+- lifecycle schema present;
+- active retention policies: `0`;
+- cleanup candidates: `0`;
+- ordinary-user enumeration denied;
+- service-role enumeration allowed.
+
+The original verifier failed first on YAML heredoc parsing and then because the Management API role correctly could not execute the service-only function. PRs #59 and #60 fixed the verifier without widening database permissions.
+
 ## Current validated backend/browser scope
 
 Validated:
@@ -65,25 +96,35 @@ Validated:
 - private feedback/reporting and hidden moderation/audit domains;
 - true parallel match and contact-opening race protection;
 - PKCE authentication and one shared browser Supabase client;
+- fail-closed registration versus existing-account recovery intent;
 - resumable owner-scoped onboarding and server publication;
 - Realtime participant-only messaging;
 - provider-orchestrated object/Auth/relational cleanup;
 - audit identifier anonymisation;
-- post-cleanup session non-restoration.
+- post-cleanup session non-restoration;
+- non-destructive lifecycle state, retention holds and service-only candidate enumeration.
 
 ## Immediate next work
 
-### 1. Account lifecycle controls
+### 1. Resolve remaining account-support lifecycle gaps
 
-Create and execute WP-065:
+- define support-led duplicate-account investigation and resolution;
+- define restoration/recovery when the registered mailbox is no longer accessible;
+- define retention-hold creation, review and release procedures;
+- ensure support actions are audited and do not disclose account existence improperly.
 
-- account recovery;
-- duplicate-account prevention and resolution;
-- abandoned-account retention policy;
-- scheduled cleanup;
-- support-safe restoration and deletion procedures.
+### 2. Approve or reject WP-065C policy activation
 
-### 2. Integrated product review
+Before any cleanup automation:
+
+- approve retention periods and policy version;
+- align DPIA, legal basis and privacy notices;
+- design grace period and user notifications;
+- name the operational owner and review cadence;
+- prove a synthetic dry-run and rollback/support procedure;
+- keep all scheduling and destructive automation disabled until those gates pass.
+
+### 3. Integrated product review
 
 - integrate the proof contracts into the polished Cloudflare product interface;
 - complete desktop/mobile field review;
@@ -91,7 +132,7 @@ Create and execute WP-065:
 - complete representative Dutch/English and faith terminology review;
 - improve non-technical user guidance for authentication, recovery and deletion.
 
-### 3. Closed-pilot readiness
+### 4. Closed-pilot readiness
 
 Before any real-user admission:
 
@@ -112,8 +153,10 @@ Before any real-user admission:
 
 ## Explicit limitations
 
-- no account recovery or duplicate-account operations;
-- no approved abandonment-retention schedule;
+- no support-led duplicate-account merge or resolution procedure;
+- no recovery when the registered mailbox is inaccessible;
+- no approved abandonment-retention schedule or active retention policy;
+- no scheduled or automatic deletion;
 - no production age or liveness assurance;
 - no production institution/student verification;
 - no payment provider or real entitlement issuer;

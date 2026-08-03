@@ -54,8 +54,8 @@ Target-user research, Article 9 basis, withdrawal/deletion and anti-discriminati
 
 ## WP-030 — Production account and eligibility stack
 
-**Status:** active  
-Auth-linked account/profile domains, RLS, PKCE magic-link sessions, resumable onboarding, publication, sign-out/re-authentication and provider cleanup are proven for controlled synthetic accounts. Remaining: recovery, duplicate-account controls and abandonment retention.
+**Status:** active; controlled Auth and lifecycle foundation complete  
+Auth-linked account/profile domains, RLS, PKCE magic-link sessions, resumable onboarding, publication, sign-out/re-authentication, provider cleanup, fail-closed existing-account recovery intent and non-destructive lifecycle state are proven for controlled synthetic accounts. Remaining: support-led duplicate-account resolution, mailbox-loss recovery/restoration, approved abandonment retention and operational policy activation.
 
 ## WP-035 — Resumable onboarding persistence
 
@@ -114,8 +114,8 @@ No payment provider or money movement is configured. The synthetic proof entitle
 
 ## WP-065 — Account recovery and lifecycle controls
 
-**Status:** planned  
-Recovery, duplicate-account resolution, abandoned-account retention, scheduled cleanup and support-safe account restoration.
+**Status:** active — WP-065A/B complete; WP-065C blocked  
+WP-065A separates registration from existing-account recovery so recovery cannot create an accidental Auth account. WP-065B adds server-authoritative lifecycle/activity state, versioned inactive-by-default retention policies, explicit holds and service-role-only non-destructive candidate enumeration. Protected run `30841983060` proved the remote schema, zero active policies, zero candidates and denied ordinary-user enumeration. Remaining: support-led duplicate resolution, mailbox-loss restoration and policy/DPIA/operational approval before any scheduled deletion.
 
 ## WP-070 — Trust and safety operations
 
