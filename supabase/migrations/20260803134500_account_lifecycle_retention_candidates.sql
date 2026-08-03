@@ -45,7 +45,7 @@ create table if not exists public.account_retention_policies (
 );
 
 create unique index if not exists account_retention_one_active_policy_idx
-on public.account_retention_policies ((status))
+on public.account_retention_policies (status)
 where status = 'active';
 
 create table if not exists public.account_retention_holds (
@@ -102,12 +102,12 @@ for each row execute function public.initialize_account_lifecycle();
 
 insert into public.account_lifecycle (user_id, last_activity_at)
 select
-  u.id,
+  users.id,
   greatest(
-    coalesce(u.created_at, timezone('utc', now())),
-    coalesce(u.last_sign_in_at, u.created_at, timezone('utc', now()))
+    coalesce(users.created_at, timezone('utc', now())),
+    coalesce(users.last_sign_in_at, users.created_at, timezone('utc', now()))
   )
-from auth.users u
+from auth.users users
 on conflict (user_id) do nothing;
 
 create or replace function public.mark_account_activity()
@@ -120,39 +120,49 @@ declare
   v_row jsonb;
   v_user_id uuid;
 begin
-  v_row := case when tg_op = 'DELETE' then to_jsonb(old) else to_jsonb(new) end;
-  v_user_id := nullif(v_row ->> tg_argv[0], '')::uuid;
-  if v_user_id is null then
-    return case when tg_op = 'DELETE' then old else new end;
+  if tg_op = 'DELETE' then
+    v_row := to_jsonb(old);
+  else
+    v_row := to_jsonb(new);
   end if;
 
-  insert into public.account_lifecycle (
-    user_id, state, last_activity_at, state_reason, state_changed_at
-  ) values (
-    v_user_id, 'active', timezone('utc', now()), 'observed_account_activity', timezone('utc', now())
-  )
-  on conflict (user_id) do update
-  set last_activity_at = greatest(
-        public.account_lifecycle.last_activity_at,
-        excluded.last_activity_at
-      ),
-      state = case
-        when public.account_lifecycle.state = 'retention_hold'
-          then public.account_lifecycle.state
-        else 'active'::public.account_lifecycle_state
-      end,
-      state_reason = case
-        when public.account_lifecycle.state = 'retention_hold'
-          then public.account_lifecycle.state_reason
-        else 'observed_account_activity'
-      end,
-      state_changed_at = case
-        when public.account_lifecycle.state = 'retention_hold'
-          then public.account_lifecycle.state_changed_at
-        else timezone('utc', now())
-      end;
+  v_user_id := nullif(v_row ->> tg_argv[0], '')::uuid;
+  if v_user_id is not null then
+    insert into public.account_lifecycle (
+      user_id, state, last_activity_at, state_reason, state_changed_at
+    ) values (
+      v_user_id,
+      'active',
+      timezone('utc', now()),
+      'observed_account_activity',
+      timezone('utc', now())
+    )
+    on conflict (user_id) do update
+    set last_activity_at = greatest(
+          public.account_lifecycle.last_activity_at,
+          excluded.last_activity_at
+        ),
+        state = case
+          when public.account_lifecycle.state = 'retention_hold'
+            then public.account_lifecycle.state
+          else 'active'::public.account_lifecycle_state
+        end,
+        state_reason = case
+          when public.account_lifecycle.state = 'retention_hold'
+            then public.account_lifecycle.state_reason
+          else 'observed_account_activity'
+        end,
+        state_changed_at = case
+          when public.account_lifecycle.state = 'retention_hold'
+            then public.account_lifecycle.state_changed_at
+          else timezone('utc', now())
+        end;
+  end if;
 
-  return case when tg_op = 'DELETE' then old else new end;
+  if tg_op = 'DELETE' then
+    return old;
+  end if;
+  return new;
 end;
 $$;
 
@@ -207,11 +217,11 @@ security definer
 set search_path = public
 as $$
   with active_policy as (
-    select p.version, p.abandoned_draft_after, p.grace_period
-    from public.account_retention_policies p
-    where p.status = 'active'
-      and p.effective_at <= p_as_of
-    order by p.effective_at desc
+    select policy.version, policy.abandoned_draft_after, policy.grace_period
+    from public.account_retention_policies policy
+    where policy.status = 'active'
+      and policy.effective_at <= p_as_of
+    order by policy.effective_at desc
     limit 1
   ), account_activity as (
     select
@@ -238,28 +248,34 @@ as $$
     and profile.publication_status = 'draft'
     and activity.observed_activity_at + policy.abandoned_draft_after + policy.grace_period <= p_as_of
     and not exists (
-      select 1 from public.account_retention_holds hold
+      select 1
+      from public.account_retention_holds hold
       where hold.user_id = activity.user_id
         and hold.released_at is null
         and hold.starts_at <= p_as_of
         and (hold.ends_at is null or hold.ends_at > p_as_of)
     )
     and not exists (
-      select 1 from public.matches match
-      where match.status = 'active'
-        and (match.user_a_id = activity.user_id or match.user_b_id = activity.user_id)
+      select 1
+      from public.matches matched
+      where matched.status = 'active'
+        and (matched.user_a_id = activity.user_id or matched.user_b_id = activity.user_id)
     )
     and not exists (
-      select 1 from public.safety_reports report
+      select 1
+      from public.safety_reports report
       where (report.reporter_user_id = activity.user_id or report.subject_user_id = activity.user_id)
         and report.status not in ('dismissed', 'closed')
     )
     and not exists (
-      select 1 from public.moderation_cases moderation
+      select 1
+      from public.moderation_cases moderation
       where moderation.subject_user_id = activity.user_id
         and moderation.status not in ('dismissed', 'closed')
     )
-  order by eligible_at, user_id;
+  order by
+    activity.observed_activity_at + policy.abandoned_draft_after + policy.grace_period,
+    activity.user_id;
 $$;
 
 alter table public.account_lifecycle enable row level security;
