@@ -29,7 +29,8 @@ function storedLanguage() {
   }
 }
 
-let language = normaliseInterfaceLanguage(storedLanguage() || navigator.language);
+const requestedLanguage = new URL(globalThis.location.href).searchParams.get('lang');
+let language = normaliseInterfaceLanguage(requestedLanguage || storedLanguage() || 'nl');
 let callbackState = 'none';
 let lastRequestMode = null;
 
