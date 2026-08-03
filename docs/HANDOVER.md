@@ -1,18 +1,19 @@
 # Project handover
 
 **Updated:** 2026-08-03  
-**Milestone:** WP-065F dual-controlled registered-email replacement foundation remotely accepted
+**Milestone:** WP-066 product-facing account and recovery UX accepted on canonical staging
 
 ## GitHub state
 
 - Authority: `market-predictions/rendezvue` `main`.
 - Canonical staging URL: `https://rendezvue-private-preview.pages.dev/`.
-- Cloudflare migration evidence: issue #35.
+- Cloudflare deployment and backend evidence: issue #35.
 - Completed controlled browser proof: issue #41 / WP-057.
 - Account lifecycle evidence: issue #54 / `docs/WP-065-ACCOUNT-LIFECYCLE.md`.
 - Account-support case foundation: issue #62 / PR #63.
 - Evidence and dual-control decision foundation: issue #65 / PR #66.
 - Registered-email replacement foundation: issue #68 / PR #69 / `docs/WP-065F-EMAIL-REPLACEMENT-FOUNDATION.md`.
+- Product-facing account/recovery UX: issue #71 / PR #72 / `docs/WP-066-ACCOUNT-RECOVERY-UX.md`.
 - Detailed WP-057 completion record: `docs/WP-057-COMPLETION.md`.
 - Supabase project: `RendezvueProject`, Healthy, West EU (Ireland), Nano.
 - Real-user admission is not authorized.
@@ -163,6 +164,38 @@ Evidence:
 
 No remote e-mail was changed. A disposable synthetic account and mailbox capable of receiving the new magic link are required for the controlled execution proof.
 
+## Accepted WP-066 outcome
+
+WP-066 is complete as a product-facing account and recovery experience on canonical synthetic staging.
+
+Demonstrated:
+
+- canonical staging opens with the account experience rather than the backend proof console;
+- Dutch is the default language;
+- English copy parity and an explicit language switch;
+- separate sign-in and account-creation actions;
+- existing-account entry remains fail-closed and registration remains the only account-creation path;
+- generic request confirmations do not reveal account existence or delivery success;
+- language-aware guidance for expired, used and wrong-browser magic links;
+- plain-language mailbox-loss support guidance without internal support terminology;
+- users are warned not to create a duplicate account because matches and conversations are not merged automatically;
+- the signed-in e-mail address is masked;
+- global sign-out and understandable deletion consequences are exposed;
+- responsive mobile layout and visible keyboard focus;
+- the complete WP-057 proof harness remains available under an advanced synthetic-test disclosure;
+- the product shell uses the shared Supabase client and cannot call Auth admin or the WP-065F executor.
+
+Evidence:
+
+- issue #71;
+- PR #72 merged as `45461d51a4cc6ad09b019e0b9165a9bb54ed4cb1`;
+- account-experience unit tests and dedicated WP-066 source/generated-artifact validation;
+- full application, Cloudflare, Docker, migration, pgTAP, concurrency, seed and schema-lint suite passed;
+- canonical production run `30857567262` confirmed commit-matched deployment, remote Supabase configuration, PKCE magic links, disabled implicit token fragments and security/no-store headers;
+- protected backend run `30857567127` passed canonical Auth URL/allow-list, remote health, cleanup deployment, anonymous cleanup rejection and browser credential boundary.
+
+WP-066 does not create a browser support console or authorize real users. Detailed evidence: `docs/WP-066-ACCOUNT-RECOVERY-UX.md`.
+
 ## Current validated backend/browser scope
 
 Validated:
@@ -174,7 +207,10 @@ Validated:
 - private feedback/reporting and hidden moderation/audit domains;
 - true parallel match and contact-opening race protection;
 - PKCE authentication and one shared browser Supabase client;
+- product-facing Dutch/English account entry and recovery explanation;
 - fail-closed registration versus existing-account recovery intent;
+- non-enumerating request responses and callback guidance;
+- masked signed-in identity, global sign-out and deletion explanation;
 - resumable owner-scoped onboarding and server publication;
 - Realtime participant-only messaging;
 - provider-orchestrated object/Auth/relational cleanup;
@@ -190,7 +226,16 @@ Validated:
 
 ## Immediate next work
 
-### 1. Complete the controlled WP-065F execution proof
+### 1. Broader product-shell integration
+
+- bring onboarding, privacy-portrait selection, profile preview, discovery, matching and conversation into the same polished shell as WP-066;
+- remove operator and proof terminology from normal screens;
+- retain synthetic diagnostic controls behind an advanced/operator boundary;
+- complete desktop and mobile field review;
+- review camera and privacy-portrait attractiveness/privacy balance;
+- complete representative Dutch/English and faith terminology review.
+
+### 2. Complete the controlled WP-065F execution proof
 
 - provide one disposable synthetic account with an old address and a disposable target mailbox that can receive a PKCE magic link;
 - open a synthetic mailbox-loss case, register evidence, obtain independent decision and action approval;
@@ -199,7 +244,7 @@ Validated:
 - prove the action/event/audit history remains sanitized and idempotent;
 - clean up the disposable account after evidence collection.
 
-### 2. Define operational support policy
+### 3. Define operational support policy
 
 - approve real-world identity evidence and rejection/escalation thresholds;
 - name proposer, reviewer and executor roles;
@@ -208,7 +253,7 @@ Validated:
 - define fraud, rollback, rate-limit and incident procedures;
 - keep duplicate-account merging out of scope unless separately approved.
 
-### 3. Define retention-hold operations and WP-065C decision
+### 4. Define retention-hold operations and WP-065C decision
 
 - define who may create, review and release a hold;
 - approve retention periods and policy version;
@@ -217,14 +262,6 @@ Validated:
 - name the operational owner and review cadence;
 - prove synthetic dry-run, rollback and support procedures;
 - keep all scheduling and destructive automation disabled until those gates pass.
-
-### 4. Integrated product review
-
-- integrate proof contracts into the polished Cloudflare product interface;
-- complete desktop/mobile field review;
-- review camera and privacy-portrait attractiveness/privacy balance;
-- complete representative Dutch/English and faith terminology review;
-- improve non-technical user guidance for authentication, recovery and deletion.
 
 ### 5. Closed-pilot readiness
 
@@ -248,6 +285,7 @@ Before any real-user admission:
 ## Explicit limitations
 
 - WP-065E/F are technical contracts, not an approved real-world identity/support policy;
+- WP-066 is a product-facing explanation, not a secure operational support console;
 - no remote WP-065F e-mail replacement has yet been executed;
 - no disposable target mailbox is currently available to complete that proof;
 - no account merging or support password change;
