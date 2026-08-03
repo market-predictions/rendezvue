@@ -1,6 +1,10 @@
 name: Verify WP-065 lifecycle staging
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-account-lifecycle-staging.yml'
   push:
     branches: [main]
     paths:
@@ -16,12 +20,46 @@ permissions:
   issues: write
 
 concurrency:
-  group: rendezvue-wp065-lifecycle-verifier
+  group: rendezvue-wp065-lifecycle-verifier-${{ github.event.pull_request.number || github.ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
+  contract:
+    name: Validate lifecycle verifier contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Enforce read-only and non-secret evidence boundary
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const source = readFileSync('.github/workflows/verify-account-lifecycle-staging.yml', 'utf8');
+          const required = [
+            'read_only: true',
+            'active_policy_count',
+            'candidate_count',
+            'anon_can_enumerate',
+            'authenticated_can_enumerate',
+            'service_role_can_enumerate'
+          ];
+          for (const marker of required) {
+            if (!source.includes(marker)) throw new Error(`Missing lifecycle verifier marker: ${marker}`);
+          }
+          const forbidden = [
+            /delete\s+from/i,
+            /truncate\s+/i,
+            /drop\s+table/i,
+            /supabase\s+db\s+reset\s+--linked/i,
+            /select\s+\*\s+from\s+public\.list_account_retention_candidates/i
+          ];
+          for (const pattern of forbidden) {
+            if (pattern.test(source)) throw new Error(`Unsafe lifecycle verifier pattern: ${pattern}`);
+          }
+          NODE
+
   verify:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    name: Verify protected Supabase lifecycle state
+    if: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') }}
     runs-on: ubuntu-latest
     environment: rendezvue-private-preview
     env:
