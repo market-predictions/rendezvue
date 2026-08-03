@@ -47,7 +47,14 @@ for (const [source, label] of [[productShell, 'source'], [generatedProductShell,
   forbidPattern(source, /execute-account-email-replacement|claim_account_email_replacement|complete_account_email_replacement/i, `${label} must not expose the support e-mail replacement executor`);
   forbidPattern(source, /deleteUser\s*\(|updateUserById\s*\(/, `${label} must not perform browser-side Auth administration`);
   forbidPattern(source, /account merge|merge account|merge_accounts/i, `${label} must not introduce account merging`);
-  forbidPattern(source, /\.textContent\s*=\s*[^;\n]*(?:activeMatch|otherUserId|targetUserId|user\.id|\.user_id)/, `${label} appears to expose an internal identifier as visible text`);
+
+  const visibleIdentifierLines = source
+    .split('\n')
+    .filter((line) => line.includes('.textContent'))
+    .filter((line) => /activeMatch\.id|otherUserId|targetUserId|user\.id|user_id/.test(line));
+  if (visibleIdentifierLines.length) {
+    failures.push(`${label} appears to expose an internal identifier as visible text`);
+  }
 }
 
 requireMarker(accountShell, "import './product-shell.js';", 'account shell must load the integrated product shell');
