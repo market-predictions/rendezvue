@@ -1,147 +1,123 @@
 # Project handover
 
-**Updated:** 2026-08-01  
-**Milestone:** Cloudflare Pages migration complete; controlled two-account browser proof active
+**Updated:** 2026-08-03  
+**Milestone:** controlled two-account Cloudflare proof complete
 
 ## GitHub state
 
 - Authority: `market-predictions/rendezvue` `main`.
-- Completed Cloudflare migration evidence: issue #35.
-- Active controlled browser-proof claim: issue #41 / WP-057.
 - Canonical staging URL: `https://rendezvue-private-preview.pages.dev/`.
-- Verified production commit: `c1632fc4c6d5a5d22f27c256fdf066e5d6710966`.
+- Cloudflare migration evidence: issue #35.
+- Completed controlled browser proof: issue #41 / WP-057.
+- Detailed completion record: `docs/WP-057-COMPLETION.md`.
 - Supabase project: `RendezvueProject`, Healthy, West EU (Ireland), Nano.
-- Ten Auth-linked synthetic profiles, ten published discovery profiles and ten selected private portraits are seeded.
-- No owner-local Git, Node, Python, Docker or webserver is part of the operational workflow.
 - Real-user admission is not authorized.
 
-## Architecture decision
+## Architecture
 
-GitHub is the sole source of truth. Cloudflare Pages is the only web-facing staging host. Supabase remains the Auth, PostgreSQL/RLS, private Storage, Realtime and Edge Function backend.
+GitHub is the sole source of truth. Cloudflare Pages is the only web-facing staging host. Supabase provides Auth, PostgreSQL/RLS, private Storage, Realtime and Edge Functions.
 
-The former public and private Hugging Face Spaces are historical, non-canonical artifacts. Their deployment workflows and helper code are retired. No further functional acceptance testing is performed on Hugging Face.
+The former public and private Hugging Face Spaces are historical, non-canonical artifacts. No further functional acceptance testing is performed there.
 
-See `docs/decisions/ADR-0008-cloudflare-pages-canonical-staging.md`.
+## Accepted WP-057 outcome
 
-## Passwordless provider constraint
+Two isolated browser profiles and two controlled synthetic adult accounts completed the full proof sequence:
 
-Remote run `30698614914` proved:
+- same-profile PKCE magic-link exchange;
+- callback consumption and session restore;
+- explicit sign-out and re-authentication;
+- persistent onboarding and server publication;
+- opposite-sex discovery and one reciprocal match;
+- one proof entitlement and one conversation;
+- Realtime messages in both directions without refresh;
+- matched private portrait access;
+- private feedback and safety reporting;
+- normal contact ending and a separate block path;
+- server-authoritative revocation of new portrait access and message writes;
+- provider cleanup for both accounts;
+- private-object, Auth and relational deletion with retained audit anonymisation;
+- no session restoration after final cleanup in either browser profile.
 
-- Supabase accepted the fixed Cloudflare Site URL and redirect allow-list;
-- repository migrations were current;
-- the cleanup Edge Function deployed;
-- the free-tier/default-mail-provider combination rejected passwordless e-mail template modification with HTTP 400.
+No access token, refresh token, JWT, callback code, signed URL, private object path or server credential was recorded.
 
-The canonical proof therefore uses the standard Supabase magic link with PKCE. The link must be requested and opened in the same isolated browser profile. The callback carries only a one-time `?code=`; after successful exchange the application removes that code from browser history. The implicit flow is disabled, so access and refresh tokens do not appear in URL fragments.
+## Cleanup defect resolved
 
-Numeric `{{ .Token }}` delivery remains unavailable until custom SMTP or a qualifying Supabase plan is configured.
+The first account-A cleanup attempt failed while leaving the account authenticated and retryable.
 
-## Implemented backend and browser harness
+Root cause: the direct `conversations.opened_by_user_id` foreign key used `ON DELETE RESTRICT`, which could block deletion of the account that opened the conversation.
 
-Implemented and validated:
+PR #52:
 
-- versioned Supabase/PostgreSQL migrations;
+- changed the foreign key to `ON DELETE CASCADE`;
+- added a regression test covering an ended match, ended conversation and message;
+- proved account B remains while account A and the shared interaction state are removed.
+
+Protected staging run `30805876163` applied the migration, redeployed the cleanup function and passed migration, health, anonymous-rejection and artifact gates. Both account cleanups then succeeded.
+
+## Current validated backend/browser scope
+
+Validated:
+
+- versioned migrations and empty-database replay;
 - RLS and least-privilege grants;
-- private portrait storage;
-- server-authoritative attraction, matching, contact entitlement, conversation, message, block, feedback and report operations;
-- hidden moderation/audit domains and high-severity escalation;
-- true parallel first-like and contact-opening race protection;
-- PKCE magic-link/session adapter and one shared browser Auth client;
-- canonical `emailRedirectTo` forwarding;
-- consumed PKCE callback-code cleanup;
-- implicit access/refresh token fragments disabled;
-- owner-scoped resumable onboarding, prompts/interests and sanitized snapshot;
-- server-side profile publication and opposite-sex discovery;
-- one-time synthetic proof entitlement that cannot be reissued after consumption;
-- participant-controlled contact ending;
-- active-match-only selected portrait access;
-- Realtime conversation/message publication;
-- authenticated Edge Function for UUID-scoped portrait deletion followed by Auth-account deletion;
-- relational cascades and retained audit-ID anonymisation;
-- exact destructive confirmation with no client-supplied user ID.
+- private portrait storage and active-match access;
+- server-authoritative attraction, matching, entitlement, conversation, message, end-contact and block operations;
+- private feedback/reporting and hidden moderation/audit domains;
+- true parallel match and contact-opening race protection;
+- PKCE authentication and one shared browser Supabase client;
+- resumable owner-scoped onboarding and server publication;
+- Realtime participant-only messaging;
+- provider-orchestrated object/Auth/relational cleanup;
+- audit identifier anonymisation;
+- post-cleanup session non-restoration.
 
-## Cloudflare build and deployment contract
+## Immediate next work
 
-Cloudflare Pages project: `rendezvue-private-preview`.
+### 1. Account lifecycle controls
 
-Production settings:
+Create and execute WP-065:
 
-- production branch: `main`;
-- build command: `npm run build:cloudflare`;
-- output directory: `dist-private-preview`;
-- browser configuration: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`;
-- fixed production URL: `https://rendezvue-private-preview.pages.dev/`.
+- account recovery;
+- duplicate-account prevention and resolution;
+- abandoned-account retention policy;
+- scheduled cleanup;
+- support-safe restoration and deletion procedures.
 
-The artifact contains only browser-safe configuration, a commit marker and explicit synthetic-only boundaries. `_headers` prevents framing, limits browser capabilities and marks runtime configuration and deployment metadata as `no-store`.
+### 2. Integrated product review
 
-Production verification run `30712250023` proved:
+- integrate the proof contracts into the polished Cloudflare product interface;
+- complete desktop/mobile field review;
+- review camera and privacy-portrait attractiveness/privacy balance;
+- complete representative Dutch/English and faith terminology review;
+- improve non-technical user guidance for authentication, recovery and deletion.
 
-- merge commit `c1632fc4c6d5a5d22f27c256fdf066e5d6710966` is served;
-- configuration mode is `remote-supabase`, not a placeholder;
-- configuration source is the strictly validated `previous-canonical-deployment` transition path;
-- PKCE magic-link metadata is active;
-- implicit token fragments are disabled;
-- security and no-store headers pass;
-- no Hugging Face runtime dependency remains;
-- real-user admission remains false.
+### 3. Closed-pilot readiness
 
-Direct Cloudflare Pages environment variables remain the preferred steady-state source. The transition bootstrap accepts only a previously public HTTPS `.supabase.co` URL and `sb_publishable_` browser key and rejects placeholders, secret keys, partial configuration and malformed content.
+Before any real-user admission:
 
-## Protected Supabase workflow
+- legal basis, DPIA and privacy notices;
+- sensitive faith/family data minimisation;
+- age/liveness decision and appeal route;
+- student-benefit verification design;
+- moderation queue, support, incident response and deletion operations;
+- accessibility and security review;
+- payment architecture only after free-funnel value is demonstrated;
+- explicit authorization for a constrained city-based pilot.
 
-`.github/workflows/configure-cloudflare-staging.yml`:
+## Provider and deployment constraints
 
-1. validates protected GitHub environment secrets;
-2. links and applies repository migrations;
-3. deploys `delete-private-proof-account`;
-4. configures Supabase Auth Site URL and allow-list to the fixed Pages URL;
-5. verifies the final URL configuration;
-6. checks Auth and Data API health;
-7. verifies unauthenticated cleanup receives HTTP 401;
-8. builds and validates the Cloudflare PKCE artifact;
-9. records non-secret evidence in issue #35.
-
-Protected run `30699577670` completed these checks successfully. It deliberately does not modify the passwordless e-mail template because that operation is unavailable with the current provider/plan.
-
-## Production Pages verification
-
-`.github/workflows/verify-cloudflare-staging.yml` verifies:
-
-- commit-matched production deployment metadata;
-- remote browser-safe Supabase configuration and an approved configuration source;
-- Cloudflare hosting marker and canonical URL;
-- PKCE magic-link interface and declared auth flow;
-- implicit token fragments disabled;
-- no Hugging Face runtime reference;
-- no-store runtime configuration;
-- `nosniff` and frame-denial headers;
-- real-user admission remains false.
-
-WP-038 and WP-039 are complete. WP-057 is the active work package.
-
-## Immediate next execution sequence — WP-057
-
-1. open the canonical Cloudflare staging URL in two isolated browser profiles;
-2. use two controlled synthetic mailboxes;
-3. request and open each newest magic link in the same corresponding browser profile;
-4. prove PKCE code exchange, consumed-code removal, session recovery and global sign-out;
-5. persist and publish one synthetic woman and one synthetic man profile;
-6. prove cross-account draft/family/faith/object isolation;
-7. prove opposite-sex discovery and reciprocal likes create exactly one match;
-8. claim one contact right, open exactly one conversation and exchange realtime messages;
-9. prove signed portrait delivery and access revocation after end-contact or block;
-10. prove private feedback/reporting exposes no public rating or moderation case;
-11. invoke authenticated cleanup for both accounts;
-12. verify private objects, Auth users and relational rows are removed and retained audit identifiers are anonymised;
-13. retain only non-secret evidence in issue #41.
+- Numeric `{{ .Token }}` e-mail OTP remains unavailable with the current Supabase free-tier/default-mail-provider combination; standard PKCE magic links remain canonical.
+- Direct Cloudflare Pages environment variables remain the preferred steady-state configuration source; the validated previous-canonical-deployment bootstrap is transitional.
+- A previously issued signed portrait URL remains usable until its short expiry; the terminal proof establishes that no new URL can be issued and no new message can be written.
 
 ## Explicit limitations
 
-- real PKCE magic-link exchange and session recovery are not yet proven through controlled user browsers;
-- the complete two-account remote journey has not yet been executed;
-- authenticated remote cleanup and actual object deletion have not yet been observed;
-- recovery and duplicate-account controls remain incomplete;
-- custom SMTP and numeric OTP are not configured;
-- direct Cloudflare Pages environment variables should replace the transition bootstrap when operationally available;
-- no payments, operational moderation, Article 9 production basis or real-user authorization;
-- the staging proof is restricted to controlled synthetic adult accounts.
+- no account recovery or duplicate-account operations;
+- no approved abandonment-retention schedule;
+- no production age or liveness assurance;
+- no production institution/student verification;
+- no payment provider or real entitlement issuer;
+- no operational moderation console or SLA;
+- no approved Article 9 basis or completed DPIA;
+- no real-user authorization;
+- the staging proof remains restricted to controlled synthetic adults.

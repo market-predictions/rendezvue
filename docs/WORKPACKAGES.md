@@ -15,7 +15,7 @@ Camera flow, profile cards, likes, deterministic match, local-demo chat, safety 
 ## WP-015 — Hosted concept prototype
 
 **Status:** retired as a hosted lane; source retained  
-The historical public Hugging Face concept pilot is no longer canonical and receives no further deployments. The source remains available for comparison and future integration into the Cloudflare application.
+The historical public Hugging Face concept pilot is non-canonical and receives no further deployments.
 
 ## WP-016 — Netherlands and faith foundation
 
@@ -25,7 +25,7 @@ Dutch/English, MBO/HBO/WO fixtures and descriptive faith model delivered. Repres
 ## WP-017 — Browser-local privacy portraits
 
 **Status:** review  
-Four controlled fuzzy variants delivered. Mobile attractiveness/privacy review remains.
+Four controlled fuzzy variants delivered. Integrated mobile attractiveness/privacy review remains.
 
 ## WP-018 — Product baseline and onboarding v1
 
@@ -35,7 +35,7 @@ Open membership, student-first positioning, eligibility, life stage, family cont
 ## WP-019 — Interaction and contact concept
 
 **Status:** complete  
-Pass, direct/contextual like, swipe controls, reciprocal match, simulated contact entitlement, text chat and end-contact flow are merged.
+Pass, direct/contextual like, swipe controls, reciprocal match, contact entitlement, text chat and end-contact flow are merged.
 
 ## WP-020 — Institution registry and student benefits
 
@@ -44,8 +44,8 @@ DUO/RIO institution identity, independently evidenced student mailbox domains, e
 
 ## WP-021 — Feedback and behavioural standing
 
-**Status:** review for UX; production proof active  
-Structured private feedback is prototyped without ranking effect. Retaliation, fairness, correction and appeal logic remain.
+**Status:** review for UX; production proof planned  
+Structured private feedback is proven in the synthetic browser slice without public ranking effect. Retaliation, fairness, correction and appeal logic remain.
 
 ## WP-025 — Faith profile validation and legal basis
 
@@ -55,27 +55,27 @@ Target-user research, Article 9 basis, withdrawal/deletion and anti-discriminati
 ## WP-030 — Production account and eligibility stack
 
 **Status:** active  
-Auth-linked account/profile domains, RLS, PKCE magic-link/session adapter, versioned onboarding progress, owner-derived stage writes, prompts/interests and server-side publication are implemented. Remaining: controlled Cloudflare session/deletion proof, recovery, duplicate-account controls and abandonment retention.
+Auth-linked account/profile domains, RLS, PKCE magic-link sessions, resumable onboarding, publication, sign-out/re-authentication and provider cleanup are proven for controlled synthetic accounts. Remaining: recovery, duplicate-account controls and abandonment retention.
 
 ## WP-035 — Resumable onboarding persistence
 
-**Status:** review  
-Owner-only snapshot, stage allowlists, progress save, transactional personality save and publication gating are covered by automated tests. Remote two-account browser evidence remains.
+**Status:** complete for controlled proof  
+Owner-only snapshot, stage allowlists, progress save, transactional personality save, publication gating and two-account remote persistence are demonstrated. Product UX refinement remains outside this package.
 
 ## WP-037 — Legacy private Hugging Face proof
 
 **Status:** retired  
-The private Static Space proved remote migrations, browser-safe configuration and deployment mechanics, but its access gateway interfered with Supabase callback testing. It is no longer an application host or acceptance environment.
+The private Static Space is no longer an application host or acceptance environment.
 
 ## WP-038 — Cloudflare Pages canonical staging
 
 **Status:** complete; evidence in issue #35  
-`https://rendezvue-private-preview.pages.dev/` is the sole canonical web-facing staging environment. Production serves merge commit `c1632fc4c6d5a5d22f27c256fdf066e5d6710966`, exposes commit-matched deployment metadata, passes Cloudflare security/no-store header checks and contains no Hugging Face runtime dependency.
+`https://rendezvue-private-preview.pages.dev/` is the sole canonical web-facing staging environment with commit-matched metadata, security/no-store headers and no Hugging Face runtime dependency.
 
 ## WP-039 — Cloudflare/Supabase runtime contract
 
 **Status:** complete; evidence in issue #35  
-The production artifact uses real browser-safe Supabase configuration, the fixed Cloudflare Auth Site URL and allow-list, the free-tier default-provider PKCE magic link, consumed one-time callback-code cleanup, disabled implicit access/refresh-token fragments, the deployed authenticated cleanup function and RLS as the authorization boundary. Numeric e-mail OTP remains deferred until custom SMTP or a qualifying Supabase plan exists.
+The production artifact uses browser-safe Supabase configuration, fixed Cloudflare Auth URLs, PKCE magic links, disabled implicit token fragments, the authenticated cleanup function and RLS as the authorization boundary.
 
 ## WP-040 — Production liveness and privacy portrait
 
@@ -84,43 +84,48 @@ Randomized challenge analysis, replay threat model, short retention, fair portra
 
 ## WP-050 — Persistent application services
 
-**Status:** active  
-Server-authoritative attraction, match, one-time synthetic proof entitlement, conversation, message, end-contact, block, feedback and report contracts are implemented. Next: execute the Cloudflare-hosted two-account browser slice.
+**Status:** complete for controlled proof; product integration active elsewhere  
+Server-authoritative attraction, match, one-time proof entitlement, conversation, Realtime messages, end-contact, block, feedback, report and portrait-access contracts completed the two-account browser slice.
 
 ## WP-055 — Backend proof validation
 
-**Status:** active  
-CI proves empty-database replay, pgTAP assertions, schema lint, cross-account isolation, publication gating, one-time proof entitlement, active-match portrait access, contact ending, true parallel races, block enforcement, moderation escalation and relational deletion/anonymisation. Cloudflare production deployment is proven; behavioural browser acceptance remains in WP-057.
+**Status:** complete for current backend scope  
+CI proves empty-database replay, pgTAP, schema lint, cross-account isolation, publication gating, one-time proof entitlement, portrait access/revocation, true parallel races, moderation escalation and account cleanup. PR #52 added deletion coverage for the account that opened a conversation.
 
 ## WP-057 — Controlled two-account remote proof
 
-**Status:** active; claimed in issue #41  
-Use two controlled synthetic adult accounts on the canonical Cloudflare staging URL to prove same-browser-profile PKCE magic links, consumed-code cleanup, session restore, persistent onboarding, publication, opposite-sex discovery, reciprocal likes, exactly one match, one-time contact entitlement, realtime chat, signed matched portrait, normal end-contact, block/report/private feedback and cross-account privacy isolation. Finish by invoking provider cleanup and proving object, Auth, relational and anonymised-audit outcomes.
+**Status:** complete; accepted in issue #41 on 2026-08-03  
+Two isolated controlled synthetic accounts completed PKCE authentication, session restore, persistent onboarding, publication, discovery, reciprocal matching, one entitlement, one conversation, two-way Realtime messages, private portrait access, feedback/reporting, end-contact, blocking, server-authoritative revocation, global sign-out/re-authentication and provider cleanup. Both browser profiles remained signed out after deletion. Detailed evidence: `docs/WP-057-COMPLETION.md`.
 
 ## WP-058 — Provider account and object cleanup
 
-**Status:** review; remote function deployed  
-The authenticated Edge Function removes UUID-scoped private portrait objects before deleting the Supabase Auth user. Authenticated cleanup with actual proof objects remains the acceptance gate on Cloudflare staging.
+**Status:** complete for controlled proof  
+The authenticated Edge Function removed UUID-scoped private portrait objects, Supabase Auth users and relational records for both proof accounts while retaining anonymised audit evidence. The conversation-opener cleanup defect was repaired in PR #52 and deployed by protected run `30805876163`.
 
 ## WP-059 — Hugging Face hosting retirement
 
-**Status:** complete; remote artifact removal remains optional operational cleanup  
-Public and private Hugging Face deployment workflows, active helpers and evidence automation are removed. Historical Spaces are non-canonical project history and are excluded from acceptance testing.
+**Status:** complete; remote artifact removal optional  
+Public and private Hugging Face deployment workflows, active helpers and evidence automation are removed.
 
 ## WP-060 — Payments and entitlements
 
 **Status:** planned  
-No payment provider or money movement is configured. The synthetic proof issuer must never be enabled for real users.
+No payment provider or money movement is configured. The synthetic proof entitlement issuer must never be enabled for real users.
+
+## WP-065 — Account recovery and lifecycle controls
+
+**Status:** planned  
+Recovery, duplicate-account resolution, abandoned-account retention, scheduled cleanup and support-safe account restoration.
 
 ## WP-070 — Trust and safety operations
 
 **Status:** planned  
-Operational queue, child safety, hidden relationship review, enforcement, support coverage and appeals remain.
+Operational queue, child safety, hidden relationship review, enforcement, support coverage and appeals.
 
 ## WP-080 — Closed city pilot readiness
 
 **Status:** planned  
-Legal, privacy, security, accessibility, support, moderation and deletion gates for an invite-only Dutch city cohort.
+Legal, privacy, security, accessibility, support, moderation, deletion and explicit authorization gates for an invite-only Dutch city cohort.
 
 ## WP-085 — Local density and events
 

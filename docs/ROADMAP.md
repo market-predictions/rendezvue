@@ -1,7 +1,7 @@
 # Rendezvue roadmap
 
-**Version:** 2.2  
-**Updated:** 2026-08-01
+**Version:** 2.3  
+**Updated:** 2026-08-03
 
 ## Operating doctrine
 
@@ -9,8 +9,8 @@
 - Cloudflare Pages is the canonical web-facing staging host.
 - Supabase provides Auth, PostgreSQL/RLS, private Storage, Realtime and Edge Functions.
 - Nothing is built, served or tested on the owner's computer.
-- Hugging Face is retired as an application host; existing Spaces are historical, non-canonical artifacts and receive no further deployments.
-- The staging environment is restricted to controlled synthetic adult accounts. Real-user admission remains unauthorized.
+- Hugging Face is retired as an application host; existing Spaces are historical, non-canonical artifacts.
+- Staging is restricted to controlled synthetic adult accounts. Real-user admission remains unauthorized.
 - Rendezvue is adult-only, currently-single and serious-intent, with a student-first community layer rather than student-only admission.
 - Fuzzy browser-generated privacy portraits are the MVP baseline; AI portraits are optional.
 - Safety, fairness, privacy and legal controls are product features.
@@ -19,47 +19,17 @@
 
 **Status:** complete.
 
-GitHub authority, CI, static builds, Docker validation and the migration from Hugging Face to one canonical Cloudflare Pages staging application backed by Supabase are complete.
+GitHub authority, CI, generated artifacts, retained Docker validation, Cloudflare Pages staging and Supabase backend configuration are complete.
 
-### 0A. Cloudflare canonical staging
+Accepted evidence includes:
 
-**Status:** complete; evidence recorded in issue #35.
-
-Accepted evidence:
-
-- `https://rendezvue-private-preview.pages.dev/` is the sole canonical staging URL;
-- production is generated from `main` and serves a commit-matched `deployment.json` for merge commit `c1632fc4c6d5a5d22f27c256fdf066e5d6710966`;
-- the production artifact declares `remote-supabase`, not placeholder configuration;
-- the browser artifact contains only the Supabase project URL and publishable key;
-- browser/server credential scanning remains fail-closed;
-- security headers and no-store rules protect runtime configuration and deployment metadata;
-- no source, workflow or runbook depends on a Hugging Face runtime.
-
-### 0B. Supabase staging configuration
-
-**Status:** complete for deployment and provider configuration; behavioural browser proof continues in Phase 2D.
-
-Accepted evidence:
-
-- Supabase Auth Site URL and redirect allow-list use the fixed Cloudflare Pages URL;
-- passwordless sign-in uses the free-tier default-provider magic link with PKCE;
-- only a one-time `?code=` callback is accepted and removed after successful exchange;
-- implicit access- and refresh-token URL fragments remain disabled;
-- migrations, platform health, Edge Function deployment and anonymous cleanup rejection pass remotely;
-- Cloudflare production serves real browser-safe Supabase configuration rather than preview placeholders.
-
-Provider constraint proven on 2026-08-01: numeric `{{ .Token }}` e-mail delivery is unavailable on a free-tier project using Supabase's default mail provider. It requires custom SMTP or a plan change and is therefore outside this proof.
-
-### 0C. Hugging Face retirement
-
-**Status:** complete; historical remote artifacts may remain reachable.
-
-Accepted evidence:
-
-- public and private Hugging Face deployment workflows are removed;
-- active Hugging Face helper code and deployment-evidence automation are removed;
-- historical deployment evidence remains documented but is not presented as current architecture;
-- no further acceptance testing is performed on Hugging Face.
+- canonical staging URL `https://rendezvue-private-preview.pages.dev/`;
+- commit-matched Cloudflare production metadata;
+- browser-safe Supabase configuration only;
+- PKCE magic links with implicit token fragments disabled;
+- security and no-store headers;
+- protected migration, health and Edge Function deployment workflows;
+- no active Hugging Face runtime dependency.
 
 ## Phase 1 — Concept and interaction validation
 
@@ -67,7 +37,7 @@ Accepted evidence:
 
 **Status:** complete in source.
 
-Camera demonstration, profile, discovery, contextual like, deterministic match, local-demo chat, report, block and PWA shell.
+Camera demonstration, profile, discovery, contextual like, deterministic match, local-demo chat, report, block and installable PWA shell.
 
 ### 1B. Netherlands and faith model
 
@@ -77,7 +47,7 @@ Dutch/English, MBO/HBO/WO fixtures, descriptive faith fields and private practic
 
 ### 1C. Selectable privacy portraits
 
-**Status:** implementation complete; mobile owner review remains.
+**Status:** implementation complete; integrated mobile owner review remains.
 
 Four browser-local fuzzy variants, no raw-selfie option and downsampling fallback.
 
@@ -85,17 +55,17 @@ Four browser-local fuzzy variants, no raw-selfie option and downsampling fallbac
 
 **Status:** complete in source.
 
-Student-first open membership, eligibility, life stage, family context, privacy portraits, profile preview, community promise and man/woman onboarding with derived opposite-sex discovery.
+Adult/single/serious membership, student-first positioning, eligibility, life stage, family context, privacy portraits, profile preview, community promise and man/woman onboarding with derived opposite-sex discovery.
 
 ### 1E. Interaction, contact and feedback concept
 
 **Status:** complete in source; field review remains.
 
-Pass, direct/contextual likes, swipes, reciprocal pilot match, simulated contact entitlement, text conversation, end-contact feedback and safety controls without public ratings or automatic feedback penalties.
+Pass, direct/contextual likes, swipes, reciprocal match, contact entitlement, text conversation, end-contact feedback and safety controls without public ratings or automatic feedback penalties.
 
 ## Phase 2 — External backend proof
 
-**Status:** active.
+**Status:** core controlled proof complete; production-readiness work continues.
 
 ### 2A. Backend foundation and migration contract
 
@@ -117,51 +87,59 @@ Demonstrated:
 - participant-only messages;
 - private feedback/report visibility;
 - block enforcement;
-- relational deletion and audit anonymisation.
+- relational deletion and audit anonymisation;
+- cleanup of a conversation opener after an ended conversation.
 
 ### 2C. Authentication, resumable onboarding and Cloudflare deployment
 
-**Status:** deployment implementation and production verification complete; controlled browser execution remains.
+**Status:** controlled proof complete; recovery and lifecycle controls remain.
 
-Delivered:
+Demonstrated in the canonical Cloudflare browser proof:
 
-- browser PKCE magic-link and persistent session adapter;
-- one shared browser Supabase client for authentication, onboarding, interaction and cleanup;
-- consumed PKCE callback-code removal after successful session exchange;
-- implicit access/refresh token fragments disabled;
-- owner-derived onboarding persistence with prompts/interests and sanitized snapshot;
-- server-side publication gate and cross-account draft isolation;
-- recursive browser-artifact credential scanning;
-- authenticated provider-orchestrated private object and Auth-account cleanup;
-- protected remote migration/function/URL configuration workflow;
-- deterministic synthetic seed with ten Auth-linked published profiles and ten private portraits;
-- commit-matched Cloudflare production deployment with real browser-safe Supabase configuration.
+- same-browser-profile PKCE magic-link exchange for two isolated accounts;
+- consumed callback handling and session restoration;
+- explicit global sign-out and re-authentication;
+- persistent onboarding and server-side profile publication;
+- browser/server credential separation;
+- authenticated provider-orchestrated cleanup;
+- no session restoration after final cleanup.
 
 Still required:
 
-- controlled same-browser-profile magic-link and session-recovery execution;
-- recovery and duplicate-account controls;
-- abandonment retention policy and cleanup job.
+- account recovery controls;
+- duplicate-account prevention and resolution;
+- abandonment retention policy and scheduled cleanup;
+- direct Cloudflare Pages environment variables instead of the transition bootstrap.
 
 ### 2D. Controlled two-account interaction and cleanup slice
 
-**Status:** active; claimed in issue #41.
+**Status:** complete; accepted in issue #41 on 2026-08-03.
 
-Execute only on canonical Cloudflare staging:
+Completed on canonical Cloudflare staging:
 
-1. create or use two controlled synthetic adult accounts in isolated browser profiles;
-2. request and open each magic link in the same corresponding browser profile;
-3. prove PKCE callback exchange, consumed-code removal, session restore, sign-out and sign-in;
-4. persist and publish one synthetic man and one synthetic woman profile;
-5. prove draft/family/faith/object isolation cross-account;
-6. prove opposite-sex eligible discovery and exactly one reciprocal match;
-7. claim one proof contact right and open exactly one conversation;
-8. exchange realtime synthetic text messages;
-9. validate signed portrait delivery, end-contact, block, report and feedback enforcement;
-10. invoke provider cleanup for both accounts;
-11. prove private object, Auth, relational and anonymised-audit outcomes.
+1. two controlled synthetic adult accounts in isolated browser profiles;
+2. PKCE magic links opened in the same corresponding profiles;
+3. callback consumption, session restore, sign-out and re-authentication;
+4. persistent publication of one synthetic woman and one synthetic man profile;
+5. cross-account private-domain isolation;
+6. opposite-sex discovery and exactly one reciprocal match;
+7. one proof contact right and one conversation;
+8. Realtime messages in both directions without refresh;
+9. matched private portrait access;
+10. private feedback and safety reporting;
+11. normal end-contact and a separate block path;
+12. server-authoritative revocation of new portrait access and message writes;
+13. authenticated provider cleanup for both accounts;
+14. private-object, Auth and relational cleanup with audit anonymisation;
+15. both browser profiles remained signed out after refresh.
+
+The first account-A cleanup exposed a restrictive conversation-opener foreign key. PR #52 changed it to `ON DELETE CASCADE`, added a regression test and was deployed through protected staging run `30805876163`; cleanup then passed for both accounts.
+
+Detailed evidence: `docs/WP-057-COMPLETION.md`.
 
 ### 2E. Institution and student-benefit verification
+
+**Status:** planned.
 
 - DUO/RIO institution identity;
 - separately evidenced mailbox domains;
@@ -171,6 +149,8 @@ Execute only on canonical Cloudflare staging:
 
 ### 2F. Age and liveness proofs
 
+**Status:** planned.
+
 - privacy-preserving age assurance;
 - replay threat model;
 - randomized challenges;
@@ -178,12 +158,16 @@ Execute only on canonical Cloudflare staging:
 
 ### 2G. Sensitive-data and fairness proof
 
+**Status:** planned.
+
 - DPIA/legal review for faith data;
 - family-context minimisation;
 - approved discovery projection and visibility controls;
 - ranking fairness and deletion controls.
 
 ### 2H. Contact and payment proof
+
+**Status:** planned.
 
 - Mollie-versus-Stripe decision;
 - hosted checkout;
@@ -195,6 +179,8 @@ Execute only on canonical Cloudflare staging:
 
 ### 2I. Behavioural standing and moderation proof
 
+**Status:** planned.
+
 - feedback credibility and retaliation resistance;
 - positive badges and correction prompts;
 - explainable limitations and appeals;
@@ -202,13 +188,23 @@ Execute only on canonical Cloudflare staging:
 
 ## Phase 3 — Closed city-based PWA pilot
 
+**Status:** not authorized.
+
 **Goal:** operate a constrained real-user pilot in one Dutch city across students, recent graduates and young professionals.
 
-**Gate:** privacy, security, legal and moderation readiness approved and real-user admission explicitly authorized.
+**Entry gates:**
+
+- recovery, duplicate-account and retention controls complete;
+- integrated mobile UX and privacy-portrait review accepted;
+- legal basis, DPIA and privacy notices approved;
+- age/liveness and student-benefit verification decisions approved;
+- moderation, support, incident and deletion operations staffed;
+- security and accessibility review passed;
+- explicit real-user admission decision recorded.
 
 ## Phase 4 — Monetised Dutch beta
 
-Hosted web checkout, regular pricing, student discount, Campus Mode, broader city coverage, guarded behavioural interventions, verified local events and later audio.
+Hosted checkout, regular pricing, student discount, Campus Mode, broader city coverage, guarded behavioural interventions, verified local events and later audio.
 
 ## Phase 5 — National scale and Belgium assessment
 

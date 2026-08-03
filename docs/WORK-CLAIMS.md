@@ -5,59 +5,62 @@ This register prevents prototype and backend behaviour from being overstated.
 | ID | Claim | Status | Evidence | Limitation |
 |---|---|---|---|---|
 | WC-001 | GitHub is the sole source of truth. | Demonstrated | repository, ADRs, CI | Branch protection remains an operational setting. |
-| WC-002 | GitHub produces the static artifacts consumed by Cloudflare Pages. | Demonstrated | build scripts, CI and production verification run `30712250023` | Cloudflare project settings remain external operational configuration. |
-| WC-003 | The Supabase-connected staging application is reachable through Cloudflare Pages. | Demonstrated | fixed production URL serving commit `c1632fc4c6d5a5d22f27c256fdf066e5d6710966` | This is a synthetic-only proof environment, not a real-user production service. |
+| WC-002 | GitHub produces the static artifacts consumed by Cloudflare Pages. | Demonstrated | build scripts, CI and production verification | Cloudflare project settings remain external operational configuration. |
+| WC-003 | The Supabase-connected staging application is reachable through Cloudflare Pages. | Demonstrated | canonical Pages URL and commit-matched metadata | Synthetic-only proof environment; not a real-user production service. |
 | WC-004 | Membership is adult, single and serious rather than student-only. | Implemented | domain validation and onboarding | Eligibility is self-declared in the proof. |
-| WC-005 | Student status is an optional verified-benefit layer. | Implemented as concept | life-stage flow | Institution data and verification are fixtures. |
+| WC-005 | Student status is an optional verified-benefit layer. | Implemented as concept | life-stage flow | Institution data and verification remain fixtures. |
 | WC-006 | Marital history, children and child preference are separate fields. | Implemented | domain model and tests | Values are self-declared. |
 | WC-007 | The browser produces four fuzzy privacy portraits. | Implemented | renderer and UI | Blur is not anonymity or liveness. |
 | WC-008 | The concept supports buttons and swipes for pass/like. | Implemented | handlers and tests | Public concept signals remain local-demo only. |
 | WC-009 | Passes do not lower general visibility. | Demonstrated by model | no standing linkage | Production ranking does not exist. |
-| WC-010 | Direct/contextual likes create a reciprocal pilot match. | Implemented | concept flow | The local concept is not multi-user. |
-| WC-011 | A simulated contact right opens local-demo text chat. | Implemented | concept flow | No payment or second real participant. |
-| WC-012 | Private feedback is separate from safety reports. | Implemented | model and flows | Concept feedback has no ranking effect. |
+| WC-010 | Direct/contextual likes create a reciprocal pilot match. | Demonstrated in controlled browser proof | issue #41 | The proof used synthetic accounts only. |
+| WC-011 | A contact right opens text chat. | Demonstrated for controlled proof | issue #41 | No production payment entitlement exists. |
+| WC-012 | Private feedback is separate from safety reports. | Demonstrated | model, RPCs and controlled proof | Feedback has no production ranking effect. |
 | WC-013 | Public stars, downvotes and popularity counts are absent. | Demonstrated | UI and requirements | Regression guards remain necessary. |
 | WC-014 | Dutch is default and English is available. | Implemented and tested | i18n tests | Representative copy review remains. |
 | WC-015 | Faith is self-described without piety scoring. | Implemented | model and tests | Article 9 production basis unresolved. |
-| WC-016 | The concept resumes browser-local onboarding. | Implemented | schema-versioned browser state | Browser storage is not a secure account. |
+| WC-016 | The concept resumes browser-local onboarding. | Implemented | schema-versioned browser state | Browser storage alone is not a secure account. |
 | WC-017 | The product is safe/lawful for real users. | Not claimed | N/A | Legal, moderation, verification and operational gates remain. |
 | WC-018 | Payments are operational. | Not claimed | mock-up only | No provider or money movement. |
-| WC-019 | Realtime multi-user chat is operational for users. | Not claimed | private harness and database contracts | Controlled two-account Cloudflare execution remains before this can be claimed even for proof accounts. |
-| WC-020 | The relational schema is versioned and replayable. | Demonstrated in CI and remotely | migration reset, CI and protected workflow evidence | The remote project is non-production and synthetic-only. |
-| WC-021 | Parallel first likes create one normalized match. | Demonstrated in GitHub Actions | race proof | Browser evidence remains. |
-| WC-022 | Parallel contact opens consume one right and create one conversation. | Demonstrated in GitHub Actions | race proof | Browser evidence remains. |
-| WC-023 | Private domains isolate authenticated accounts with RLS. | Demonstrated in GitHub Actions | pgTAP suites | Controlled remote negative testing remains. |
-| WC-024 | Portrait storage is private and owner-scoped by policy. | Demonstrated as schema/policy | bucket and policies | Actual signed delivery and authenticated cleanup remain to be executed remotely. |
-| WC-025 | Moderation/audit records are unavailable to ordinary users. | Demonstrated in GitHub Actions | grants/RLS tests | No moderator console or SLA. |
-| WC-026 | A production backend is operational. | Not claimed | N/A | `RendezvueProject` is a private non-production proof project and real-user admission is unauthorized. |
-| WC-027 | Blocking freezes match/conversation and revokes signals. | Demonstrated in GitHub Actions | RPC and tests | Controlled Cloudflare browser proof remains. |
-| WC-028 | Users cannot choose feedback credibility or report state. | Demonstrated in GitHub Actions | controlled RPCs | Credibility evolution and retaliation analysis remain. |
-| WC-029 | High-severity reports create a hidden moderation case. | Demonstrated in GitHub Actions | report RPC tests | No operational review queue. |
-| WC-030 | Account deletion cascades relational records and anonymises retained audit IDs. | Demonstrated in GitHub Actions | deletion tests | Authenticated remote cleanup and actual object deletion remain to be observed. |
-| WC-031 | A PKCE magic-link/session adapter is implemented and provider-injectable. | Implemented and unit-tested | auth-session tests | Real same-browser-profile callback exchange and session recovery remain to be proven on Cloudflare. |
-| WC-032 | Onboarding progress, prompts and interests persist in owner-scoped backend records. | Demonstrated in GitHub Actions | backend suite | Controlled remote two-account persistence remains. |
-| WC-033 | Another authenticated account cannot read or update draft onboarding content. | Demonstrated in GitHub Actions | cross-account onboarding tests | Controlled remote browser evidence remains. |
-| WC-034 | Profile publication is a server operation with minimum content gates. | Demonstrated in GitHub Actions | publication RPC tests | Age/student/liveness evidence is not authoritative. |
-| WC-035 | Onboarding snapshots omit student evidence references and portrait object paths. | Demonstrated in GitHub Actions | snapshot tests | Broader inference/privacy review remains. |
-| WC-036 | A private Supabase proof project exists in an EU region. | Demonstrated | dashboard and workflow evidence: Healthy, West EU (Ireland), Nano | DPA/access review remains; this is not production readiness. |
-| WC-037 | The Supabase-connected browser build is separate from the old local-demo concept build. | Demonstrated in CI and production | separate application paths, artifact validation and commit-matched Pages deployment | The two interfaces are not yet one polished product application. |
-| WC-038 | The browser build excludes server credentials. | Demonstrated | build allowlist, recursive credential scan and production verifier | A publishable browser key is intentionally embedded; RLS remains the security boundary. |
-| WC-039 | The complete repository migration set is deployed to the private project. | Demonstrated | protected workflow evidence | The environment remains non-production and synthetic-only. |
-| WC-040 | Remote Auth and Data API platform health pass for the private project. | Demonstrated | protected workflow evidence | End-user PKCE sessions remain unproven. |
-| WC-041 | One browser Auth client handles PKCE callback exchange, onboarding and interactions. | Implemented and artifact-validated | shared generated client and validator | Requires controlled Cloudflare execution to prove browser behaviour. |
-| WC-042 | A published synthetic proof account can receive at most one proof contact right, including after consumption. | Demonstrated in GitHub Actions | controlled RPC and pgTAP tests | This is not production pricing or entitlement issuance. |
-| WC-043 | Active matched accounts can open one conversation and exchange participant-only messages. | Demonstrated in GitHub Actions | RLS, RPC and pgTAP tests | Remote realtime execution remains. |
-| WC-044 | Matched portrait access is active-match-only and stops when contact ends or is blocked. | Demonstrated in GitHub Actions as policy/RPC | storage policy and pgTAP tests | Actual signed URL delivery remains to be executed remotely. |
-| WC-045 | Normal contact ending closes match/conversation and revokes both attraction signals. | Demonstrated in GitHub Actions | server RPC and tests | Remote browser execution remains. |
-| WC-046 | The staging harness exposes PKCE magic-link authentication, onboarding, contact, realtime messaging, signed portrait, block, report, feedback and cleanup controls. | Implemented, artifact-validated and deployed | application, validator and production run `30712250023` | Behavioural proof is pending under WP-057. |
-| WC-047 | An authenticated proof account can request provider-orchestrated deletion of its private portraits, Auth user and relational records. | Implemented, CI-validated and remotely deployed | Edge Function tests and protected deployment | Remote authenticated deletion remains unproven. |
-| WC-048 | Anonymous callers cannot invoke private account cleanup. | Demonstrated in CI and remotely | Edge Runtime and remote HTTP 401 checks | An authenticated destructive run still requires acceptance evidence. |
-| WC-049 | No owner-local runtime is required; GitHub and Cloudflare provide the web delivery path. | Demonstrated | GitHub source, CI, Cloudflare previews and commit-matched production deployment | Browser acceptance still requires ordinary external browser profiles and controlled mailboxes. |
-| WC-050 | Supabase Auth Site URL and allow-list use the canonical Cloudflare Pages URL. | Demonstrated remotely | protected run `30699577670` | Same-browser-profile PKCE exchange remains to be executed. |
-| WC-051 | Hugging Face is no longer an application deployment target. | Implemented | removed deployment workflows/helpers and ADR-0008 | Existing Spaces may remain reachable as stale historical artifacts until manually removed or made inaccessible. |
-| WC-052 | The canonical staging URL is `https://rendezvue-private-preview.pages.dev/`. | Demonstrated | production verification run `30712250023` and issue #35 | The environment remains synthetic-only and does not authorize real users. |
-| WC-053 | Cloudflare Pages receives only browser-safe Supabase configuration. | Demonstrated in production | build contract, credential validator and production metadata | The current transition source is `previous-canonical-deployment`; direct Pages environment variables remain the preferred steady-state source. |
-| WC-054 | Ten Auth-linked synthetic profiles, ten published discovery profiles and ten selected private portraits exist. | Demonstrated remotely | successful synthetic seed summary | This does not authorize real-user admission. |
-| WC-055 | Numeric passwordless e-mail OTP is available on the current Supabase proof project. | Not claimed; remotely disproven for current configuration | protected run `30698614914` returned provider-plan error | Custom SMTP or a qualifying Supabase plan is required before `{{ .Token }}` delivery can be used. |
-| WC-056 | The Cloudflare browser accepts a one-time PKCE code but rejects implicit access/refresh token fragments. | Implemented, deployed and artifact-validated | build metadata, source checks, validator and production deployment | Controlled remote callback evidence remains. |
-| WC-057 | Cloudflare production can bootstrap only from previously public validated browser configuration when native Pages variables are absent. | Demonstrated | PR #40, merge `c1632fc4` and production verification run `30712250023` | This transition mechanism is not a substitute for correctly managed direct Pages environment variables. |
+| WC-019 | Realtime multi-user chat works for controlled proof accounts. | Demonstrated | two-way no-refresh messages in issue #41 | Not claimed for real users or production scale. |
+| WC-020 | The relational schema is versioned and replayable. | Demonstrated in CI and remotely | migration reset, CI and protected workflows | Remote project is non-production and synthetic-only. |
+| WC-021 | Parallel first likes create one normalized match. | Demonstrated in CI and browser proof | race tests and issue #41 | Scale beyond the proof is not measured. |
+| WC-022 | Parallel contact opens consume one right and create one conversation. | Demonstrated in CI; one browser conversation accepted | race tests and issue #41 | Production entitlements are absent. |
+| WC-023 | Private domains isolate authenticated accounts with RLS. | Demonstrated in CI and controlled remote proof | pgTAP and issue #41 | Broader adversarial testing remains. |
+| WC-024 | Portrait storage is private and access is policy-scoped. | Demonstrated in CI and controlled remote proof | storage policies, signed delivery and cleanup evidence | A previously issued signed URL remains valid until expiry. |
+| WC-025 | Moderation/audit records are unavailable to ordinary users. | Demonstrated in CI and controlled browser proof | grants/RLS tests and sanitized UI evidence | No moderator console or SLA. |
+| WC-026 | A production backend is operational. | Not claimed | N/A | `RendezvueProject` is a non-production proof project. |
+| WC-027 | Blocking freezes match/conversation and revokes signals. | Demonstrated in CI and browser proof | RPC tests and issue #41 | Operational moderation response remains absent. |
+| WC-028 | Users cannot choose feedback credibility or report state. | Demonstrated | controlled RPCs | Credibility evolution and retaliation analysis remain. |
+| WC-029 | High-severity reports create a hidden moderation case. | Demonstrated in CI | report RPC tests | No operational review queue. |
+| WC-030 | Account deletion cascades relational records and anonymises retained audit IDs. | Demonstrated in CI and remote cleanup | deletion tests, PR #52 and issue #41 | Regulatory retention policy remains to be approved. |
+| WC-031 | PKCE magic-link exchange, session restore, sign-out and re-authentication work in isolated browser profiles. | Demonstrated | issue #41 | Recovery and duplicate-account handling remain. |
+| WC-032 | Onboarding progress, prompts and interests persist in owner-scoped backend records. | Demonstrated in CI and remote two-account proof | backend suite and issue #41 | Product UX refinement remains. |
+| WC-033 | Another account cannot read or update private draft onboarding content. | Demonstrated in CI and controlled proof | cross-account tests and issue #41 | Broader penetration testing remains. |
+| WC-034 | Profile publication is a server operation with minimum content gates. | Demonstrated in CI and browser proof | publication RPC tests and issue #41 | Age/student/liveness evidence is not authoritative. |
+| WC-035 | Onboarding snapshots omit evidence references and portrait paths. | Demonstrated in CI | snapshot tests | Broader inference/privacy review remains. |
+| WC-036 | A private Supabase proof project exists in an EU region. | Demonstrated | dashboard and workflow evidence | DPA/access review remains; not production readiness. |
+| WC-037 | The Supabase-connected browser build is separate from the old local-demo concept build. | Demonstrated | separate paths and artifact validation | Interfaces still need product integration. |
+| WC-038 | The browser build excludes server credentials. | Demonstrated | recursive credential scan and production verifier | Publishable key is intentionally embedded; RLS is authoritative. |
+| WC-039 | The repository migration set is deployed to the proof project. | Demonstrated | protected workflow evidence including run `30805876163` | Environment remains synthetic-only. |
+| WC-040 | Remote Auth and Data API health and controlled PKCE sessions pass. | Demonstrated | protected workflows and issue #41 | Provider SLA and recovery operations are unproven. |
+| WC-041 | One browser Auth client handles callback exchange, onboarding, interactions and cleanup. | Demonstrated | artifact validation and completed proof | No scale or multi-device claim. |
+| WC-042 | A published proof account can receive at most one proof contact right. | Demonstrated | controlled RPC, pgTAP and browser proof | Not production pricing or issuance. |
+| WC-043 | Matched accounts can open one conversation and exchange participant-only messages. | Demonstrated | RLS/RPC tests and issue #41 | Production load and abuse controls remain. |
+| WC-044 | Matched portrait access stops when contact ends or is blocked. | Demonstrated | storage tests and server-authoritative revocation evidence | Already-issued signed URLs expire rather than being remotely revoked. |
+| WC-045 | Normal contact ending closes match/conversation and revokes both signals. | Demonstrated | server RPC, tests and issue #41 | User-facing recovery/appeal policy remains. |
+| WC-046 | The staging harness supports the full proof journey. | Demonstrated | completed issue #41 | It is an operator harness, not a polished product UI. |
+| WC-047 | An authenticated proof account can delete private objects, Auth user and relational records. | Demonstrated for both proof accounts | issue #41 and `docs/WP-057-COMPLETION.md` | Real-user deletion operations and retention notices remain. |
+| WC-048 | Anonymous callers cannot invoke private account cleanup. | Demonstrated | local and remote HTTP 401 checks | Authenticated destructive action still requires exact confirmation. |
+| WC-049 | No owner-local runtime is required. | Demonstrated | GitHub, Cloudflare and browser proof | Controlled mailbox/browser actions remain manual. |
+| WC-050 | Supabase Auth Site URL and allow-list use the canonical Cloudflare URL. | Demonstrated remotely | protected workflows and successful PKCE exchanges | Direct Pages variables remain preferred over bootstrap. |
+| WC-051 | Hugging Face is no longer an application deployment target. | Implemented | removed workflows/helpers and ADR | Historical Spaces may remain reachable. |
+| WC-052 | Canonical staging is `https://rendezvue-private-preview.pages.dev/`. | Demonstrated | production verification and issue #35 | Real-user admission remains unauthorized. |
+| WC-053 | Cloudflare receives only browser-safe Supabase configuration. | Demonstrated | build contract and production metadata | Transition bootstrap should be replaced by direct variables. |
+| WC-054 | Ten Auth-linked synthetic discovery profiles and portraits were seeded. | Demonstrated remotely | synthetic seed summary | Does not authorize real users. |
+| WC-055 | Numeric passwordless e-mail OTP is available on the current proof project. | Not claimed; disproven for current plan/provider | protected provider error | Custom SMTP or qualifying plan required. |
+| WC-056 | Cloudflare accepts one-time PKCE codes and rejects implicit token fragments. | Demonstrated | artifact validation and controlled callbacks | Magic-link delivery remains provider-dependent. |
+| WC-057 | Cloudflare can bootstrap from previously public validated browser configuration when native variables are absent. | Demonstrated | PR #40 and production verification | Transitional mechanism only. |
+| WC-058 | The complete two-account interaction and cleanup sequence succeeds end to end. | Demonstrated | issue #41 and `docs/WP-057-COMPLETION.md` | Controlled synthetic accounts only. |
+| WC-059 | Cleanup prevents later session restoration in both isolated browser profiles. | Demonstrated | post-cleanup refresh observation in issue #41 | Multi-device global revocation beyond the controlled profiles is not separately measured. |
+| WC-060 | Deleting the account that opened a conversation succeeds after terminal interaction state. | Demonstrated | PR #52, regression test and protected run `30805876163` | Retention policy for future production data remains unresolved. |
