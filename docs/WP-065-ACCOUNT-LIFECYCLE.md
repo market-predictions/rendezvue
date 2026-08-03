@@ -1,10 +1,11 @@
 # WP-065 — Account recovery and lifecycle controls
 
-**Status:** active — WP-065A, WP-065B and WP-065D complete; WP-065C blocked  
+**Status:** active — WP-065A, WP-065B, WP-065D and WP-065E complete; WP-065C blocked  
 **Issue:** #54  
 **Started:** 2026-08-03  
 **WP-065A/B accepted:** 2026-08-03  
-**WP-065D accepted:** 2026-08-03
+**WP-065D accepted:** 2026-08-03  
+**WP-065E accepted:** 2026-08-03
 
 ## Objective
 
@@ -118,10 +119,48 @@ Evidence:
 
 WP-065D supplies an auditable investigation control plane only. It does not establish acceptable identity-proof methods, merge duplicate accounts, change an Auth identity or restore access after mailbox loss.
 
+## WP-065E — Identity evidence and dual-control support decisions
+
+**Status:** complete and remotely verified; classification-only.
+
+Accepted contract:
+
+- controlled evidence categories, subject scopes, system-derived strengths and assessments;
+- opaque token references only; raw mailbox-address-shaped evidence is rejected;
+- `approved_for_action`, `insufficient_evidence`, `rejected` and `escalated` outcomes;
+- approval requires at least two distinct supportive categories, at least one strong category and no conflicting evidence;
+- duplicate-account approval requires evidence coverage for both referenced accounts;
+- mailbox-loss approval requires two qualifying primary-account assertions;
+- conflicting evidence blocks approval and cannot be downgraded to merely insufficient evidence;
+- proposals snapshot case state, case-state timestamp and an evidence fingerprint;
+- case or evidence changes invalidate the proposal before review;
+- an independent reviewer must differ from the proposing operator;
+- append-only proposal/review events and sanitized audits;
+- `anon` and `authenticated` cannot read or invoke the evidence/decision functions;
+- `service_role` has read access and controlled evidence/proposal/review execution only, without direct writes;
+- `approved_for_action` remains a reviewed classification and does not execute a downstream action.
+
+Evidence:
+
+- issue #65 and PR #66;
+- merge commit `98af90a56954db689c50bd6ebbb201e056328d53`;
+- migration `20260803202500_account_support_identity_evidence_decisions.sql`;
+- pgTAP contract `012_account_support_identity_evidence_decisions.test.sql` with 62 assertions;
+- protected staging migration run `30850758553` passed;
+- protected verifier run `30850822452` confirmed remotely:
+  - evidence/decision schema present;
+  - evidence/decisions/events: `0 / 0 / 0`;
+  - anonymous/authenticated access denied;
+  - service-role direct writes denied;
+  - service-role controlled evidence/proposal/review functions allowed;
+  - account merge, Auth restoration, e-mail change, deletion and action-execution functions absent.
+
+WP-065E establishes evidence classification and four-eyes review only. It does not approve an operational identity-proof policy or authorize account mutation.
+
 ## Remaining lifecycle work
 
-- define and approve evidence standards for duplicate-account and mailbox-loss investigations;
-- design any future manual account resolution or restoration action separately, with dual control, audit, notification and rollback;
+- decide whether any account-identity mutation should exist at all;
+- if approved, design each future action separately with explicit identity policy, dual control, reauthentication, notification, idempotency, rollback and incident procedures;
 - define operational retention-hold creation, review and release procedures;
 - approve retention policy, grace period and notification copy;
 - perform guarded dry-run and scheduled cleanup only after WP-065C gates are satisfied.
@@ -132,6 +171,6 @@ WP-065D supplies an auditable investigation control plane only. It does not esta
 - real-user admission is unauthorized;
 - no active retention policy exists;
 - no cleanup candidate currently exists;
-- no support case currently exists;
-- no account merge or mailbox-access restoration function exists;
+- no support case, evidence assertion or decision currently exists;
+- no account merge, mailbox-access restoration, Auth identity change or action-execution function exists;
 - no scheduled or automatic deletion path exists.

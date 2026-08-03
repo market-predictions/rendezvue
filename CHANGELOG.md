@@ -4,6 +4,25 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
+### Identity evidence and dual-control decisions completed
+
+- Completed WP-065E through PR #66, merged as `98af90a56954db689c50bd6ebbb201e056328d53`.
+- Added controlled identity-evidence categories, subject scopes, server-derived strengths and support/conflict/inconclusive assessments.
+- Restricted evidence, operator and decision references to opaque token-shaped values; raw mailbox-address-shaped evidence is rejected.
+- Added controlled outcomes for insufficient evidence, rejection, approval for action and escalation.
+- Required at least two distinct supportive categories, one strong category and zero conflicts before `approved_for_action` can be proposed.
+- Required duplicate-account proposals to cover both accounts and mailbox-loss proposals to contain two qualifying primary-account assertions.
+- Prevented conflicting evidence from being approved or classified as merely insufficient.
+- Snapshotted case state, case-state timestamp and an evidence fingerprint so case or evidence changes invalidate stale review.
+- Enforced four-eyes control by prohibiting a proposing operator from reviewing the same decision.
+- Added append-only proposal/review events and sanitized audits.
+- Denied anonymous/authenticated access and denied service-role direct writes; only controlled evidence, proposal and review functions are executable by `service_role`.
+- Added 62 pgTAP assertions covering privileges, evidence thresholds, conflict handling, both-account coverage, separation of duties, stale proposals, terminal review, Auth non-mutation and deletion-safe history.
+- Added a protected read-only staging verifier with shell and non-destructive contract checks.
+- Protected staging migration run `30850758553` passed.
+- Protected verifier run `30850822452` confirmed: schema present, evidence/decisions/events `0 / 0 / 0`, ordinary-user access denied, direct service writes denied, controlled functions allowed and mutation/action functions absent.
+- `approved_for_action` remains classification-only and does not execute any account action.
+
 ### Support-safe account investigation foundation completed
 
 - Completed WP-065D through PR #63, merged as `a514443aad5ea4469e4632bc16ce8bc4dd72a148`.
@@ -16,7 +35,7 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Added a protected read-only post-deploy verifier.
 - Protected staging migration run `30843752237` passed.
 - Protected verifier run `30843828895` confirmed: support schema present, cases/events `0 / 0`, ordinary-user access denied, direct service writes denied, controlled functions allowed and account-merge/Auth-restoration/e-mail-change/support-deletion functions absent.
-- No identity-proof standard, account merge, Auth identity change, mailbox-access restoration, deletion or real-user admission was introduced.
+- No account merge, Auth identity change, mailbox-access restoration, deletion or real-user admission was introduced.
 
 ### Account recovery and lifecycle controls advanced
 
@@ -66,9 +85,9 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Marked WP-055 complete for the current backend proof scope.
 - Marked WP-057 complete.
 - Marked WP-058 complete for controlled provider cleanup.
-- Marked WP-065A, WP-065B and WP-065D complete and remotely verified.
+- Marked WP-065A, WP-065B, WP-065D and WP-065E complete and remotely verified.
 - Kept WP-065C blocked pending retention-policy, DPIA and operational approval.
-- Advanced the roadmap from investigation-case infrastructure to identity-evidence standards, dual-control support actions, integrated mobile review and closed-pilot readiness.
+- Advanced the roadmap from evidence/decision infrastructure to the explicit decision whether any account mutation/restoration action should exist, plus integrated mobile review and closed-pilot readiness.
 - Real-user admission remains unauthorized.
 
 ### Cloudflare Pages canonical staging
@@ -126,8 +145,10 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ### Remaining gates
 
-- Define and approve identity-evidence standards for duplicate-account and mailbox-loss investigations.
-- Design any future account merge, e-mail change or access restoration as a separate dual-control, audited and reversible action package.
+- Approve an operational identity-evidence policy and operator playbook; WP-065E is a technical contract only.
+- Decide whether account merge, Auth e-mail change or mailbox-loss restoration should exist at all.
+- Design any approved action as a separate dual-control, reauthenticated, audited, notified, idempotent and reversible package.
+- Keep `approved_for_action` disconnected from all account mutation until that package passes.
 - Define operational retention-hold procedures.
 - Approve retention periods, grace period, user notifications, DPIA alignment and operational ownership before WP-065C activation.
 - Keep scheduled or automatic deletion disabled until synthetic dry-run, rollback and support procedures pass.
