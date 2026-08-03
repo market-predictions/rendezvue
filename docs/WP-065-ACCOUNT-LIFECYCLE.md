@@ -1,11 +1,12 @@
 # WP-065 — Account recovery and lifecycle controls
 
-**Status:** active — WP-065A, WP-065B, WP-065D and WP-065E complete; WP-065C blocked  
+**Status:** active — WP-065A, WP-065B, WP-065D and WP-065E complete; WP-065F foundation complete; WP-065C blocked  
 **Issue:** #54  
 **Started:** 2026-08-03  
 **WP-065A/B accepted:** 2026-08-03  
 **WP-065D accepted:** 2026-08-03  
-**WP-065E accepted:** 2026-08-03
+**WP-065E accepted:** 2026-08-03  
+**WP-065F foundation accepted:** 2026-08-03
 
 ## Objective
 
@@ -157,10 +158,59 @@ Evidence:
 
 WP-065E establishes evidence classification and four-eyes review only. It does not approve an operational identity-proof policy or authorize account mutation.
 
+## WP-065F — Dual-controlled registered-email replacement
+
+**Status:** technical foundation complete and remotely verified; controlled execution proof pending.
+
+Accepted foundation:
+
+- applies only to `mailbox_access_loss` cases;
+- requires an approved WP-065E `approved_for_action` decision;
+- the action requester must be the original decision proposer;
+- the action approver must be the independent decision reviewer;
+- target-mailbox possession and manual identity-review evidence are required;
+- no caller-selected Auth user ID;
+- current and target e-mail addresses are not persisted in plaintext in public action, event or audit tables;
+- normalized SHA-256 fingerprints are persisted instead;
+- one active action per account;
+- target-address collision protection;
+- two-hour execution window after approval;
+- maximum three execution attempts;
+- thirty-day cooldown after completion;
+- idempotent claim, completion and reconciliation;
+- append-only events and sanitized audit payloads;
+- internal Edge Function derives the Auth user from the approved case, changes exactly that user's e-mail address and requests a non-creating PKCE magic link for the new address;
+- ordinary users cannot read or invoke the action path;
+- service-role direct table writes remain denied;
+- account merge, password change, support deletion and retention activation remain absent.
+
+Evidence:
+
+- issue #68 and PR #69;
+- merge commit `2a5579101a04d801ef4383c9b2e8237766474b0e`;
+- migrations `20260803231500_account_support_email_replacement_actions.sql` and `20260803231600_account_email_replacement_cancel_guard.sql`;
+- Edge Function `execute-account-email-replacement`;
+- pgTAP contract `013_account_email_replacement_actions.test.sql` with 58 assertions;
+- Deno type-check and static privacy/security validation passed;
+- protected staging migration run `30854571921` passed;
+- protected deployment/verifier run `30854641803` confirmed remotely:
+  - action/event schema present;
+  - actions/events: `0 / 0`;
+  - plaintext e-mail columns: `0`;
+  - ordinary-user access and invocation denied;
+  - service-role direct writes denied;
+  - controlled functions and internal executor deployed;
+  - account-merge, password-change and support-deletion functions absent.
+
+No remote e-mail replacement was executed. The controlled end-to-end proof remains pending because no disposable synthetic mailbox is available to receive the replacement magic link. Detailed evidence: `docs/WP-065F-EMAIL-REPLACEMENT-FOUNDATION.md`.
+
 ## Remaining lifecycle work
 
-- decide whether any account-identity mutation should exist at all;
-- if approved, design each future action separately with explicit identity policy, dual control, reauthentication, notification, idempotency, rollback and incident procedures;
+- provide a disposable synthetic mailbox and account for a controlled WP-065F end-to-end execution proof;
+- approve the operational real-world identity-evidence policy and support playbook before any real-user use;
+- build secure support tooling rather than exposing service functions or workflows to operators;
+- define user notice, objection, fraud, rollback and incident procedures;
+- keep duplicate-account merging out of scope unless separately approved and designed;
 - define operational retention-hold creation, review and release procedures;
 - approve retention policy, grace period and notification copy;
 - perform guarded dry-run and scheduled cleanup only after WP-065C gates are satisfied.
@@ -171,6 +221,6 @@ WP-065E establishes evidence classification and four-eyes review only. It does n
 - real-user admission is unauthorized;
 - no active retention policy exists;
 - no cleanup candidate currently exists;
-- no support case, evidence assertion or decision currently exists;
-- no account merge, mailbox-access restoration, Auth identity change or action-execution function exists;
-- no scheduled or automatic deletion path exists.
+- no support case, evidence assertion, decision or e-mail-replacement action currently exists;
+- the e-mail-replacement foundation is deployed but has not performed a remote replacement;
+- no account merge, password-change or scheduled deletion path exists.
