@@ -4,6 +4,32 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
+### Integrated onboarding, discovery and conversation product shell completed
+
+- Completed WP-067 through issue #74 and implementation PR #75, merged as `21596e03ddf624f4eca5b272c77539985617e742`.
+- Added a signed-in mobile product shell with Start, Profile, Discover, Matches and Account navigation.
+- Integrated resumable eligibility, identity, life-stage, family, faith, personality and portrait onboarding with the existing authenticated persistence contracts.
+- Kept sex limited to Woman/Man and derived opposite-sex discovery automatically without a separate partner selector.
+- Added exact adult-date validation and server-compatible onboarding payload tests.
+- Added private synthetic portrait upload, failed-registration object rollback, selected-portrait preview and server-authoritative profile publication.
+- Added a product-safe discovery projection that retains target IDs only for authorized actions and excludes them from visible profile data.
+- Bundled the ten existing deterministic synthetic WebP portraits into the Cloudflare artifact with a `syntheticOnly` manifest.
+- Added synthetic portrait-backed profile cards with pass, direct like and contextual like actions through `record_attraction_signal`.
+- Added product match status, one controlled synthetic contact-right flow and idempotent conversation opening.
+- Added participant-only message reads/writes and Realtime conversation updates.
+- Added temporary matched-portrait access while contact is active.
+- Added plain-language normal contact ending, blocking and private safety reporting.
+- Kept Dutch as the default and added complete English product-copy key parity linked to the WP-066 language switch.
+- Kept raw snapshots, UUIDs, private paths, proof terminology and diagnostic controls behind the advanced synthetic-test boundary.
+- Added a dedicated WP-067 source/generated-artifact validator rejecting second Supabase clients, visible internal IDs, Auth-admin/support-executor exposure, account-merge patterns, language drift and missing synthetic assets.
+- Added product-model tests; the complete application suite passed 51 Node tests with zero failures.
+- Implementation CI run `30859823200` and full validation run `30859823366` passed application, artifact, Cloudflare, Docker, empty-database replay, pgTAP, race, seed and schema-lint checks.
+- Protected backend run `30860142461` passed remote health, cleanup deployment, anonymous rejection and browser credential boundaries for the implementation merge.
+- Initial production verifier run `30860142392` exposed a stale pre-WP-066 marker (`Magic link aanvragen`) rather than an application defect.
+- Repaired and strengthened canonical production verification in PR #76, merged as `2bcd6f884ab6cc7a4ef68291b46e03e754be845b`.
+- Canonical product run `30860701792` verified commit-matched remote Supabase configuration, the WP-066 account shell, the WP-067 integrated product shell, synthetic portrait manifest/delivery, PKCE, disabled implicit fragments, no-store/security headers and absence of privileged browser capabilities.
+- No disposable-account field execution, owner mobile acceptance or real-user admission is claimed.
+
 ### Product-facing account and recovery experience completed
 
 - Completed WP-066 through issue #71 and PR #72, merged as `45461d51a4cc6ad09b019e0b9165a9bb54ed4cb1`.
@@ -119,16 +145,17 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ### Governance advancement
 
-- Marked WP-035 complete for controlled proof.
-- Marked WP-050 complete for the controlled persistent-service slice.
+- Marked WP-035 complete for controlled proof and integrated product consumption.
+- Marked WP-050 complete for the controlled persistent-service and integrated product slice.
 - Marked WP-055 complete for the current backend proof scope.
 - Marked WP-057 complete.
 - Marked WP-058 complete for controlled provider cleanup.
 - Marked WP-065A, WP-065B, WP-065D and WP-065E complete and remotely verified.
 - Marked the WP-065F technical foundation complete and remotely verified while leaving controlled mailbox execution proof and operational activation pending.
 - Marked WP-066 complete for controlled synthetic staging and promoted the product-facing account/recovery shell to canonical Cloudflare staging.
+- Marked WP-067 complete for controlled synthetic staging after implementation PR #75, verifier repair PR #76 and canonical product run `30860701792`.
 - Kept WP-065C blocked pending retention-policy, DPIA and operational approval.
-- Advanced the roadmap to broader product-shell integration, disposable-mailbox execution proof, secure support tooling, operational identity policy and closed-pilot readiness.
+- Advanced the roadmap to owner desktop/mobile field review, disposable-account product execution, mailbox-replacement proof, operational governance and closed-pilot readiness.
 - Real-user admission remains unauthorized.
 
 ### Cloudflare Pages canonical staging
@@ -139,6 +166,7 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Added Cloudflare-specific build metadata, security/no-store headers and protected Supabase configuration workflows.
 - Added post-merge commit-matched production verification.
 - Added fail-closed placeholder handling and a controlled production bootstrap from previously public validated browser configuration when native variables are absent.
+- Strengthened production verification to assert the account shell, integrated product modules, synthetic portrait manifest/delivery and absence of privileged browser capabilities.
 
 ### Passwordless authentication provider correction
 
@@ -186,8 +214,8 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ### Remaining gates
 
-- Integrate onboarding, privacy portraits, profile preview, discovery, matching and conversation into the WP-066 product shell.
-- Complete desktop/mobile field review and representative Dutch/English/faith terminology review.
+- Complete owner-led desktop/mobile field review of the integrated WP-067 journey and representative Dutch/English/faith terminology review.
+- Execute onboarding, publication, discovery, matching, conversation, safety and cleanup through WP-067 with controlled disposable accounts when suitable mailboxes are available.
 - Provide a disposable synthetic account and mailbox for the controlled WP-065F remote execution proof.
 - Approve an operational identity-evidence policy and operator playbook; WP-065E/F remain technical contracts only.
 - Build secure support tooling, old/new-address notification, objection, fraud, rollback and incident procedures before operational use.
