@@ -1,7 +1,7 @@
 # Project handover
 
 **Updated:** 2026-08-03  
-**Milestone:** WP-065A/B account-entry and lifecycle proof remotely accepted
+**Milestone:** WP-065D support-safe recovery investigation foundation remotely accepted
 
 ## GitHub state
 
@@ -10,6 +10,7 @@
 - Cloudflare migration evidence: issue #35.
 - Completed controlled browser proof: issue #41 / WP-057.
 - Account lifecycle evidence: issue #54 / `docs/WP-065-ACCOUNT-LIFECYCLE.md`.
+- Account-support foundation evidence: issue #62 / PR #63.
 - Detailed WP-057 completion record: `docs/WP-057-COMPLETION.md`.
 - Supabase project: `RendezvueProject`, Healthy, West EU (Ireland), Nano.
 - Real-user admission is not authorized.
@@ -47,13 +48,7 @@ The first account-A cleanup attempt failed while leaving the account authenticat
 
 Root cause: the direct `conversations.opened_by_user_id` foreign key used `ON DELETE RESTRICT`, which could block deletion of the account that opened the conversation.
 
-PR #52:
-
-- changed the foreign key to `ON DELETE CASCADE`;
-- added a regression test covering an ended match, ended conversation and message;
-- proved account B remains while account A and the shared interaction state are removed.
-
-Protected staging run `30805876163` applied the migration, redeployed the cleanup function and passed migration, health, anonymous-rejection and artifact gates. Both account cleanups then succeeded.
+PR #52 changed the foreign key to `ON DELETE CASCADE`, added a regression test and proved account B remains while account A and the shared interaction state are removed. Protected staging run `30805876163` applied the migration and both account cleanups then succeeded.
 
 ## Accepted WP-065A/B outcome
 
@@ -64,9 +59,8 @@ Demonstrated:
 - existing-account sign-in/recovery uses `shouldCreateUser: false`;
 - explicit registration is the only magic-link action that may create an Auth user;
 - the browser response does not reveal account existence or delivery state;
-- the Cloudflare artifact has a regression gate for registration/recovery separation;
 - lifecycle records are created for new and existing Auth users;
-- relevant profile, onboarding, portrait, attraction and message activity updates lifecycle state;
+- relevant account activity updates lifecycle state;
 - retention policies are versioned and inactive by default;
 - explicit retention holds are supported;
 - only inactive draft accounts can become candidates;
@@ -75,15 +69,34 @@ Demonstrated:
 - `service_role` can enumerate candidates;
 - no delete function or scheduler exists.
 
-Protected run `30841983060` verified the remote staging state:
+Protected run `30841983060` verified the remote staging state with zero active policies and zero cleanup candidates.
 
-- lifecycle schema present;
-- active retention policies: `0`;
-- cleanup candidates: `0`;
-- ordinary-user enumeration denied;
-- service-role enumeration allowed.
+## Accepted WP-065D outcome
 
-The original verifier failed first on YAML heredoc parsing and then because the Management API role correctly could not execute the service-only function. PRs #59 and #60 fixed the verifier without widening database permissions.
+WP-065D is complete as an investigation and evidence-control foundation.
+
+Demonstrated:
+
+- internal case kinds for duplicate-account and mailbox-access-loss investigations;
+- controlled state transitions with optimistic expected-state checks;
+- only opaque ticket, operator and evidence references; raw mailbox addresses are rejected;
+- one or two Auth references according to case kind;
+- deletion-safe `ON DELETE SET NULL` references while support history remains;
+- append-only case events and sanitized audit payloads;
+- no ordinary-user access;
+- service role can read cases and invoke controlled open/transition functions but cannot write tables directly;
+- case processing does not mutate Auth users;
+- no account merge, Auth restoration, e-mail change, support deletion or automatic decision function exists.
+
+Evidence:
+
+- issue #62;
+- PR #63 merged as `a514443aad5ea4469e4632bc16ce8bc4dd72a148`;
+- 38 pgTAP assertions;
+- protected staging migration run `30843752237`;
+- protected remote verifier run `30843828895` confirming schema present, cases/events `0 / 0`, ordinary-user access denied, direct service writes denied and only controlled functions allowed.
+
+WP-065D does not establish which identity evidence is sufficient and does not authorize any account merge, e-mail change or restoration action.
 
 ## Current validated backend/browser scope
 
@@ -102,26 +115,27 @@ Validated:
 - provider-orchestrated object/Auth/relational cleanup;
 - audit identifier anonymisation;
 - post-cleanup session non-restoration;
-- non-destructive lifecycle state, retention holds and service-only candidate enumeration.
+- non-destructive lifecycle state, retention holds and service-only candidate enumeration;
+- service-only duplicate/mailbox-loss investigation cases with controlled transitions and retained sanitized history.
 
 ## Immediate next work
 
-### 1. Resolve remaining account-support lifecycle gaps
+### 1. Define support decision and action policy
 
-- define support-led duplicate-account investigation and resolution;
-- define restoration/recovery when the registered mailbox is no longer accessible;
-- define retention-hold creation, review and release procedures;
-- ensure support actions are audited and do not disclose account existence improperly.
+- define acceptable identity evidence for duplicate-account and mailbox-loss cases;
+- define rejection, escalation, appeal and user-notification rules;
+- decide whether any account merge, e-mail change or access restoration is legally and technically acceptable;
+- when acceptable, design that action as a separate package with dual control, idempotency, audit, rollback and explicit user notification;
+- do not extend the current investigation functions into Auth mutation.
 
-### 2. Approve or reject WP-065C policy activation
+### 2. Define retention-hold operations and WP-065C decision
 
-Before any cleanup automation:
-
+- define who may create, review and release a hold;
 - approve retention periods and policy version;
 - align DPIA, legal basis and privacy notices;
 - design grace period and user notifications;
 - name the operational owner and review cadence;
-- prove a synthetic dry-run and rollback/support procedure;
+- prove synthetic dry-run, rollback and support procedures;
 - keep all scheduling and destructive automation disabled until those gates pass.
 
 ### 3. Integrated product review
@@ -153,8 +167,8 @@ Before any real-user admission:
 
 ## Explicit limitations
 
-- no support-led duplicate-account merge or resolution procedure;
-- no recovery when the registered mailbox is inaccessible;
+- no approved identity-proof standard for duplicate-account or mailbox-loss cases;
+- no account merge, Auth identity change or mailbox-access restoration function;
 - no approved abandonment-retention schedule or active retention policy;
 - no scheduled or automatic deletion;
 - no production age or liveness assurance;

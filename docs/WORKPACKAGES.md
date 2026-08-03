@@ -54,8 +54,8 @@ Target-user research, Article 9 basis, withdrawal/deletion and anti-discriminati
 
 ## WP-030 — Production account and eligibility stack
 
-**Status:** active; controlled Auth and lifecycle foundation complete  
-Auth-linked account/profile domains, RLS, PKCE magic-link sessions, resumable onboarding, publication, sign-out/re-authentication, provider cleanup, fail-closed existing-account recovery intent and non-destructive lifecycle state are proven for controlled synthetic accounts. Remaining: support-led duplicate-account resolution, mailbox-loss recovery/restoration, approved abandonment retention and operational policy activation.
+**Status:** active; controlled Auth, lifecycle and support-case foundations complete  
+Auth-linked account/profile domains, RLS, PKCE magic-link sessions, resumable onboarding, publication, sign-out/re-authentication, provider cleanup, fail-closed existing-account recovery intent, non-destructive lifecycle state and service-only account-support cases are proven for controlled synthetic infrastructure. Remaining: approved identity-proof standards and any separate dual-control account resolution/restoration action, abandonment-retention approval and operational policy activation.
 
 ## WP-035 — Resumable onboarding persistence
 
@@ -90,7 +90,7 @@ Server-authoritative attraction, match, one-time proof entitlement, conversation
 ## WP-055 — Backend proof validation
 
 **Status:** complete for current backend scope  
-CI proves empty-database replay, pgTAP, schema lint, cross-account isolation, publication gating, one-time proof entitlement, portrait access/revocation, true parallel races, moderation escalation and account cleanup. PR #52 added deletion coverage for the account that opened a conversation.
+CI proves empty-database replay, pgTAP, schema lint, cross-account isolation, publication gating, one-time proof entitlement, portrait access/revocation, true parallel races, moderation escalation, account cleanup, lifecycle candidate safety and support-case access/state contracts.
 
 ## WP-057 — Controlled two-account remote proof
 
@@ -114,8 +114,8 @@ No payment provider or money movement is configured. The synthetic proof entitle
 
 ## WP-065 — Account recovery and lifecycle controls
 
-**Status:** active — WP-065A/B complete; WP-065C blocked  
-WP-065A separates registration from existing-account recovery so recovery cannot create an accidental Auth account. WP-065B adds server-authoritative lifecycle/activity state, versioned inactive-by-default retention policies, explicit holds and service-role-only non-destructive candidate enumeration. Protected run `30841983060` proved the remote schema, zero active policies, zero candidates and denied ordinary-user enumeration. Remaining: support-led duplicate resolution, mailbox-loss restoration and policy/DPIA/operational approval before any scheduled deletion.
+**Status:** active — WP-065A/B/D complete; WP-065C blocked  
+WP-065A separates registration from existing-account recovery so recovery cannot create an accidental Auth account. WP-065B adds server-authoritative lifecycle/activity state, inactive-by-default retention policies, explicit holds and service-only non-destructive candidates. WP-065D adds service-only audited investigation cases for duplicate-account and mailbox-access-loss requests, without any merge, Auth restoration, e-mail change or deletion capability. Protected runs `30841983060` and `30843828895` proved the remote lifecycle and support-case privilege boundaries. Remaining: identity-proof and dual-control action design plus policy/DPIA/operational approval before any restoration, resolution or scheduled deletion.
 
 ## WP-070 — Trust and safety operations
 

@@ -4,6 +4,20 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
+### Support-safe account investigation foundation completed
+
+- Completed WP-065D through PR #63, merged as `a514443aad5ea4469e4632bc16ce8bc4dd72a148`.
+- Added service-only support cases for duplicate-account and mailbox-access-loss investigations.
+- Added a controlled state machine with optimistic expected-state transitions, append-only case events and sanitized audit events.
+- Restricted case data to opaque ticket, operator and evidence references; raw mailbox addresses are rejected.
+- Added deletion-safe Auth references using `ON DELETE SET NULL`, retaining support history without retaining deleted Auth identifiers.
+- Denied anonymous/authenticated access and denied service-role direct table inserts or updates; only controlled case-opening and transition functions are executable by `service_role`.
+- Added 38 pgTAP assertions covering privileges, validation, transition safety, terminal states, Auth non-mutation, sanitized audits and deletion-safe references.
+- Added a protected read-only post-deploy verifier.
+- Protected staging migration run `30843752237` passed.
+- Protected verifier run `30843828895` confirmed: support schema present, cases/events `0 / 0`, ordinary-user access denied, direct service writes denied, controlled functions allowed and account-merge/Auth-restoration/e-mail-change/support-deletion functions absent.
+- No identity-proof standard, account merge, Auth identity change, mailbox-access restoration, deletion or real-user admission was introduced.
+
 ### Account recovery and lifecycle controls advanced
 
 - Completed WP-065A through PR #55: existing-account sign-in/recovery now uses `shouldCreateUser: false`; explicit registration is the only passwordless action allowed to create a new Auth user.
@@ -52,9 +66,9 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Marked WP-055 complete for the current backend proof scope.
 - Marked WP-057 complete.
 - Marked WP-058 complete for controlled provider cleanup.
-- Marked WP-065A and WP-065B complete and remotely verified.
+- Marked WP-065A, WP-065B and WP-065D complete and remotely verified.
 - Kept WP-065C blocked pending retention-policy, DPIA and operational approval.
-- Advanced the roadmap from browser-proof execution to support-safe account recovery, integrated mobile review and closed-pilot readiness.
+- Advanced the roadmap from investigation-case infrastructure to identity-evidence standards, dual-control support actions, integrated mobile review and closed-pilot readiness.
 - Real-user admission remains unauthorized.
 
 ### Cloudflare Pages canonical staging
@@ -112,8 +126,9 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ### Remaining gates
 
-- Define support-led duplicate-account investigation and resolution.
-- Define restoration/recovery when the registered mailbox is unavailable.
+- Define and approve identity-evidence standards for duplicate-account and mailbox-loss investigations.
+- Design any future account merge, e-mail change or access restoration as a separate dual-control, audited and reversible action package.
+- Define operational retention-hold procedures.
 - Approve retention periods, grace period, user notifications, DPIA alignment and operational ownership before WP-065C activation.
 - Keep scheduled or automatic deletion disabled until synthetic dry-run, rollback and support procedures pass.
 - Replace the transition Cloudflare bootstrap with direct Pages environment variables when operationally available.
