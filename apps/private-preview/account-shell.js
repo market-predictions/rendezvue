@@ -9,6 +9,7 @@ import {
 } from './src/account-experience.js';
 
 const LANGUAGE_KEY = 'rendezvue.interface-language';
+const runtime = globalThis.__RENDEZVUE_CONFIG__ ?? {};
 const languageButtons = [...document.querySelectorAll('[data-language]')];
 const translatable = [...document.querySelectorAll('[data-i18n]')];
 const placeholderTargets = [...document.querySelectorAll('[data-i18n-placeholder]')];
@@ -29,6 +30,8 @@ function storedLanguage() {
 }
 
 let language = normaliseInterfaceLanguage(storedLanguage() || navigator.language);
+let callbackState = 'none';
+let lastRequestMode = null;
 
 function setStatus(element, message, kind = 'info') {
   if (!element) return;
@@ -42,6 +45,27 @@ function updateActionButtons() {
   const registration = form?.querySelector('button[value="registration"]');
   if (existing) existing.textContent = accountCopy(language, 'account.existingAction');
   if (registration) registration.textContent = accountCopy(language, 'account.registrationAction');
+}
+
+function renderBackendState() {
+  if (!productBackendStatus || !configStatus) return;
+  const ready = runtime.remoteBackendConfigured === true && !configStatus.classList.contains('error');
+  productBackendStatus.textContent = accountCopy(
+    language,
+    ready ? 'account.backendReady' : 'account.backendError'
+  );
+  productBackendStatus.className = ready ? 'product-status ready' : 'product-status error';
+}
+
+function renderRememberedMessages() {
+  if (lastRequestMode) {
+    setStatus(requestStatus, genericAccountRequestMessage(language, lastRequestMode), 'success');
+  }
+  if (callbackState === 'unusable') {
+    setStatus(callbackStatus, accountCopy(language, 'account.callbackUnusable'), 'warning');
+  } else if (callbackState === 'pending') {
+    setStatus(callbackStatus, accountCopy(language, 'account.callbackPending'), 'warning');
+  }
 }
 
 function applyLanguage(nextLanguage) {
@@ -61,6 +85,8 @@ function applyLanguage(nextLanguage) {
   }
 
   updateActionButtons();
+  renderBackendState();
+  renderRememberedMessages();
 
   if (accountState?.dataset.signedIn === 'true') {
     accountState.textContent = accountCopy(language, 'account.signedInIntro');
@@ -78,31 +104,20 @@ for (const button of languageButtons) {
 }
 
 form?.addEventListener('submit', (event) => {
-  const mode = event.submitter?.value === 'registration' ? 'registration' : 'existing_account';
-  setStatus(requestStatus, genericAccountRequestMessage(language, mode), 'success');
+  lastRequestMode = event.submitter?.value === 'registration' ? 'registration' : 'existing_account';
+  setStatus(requestStatus, genericAccountRequestMessage(language, lastRequestMode), 'success');
 }, { capture: true });
 
 function renderCallbackGuidance() {
   const current = new URL(globalThis.location.href);
-  const state = classifyAuthCallback(current);
-  if (state === 'unusable') {
-    setStatus(callbackStatus, accountCopy(language, 'account.callbackUnusable'), 'warning');
+  callbackState = classifyAuthCallback(current);
+  renderRememberedMessages();
+
+  if (callbackState === 'unusable') {
     const cleaned = removeAuthErrorParameters(current);
     const next = `${cleaned.pathname}${cleaned.search}${cleaned.hash}`;
     globalThis.history.replaceState(null, '', next);
-  } else if (state === 'pending') {
-    setStatus(callbackStatus, accountCopy(language, 'account.callbackPending'), 'warning');
   }
-}
-
-function renderBackendState() {
-  if (!productBackendStatus || !configStatus) return;
-  const ready = !configStatus.classList.contains('error');
-  productBackendStatus.textContent = accountCopy(
-    language,
-    ready ? 'account.backendReady' : 'account.backendError'
-  );
-  productBackendStatus.className = ready ? 'product-status ready' : 'product-status error';
 }
 
 function renderSession(user) {
@@ -113,12 +128,14 @@ function renderSession(user) {
       ? accountCopy(language, 'account.signedInIntro')
       : accountCopy(language, 'account.intro');
   }
-  if (user) setStatus(callbackStatus, '', 'info');
+  if (user) {
+    callbackState = 'none';
+    setStatus(callbackStatus, '', 'info');
+  }
 }
 
 applyLanguage(language);
 renderCallbackGuidance();
-renderBackendState();
 
 const initial = await supabase.auth.getUser();
 renderSession(initial.data?.user ?? null);
