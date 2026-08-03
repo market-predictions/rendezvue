@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 2.6  
+**Version:** 2.7  
 **Updated:** 2026-08-03
 
 ## Operating doctrine
@@ -89,13 +89,13 @@ Demonstrated:
 - block enforcement;
 - relational deletion and audit anonymisation;
 - cleanup of a conversation opener after an ended conversation;
-- service-only lifecycle, support-case, evidence and dual-control decision contracts.
+- service-only lifecycle, support-case, evidence/decision and registered-email replacement contracts.
 
 ### 2C. Authentication, resumable onboarding and Cloudflare deployment
 
-**Status:** controlled proof complete; recovery intent, lifecycle, support-case and support-decision foundations complete; account mutation/restoration remains unapproved.
+**Status:** controlled proof complete; recovery, lifecycle, support-decision and e-mail-replacement foundations complete; operational recovery remains unauthorized.
 
-Demonstrated in the canonical Cloudflare browser proof and WP-065A/B/D/E:
+Demonstrated in the canonical Cloudflare browser proof and WP-065A/B/D/E/F:
 
 - same-browser-profile PKCE magic-link exchange for two isolated accounts;
 - consumed callback handling and session restoration;
@@ -112,13 +112,19 @@ Demonstrated in the canonical Cloudflare browser proof and WP-065A/B/D/E:
 - conflicting evidence blocks approval;
 - case/evidence snapshots invalidate stale review;
 - independent reviewer separation of duties;
-- reviewed `approved_for_action` remains classification-only.
+- mailbox-loss-only registered-email replacement foundation with no caller-selected user ID;
+- only hashed e-mail fingerprints in public action/event/audit records;
+- short approval expiry, bounded retries, target-address collision protection and cooldown;
+- idempotent server-side executor and post-change non-creating PKCE magic-link request;
+- ordinary-user invocation denied remotely.
 
 Still required:
 
+- a disposable synthetic mailbox/account for a controlled remote e-mail-replacement execution proof;
 - approve an operational identity-evidence policy and operator procedures;
-- decide whether any account merge, identity change or access-restoration action should exist at all;
-- if approved, design each action separately with reauthentication, notification, idempotency, rollback and incident controls;
+- build secure support tooling and user-notification/objection flows;
+- define fraud, rollback, escalation and incident controls;
+- keep duplicate-account merging outside scope unless separately approved;
 - approve retention policy, user notification and operational ownership;
 - guarded cleanup dry-run and scheduling only after policy and DPIA approval;
 - direct Cloudflare Pages environment variables instead of the transition bootstrap.
@@ -200,7 +206,7 @@ Detailed evidence: `docs/WP-057-COMPLETION.md`.
 
 ### 2J. Account recovery and lifecycle controls
 
-**Status:** WP-065A/B/D/E complete; WP-065C blocked.
+**Status:** WP-065A/B/D/E complete; WP-065F foundation complete; WP-065C blocked.
 
 Completed:
 
@@ -215,24 +221,30 @@ Completed:
 - case-kind approval thresholds, conflict blocking and both-account coverage;
 - evidence fingerprints and case-state snapshots that invalidate stale review;
 - independent reviewer separation of duties;
+- mailbox-loss-only registered-email replacement action model;
+- current/target addresses represented by normalized SHA-256 fingerprints in public records;
+- target-mailbox proof, current-address consistency and uniqueness checks;
+- independent action approval, two-hour expiry, three-attempt limit and thirty-day cooldown;
+- idempotent internal executor with reconciliation after partial finalization;
 - ordinary users denied access to lifecycle and support-control data;
-- local pgTAP and protected remote verification;
+- local pgTAP, Deno/static validation and protected remote verification;
 - protected lifecycle run `30841983060`: schema present, active policies `0`, candidates `0`, ordinary-user enumeration denied;
 - protected support migration run `30843752237` and verifier run `30843828895`: support schema present, cases/events `0 / 0`, direct service writes denied, controlled functions allowed, dangerous mutation functions absent;
-- protected WP-065E migration run `30850758553` and verifier run `30850822452`: evidence/decision schema present, evidence/decisions/events `0 / 0 / 0`, ordinary-user access denied, direct service writes denied and controlled functions allowed.
+- protected WP-065E migration run `30850758553` and verifier run `30850822452`: evidence/decision schema present, evidence/decisions/events `0 / 0 / 0`, ordinary-user access denied, direct service writes denied and controlled functions allowed;
+- protected WP-065F migration run `30854571921` and verifier run `30854641803`: action/event schema present, actions/events `0 / 0`, plaintext e-mail columns `0`, ordinary invocation denied, direct service writes denied and internal executor deployed.
 
-Not implemented or approved:
+Not yet proven or authorized:
 
-- automatic or operator-triggered account merge;
-- Auth identity or e-mail change;
-- mailbox-access bypass or account restoration;
-- any downstream action attached to `approved_for_action`;
+- remote end-to-end replacement with a disposable mailbox receiving the new magic link;
+- operational use for real support requests;
+- account merging;
+- password reset through support;
 - activation of any retention policy;
 - user grace-period and notification workflow;
 - scheduled cleanup;
 - real-user deletion automation.
 
-Detailed evidence: `docs/WP-065-ACCOUNT-LIFECYCLE.md`, issue #54, issue #62 and issue #65.
+Detailed evidence: `docs/WP-065-ACCOUNT-LIFECYCLE.md`, `docs/WP-065F-EMAIL-REPLACEMENT-FOUNDATION.md`, issue #54, issue #62, issue #65 and issue #68.
 
 ## Phase 3 — Closed city-based PWA pilot
 
@@ -243,7 +255,8 @@ Detailed evidence: `docs/WP-065-ACCOUNT-LIFECYCLE.md`, issue #54, issue #62 and 
 **Entry gates:**
 
 - operational identity-evidence policy and support procedures approved;
-- an explicit decision that account mutation/restoration is prohibited or a separately validated dual-control action exists;
+- controlled end-to-end e-mail-replacement proof completed or the capability explicitly disabled;
+- secure support tooling, user notifications, objection and incident procedures approved;
 - retention policy, DPIA alignment, notification and operational ownership approved;
 - integrated mobile UX and privacy-portrait review accepted;
 - legal basis, DPIA and privacy notices approved;

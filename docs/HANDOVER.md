@@ -1,7 +1,7 @@
 # Project handover
 
 **Updated:** 2026-08-03  
-**Milestone:** WP-065E identity evidence and dual-control support decisions remotely accepted
+**Milestone:** WP-065F dual-controlled registered-email replacement foundation remotely accepted
 
 ## GitHub state
 
@@ -12,6 +12,7 @@
 - Account lifecycle evidence: issue #54 / `docs/WP-065-ACCOUNT-LIFECYCLE.md`.
 - Account-support case foundation: issue #62 / PR #63.
 - Evidence and dual-control decision foundation: issue #65 / PR #66.
+- Registered-email replacement foundation: issue #68 / PR #69 / `docs/WP-065F-EMAIL-REPLACEMENT-FOUNDATION.md`.
 - Detailed WP-057 completion record: `docs/WP-057-COMPLETION.md`.
 - Supabase project: `RendezvueProject`, Healthy, West EU (Ireland), Nano.
 - Real-user admission is not authorized.
@@ -127,6 +128,41 @@ Evidence:
 - protected staging migration run `30850758553`;
 - protected verifier run `30850822452` confirming schema present, evidence/decisions/events `0 / 0 / 0`, ordinary-user access denied, direct service writes denied, controlled functions allowed and dangerous mutation functions absent.
 
+## Accepted WP-065F foundation
+
+WP-065F is complete as a deployed technical foundation for replacing a registered login e-mail address after mailbox loss. A remote end-to-end mailbox execution proof remains pending.
+
+Demonstrated:
+
+- mailbox-access-loss cases only;
+- approved WP-065E `approved_for_action` decision required;
+- action requester is the original decision proposer;
+- action approver is the independent decision reviewer;
+- target-mailbox possession and manual identity-review evidence required;
+- Auth user is derived from the approved case and cannot be selected by the caller;
+- no plaintext current or target e-mail address in public action, event or audit tables;
+- normalized SHA-256 fingerprints only;
+- target-address collision protection;
+- one active action per account;
+- two-hour execution window, three-attempt limit and thirty-day cooldown;
+- idempotent claim, completion and reconciliation;
+- internal service-only Edge Function updates exactly the approved Auth user and requests a non-creating PKCE magic link for the new address;
+- append-only events and sanitized audits;
+- ordinary-user read and invocation denied;
+- direct service-role table writes denied;
+- no account merge, password change, support deletion or retention activation.
+
+Evidence:
+
+- issue #68;
+- PR #69 merged as `2a5579101a04d801ef4383c9b2e8237766474b0e`;
+- 58 pgTAP assertions;
+- Deno type-check and static privacy/security validation;
+- protected staging migration run `30854571921`;
+- protected deployment/verifier run `30854641803`, confirming action/event schema present, actions/events `0 / 0`, plaintext e-mail columns `0`, ordinary invocation denied, direct service writes denied and internal executor deployed.
+
+No remote e-mail was changed. A disposable synthetic account and mailbox capable of receiving the new magic link are required for the controlled execution proof.
+
 ## Current validated backend/browser scope
 
 Validated:
@@ -148,19 +184,31 @@ Validated:
 - service-only duplicate/mailbox-loss investigation cases;
 - controlled identity-evidence assertions and independent decision review;
 - stale-case and stale-evidence rejection;
-- classification-only approval without account mutation.
+- dual-controlled registered-email replacement foundation;
+- remote deployment and ordinary-user invocation rejection;
+- no remote replacement execution claimed.
 
 ## Immediate next work
 
-### 1. Make the account-action decision
+### 1. Complete the controlled WP-065F execution proof
 
-- decide whether account merge, Auth e-mail change or mailbox-loss restoration should exist at all;
-- approve an operational identity-evidence policy and operator playbook before using WP-065E with real requests;
-- if an action is approved, define only one narrowly scoped action in a separate package;
-- require fresh user reauthentication where possible, dual control, idempotency, before/after audit, notifications, rollback, rate limits and incident procedures;
-- keep `approved_for_action` disconnected from all mutation until that separate package passes.
+- provide one disposable synthetic account with an old address and a disposable target mailbox that can receive a PKCE magic link;
+- open a synthetic mailbox-loss case, register evidence, obtain independent decision and action approval;
+- execute the internal function once;
+- prove the old address no longer signs in, the new address receives the link and restores the same account/profile;
+- prove the action/event/audit history remains sanitized and idempotent;
+- clean up the disposable account after evidence collection.
 
-### 2. Define retention-hold operations and WP-065C decision
+### 2. Define operational support policy
+
+- approve real-world identity evidence and rejection/escalation thresholds;
+- name proposer, reviewer and executor roles;
+- build secure support tooling rather than direct database/workflow use;
+- approve old/new-address notification, objection and appeal language;
+- define fraud, rollback, rate-limit and incident procedures;
+- keep duplicate-account merging out of scope unless separately approved.
+
+### 3. Define retention-hold operations and WP-065C decision
 
 - define who may create, review and release a hold;
 - approve retention periods and policy version;
@@ -170,15 +218,15 @@ Validated:
 - prove synthetic dry-run, rollback and support procedures;
 - keep all scheduling and destructive automation disabled until those gates pass.
 
-### 3. Integrated product review
+### 4. Integrated product review
 
-- integrate the proof contracts into the polished Cloudflare product interface;
+- integrate proof contracts into the polished Cloudflare product interface;
 - complete desktop/mobile field review;
 - review camera and privacy-portrait attractiveness/privacy balance;
 - complete representative Dutch/English and faith terminology review;
 - improve non-technical user guidance for authentication, recovery and deletion.
 
-### 4. Closed-pilot readiness
+### 5. Closed-pilot readiness
 
 Before any real-user admission:
 
@@ -199,9 +247,10 @@ Before any real-user admission:
 
 ## Explicit limitations
 
-- WP-065E is a technical evidence/decision contract, not an approved real-world identity-proof policy;
-- no account merge, Auth identity change or mailbox-access restoration function;
-- no downstream action connected to `approved_for_action`;
+- WP-065E/F are technical contracts, not an approved real-world identity/support policy;
+- no remote WP-065F e-mail replacement has yet been executed;
+- no disposable target mailbox is currently available to complete that proof;
+- no account merging or support password change;
 - no approved abandonment-retention schedule or active retention policy;
 - no scheduled or automatic deletion;
 - no production age or liveness assurance;

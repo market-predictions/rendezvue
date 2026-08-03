@@ -4,6 +4,25 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
+### Dual-controlled registered-email replacement foundation completed
+
+- Implemented the user-approved mailbox-loss recovery option through WP-065F and PR #69, merged as `2a5579101a04d801ef4383c9b2e8237766474b0e`.
+- Limited the action to `mailbox_access_loss` cases with an approved WP-065E `approved_for_action` decision.
+- Required the action requester to be the original decision proposer and the approver to be the independent decision reviewer.
+- Required target-mailbox possession and manual identity-review evidence.
+- Derived the Auth user from the approved case instead of accepting a caller-selected user ID.
+- Stored only normalized SHA-256 current/target e-mail fingerprints in public records; added no plaintext e-mail columns.
+- Added one-active-action protection, target-address collision checks, a two-hour approval window, three-attempt limit and thirty-day cooldown.
+- Added idempotent claim, completion, failure containment and reconciliation when the Auth change succeeds before database finalization.
+- Added internal Edge Function `execute-account-email-replacement`, which performs one server-side Auth e-mail update and requests a non-creating PKCE magic link for the new address.
+- Added append-only action events and sanitized audit payloads.
+- Denied ordinary-user read/invocation and denied direct service-role action/event writes.
+- Added 58 pgTAP assertions covering privileges, two-person control, stale evidence, hashing, idempotency, collision protection, cooldown, completion and deletion-safe history.
+- Added Deno type checking and a static privacy/security validator that rejects caller-selected account IDs, plaintext e-mail columns, raw-email logging, wildcard CORS, account creation/deletion and merge/password patterns.
+- Protected staging migration run `30854571921` passed.
+- Protected deployment/verifier run `30854641803` confirmed: action/event schema present, actions/events `0 / 0`, plaintext e-mail columns `0`, ordinary invocation denied, direct service writes denied, controlled functions and internal executor deployed, and merge/password/deletion functions absent.
+- No remote e-mail replacement was executed because no disposable target mailbox is available; real-user support operation remains unauthorized.
+
 ### Identity evidence and dual-control decisions completed
 
 - Completed WP-065E through PR #66, merged as `98af90a56954db689c50bd6ebbb201e056328d53`.
@@ -21,7 +40,7 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Added a protected read-only staging verifier with shell and non-destructive contract checks.
 - Protected staging migration run `30850758553` passed.
 - Protected verifier run `30850822452` confirmed: schema present, evidence/decisions/events `0 / 0 / 0`, ordinary-user access denied, direct service writes denied, controlled functions allowed and mutation/action functions absent.
-- `approved_for_action` remains classification-only and does not execute any account action.
+- `approved_for_action` remains classification-only unless a separate action package such as WP-065F has also passed.
 
 ### Support-safe account investigation foundation completed
 
@@ -86,8 +105,9 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Marked WP-057 complete.
 - Marked WP-058 complete for controlled provider cleanup.
 - Marked WP-065A, WP-065B, WP-065D and WP-065E complete and remotely verified.
+- Marked the WP-065F technical foundation complete and remotely verified while leaving controlled mailbox execution proof and operational activation pending.
 - Kept WP-065C blocked pending retention-policy, DPIA and operational approval.
-- Advanced the roadmap from evidence/decision infrastructure to the explicit decision whether any account mutation/restoration action should exist, plus integrated mobile review and closed-pilot readiness.
+- Advanced the roadmap to disposable-mailbox execution proof, secure support tooling, operational identity policy and closed-pilot readiness.
 - Real-user admission remains unauthorized.
 
 ### Cloudflare Pages canonical staging
@@ -97,7 +117,7 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Retired Hugging Face as an application host.
 - Added Cloudflare-specific build metadata, security/no-store headers and protected Supabase configuration workflows.
 - Added post-merge commit-matched production verification.
-- Added fail-closed placeholder handling and a controlled production bootstrap from previously public validated browser configuration when native Pages variables are absent.
+- Added fail-closed placeholder handling and a controlled production bootstrap from previously public validated browser configuration when native variables are absent.
 
 ### Passwordless authentication provider correction
 
@@ -145,10 +165,10 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ### Remaining gates
 
-- Approve an operational identity-evidence policy and operator playbook; WP-065E is a technical contract only.
-- Decide whether account merge, Auth e-mail change or mailbox-loss restoration should exist at all.
-- Design any approved action as a separate dual-control, reauthenticated, audited, notified, idempotent and reversible package.
-- Keep `approved_for_action` disconnected from all account mutation until that package passes.
+- Provide a disposable synthetic account and mailbox for the controlled WP-065F remote execution proof.
+- Approve an operational identity-evidence policy and operator playbook; WP-065E/F remain technical contracts only.
+- Build secure support tooling, old/new-address notification, objection, fraud, rollback and incident procedures before operational use.
+- Keep duplicate-account merging and support password changes out of scope unless separately approved.
 - Define operational retention-hold procedures.
 - Approve retention periods, grace period, user notifications, DPIA alignment and operational ownership before WP-065C activation.
 - Keep scheduled or automatic deletion disabled until synthetic dry-run, rollback and support procedures pass.
