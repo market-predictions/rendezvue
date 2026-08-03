@@ -4,118 +4,104 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
+### Controlled two-account Cloudflare proof completed
+
+- Completed WP-057 in issue #41 using two isolated browser profiles and two controlled synthetic adult accounts.
+- Proved same-browser-profile Supabase PKCE magic-link exchange, callback consumption, session restoration, explicit global sign-out and re-authentication for both roles.
+- Persisted and server-published one synthetic woman and one synthetic man profile.
+- Proved opposite-sex discovery, reciprocal likes and exactly one shared match.
+- Claimed one synthetic proof contact entitlement, opened one conversation and exchanged Realtime messages in both directions without refresh.
+- Proved active-match private portrait access, private structured feedback and private safety reporting without public ratings or moderation disclosure.
+- Proved normal contact ending and a separate block path.
+- Added and used a participant-scoped server-authoritative revocation RPC proving the conversation closed, no new portrait access could be issued and new message writes were rejected.
+- Removed the displayed matched portrait and disabled message controls after revocation confirmation.
+- Completed authenticated provider cleanup for both proof accounts, including private portrait objects, Supabase Auth users and relational records while retaining anonymised audit evidence.
+- Verified neither isolated browser profile restored a session after final cleanup and refresh.
+- Added `docs/WP-057-COMPLETION.md` as the consolidated non-secret completion record.
+
+### Account-cleanup defect repaired
+
+- Observed the first account-A cleanup fail with a non-2xx Edge Function response while the account remained authenticated and retryable.
+- Identified `conversations.opened_by_user_id -> auth.users(id) ON DELETE RESTRICT` as the blocker for deleting the account that opened the conversation.
+- PR #52 changed the foreign key to `ON DELETE CASCADE`.
+- Added a regression test covering an ended match, ended conversation and message while preserving the other participant.
+- CI passed application/artifact checks, Docker, empty-database migration replay, pgTAP, concurrency, deterministic seed and schema lint.
+- Protected staging run `30805876163` applied the migration, redeployed the cleanup function and passed remote health, anonymous rejection and browser-artifact validation.
+- Retried cleanup successfully for account A and then account B.
+
+### Governance advancement
+
+- Marked WP-035 complete for controlled proof.
+- Marked WP-050 complete for the controlled persistent-service slice.
+- Marked WP-055 complete for the current backend proof scope.
+- Marked WP-057 complete.
+- Marked WP-058 complete for controlled provider cleanup.
+- Added WP-065 for account recovery, duplicate-account resolution, abandonment retention and scheduled cleanup.
+- Advanced the roadmap from browser-proof execution to lifecycle controls, integrated mobile review and closed-pilot readiness.
+- Real-user admission remains unauthorized.
+
 ### Cloudflare Pages canonical staging
 
-- Accepted issue #35 and defined WP-038, WP-039 and WP-059 for the hosting transition.
 - Selected `https://rendezvue-private-preview.pages.dev/` as the sole canonical web-facing staging URL.
 - Kept GitHub as the source of truth and Supabase as the Auth, PostgreSQL/RLS, private Storage, Realtime and Edge Function backend.
-- Reclassified the historical public and private Hugging Face Spaces as non-canonical artifacts and stopped further functional acceptance work there.
-- Added a Cloudflare-specific static artifact contract with commit metadata, browser-safe Supabase configuration and Pages security headers.
-- Added a protected staging workflow to apply migrations, deploy account cleanup, configure the Supabase Auth Site URL/allow-list for Cloudflare and validate remote platform health.
-- Added a post-merge Pages verification workflow that waits for a production artifact whose `deployment.json` matches the merged commit.
-- Removed active Hugging Face deployment and deployment-evidence workflows and retired their helper code.
-- Rebased the roadmap, work packages, work claims, architecture, handover and private proof protocol on Cloudflare Pages.
-- Added fail-closed placeholder handling for branch previews and a controlled production bootstrap that can reuse only previously public, strictly validated browser configuration.
-- Verified production merge commit `c1632fc4c6d5a5d22f27c256fdf066e5d6710966` with `remote-supabase` configuration, approved configuration source, PKCE auth flow, no-store/security headers and no Hugging Face runtime dependency.
-- Marked WP-038 and WP-039 complete and transferred active work to WP-057 in issue #41.
+- Retired Hugging Face as an application host.
+- Added Cloudflare-specific build metadata, security/no-store headers and protected Supabase configuration workflows.
+- Added post-merge commit-matched production verification.
+- Added fail-closed placeholder handling and a controlled production bootstrap from previously public validated browser configuration when native Pages variables are absent.
 
 ### Passwordless authentication provider correction
 
-- Remote execution proved that Supabase free-tier projects using the default mail provider cannot customize the passwordless e-mail template; numeric `{{ .Token }}` delivery requires custom SMTP or a qualifying plan.
-- Removed the unavailable numeric e-mail OTP interface, verification module and template-configuration workflow step.
-- Restored the default-provider magic link with Supabase PKCE and the fixed Cloudflare `emailRedirectTo` URL.
-- Required the magic link to be requested and opened in the same isolated browser profile so the local PKCE verifier is available.
-- Accepted only a one-time `?code=` callback and removed the consumed code from browser history after successful session exchange.
-- Disabled the implicit flow so access and refresh tokens never appear in URL fragments.
-- Retained global proof sign-out to revoke all refresh sessions for the proof account.
+- Proved that Supabase free-tier projects using the default mail provider cannot customize the passwordless e-mail template for numeric `{{ .Token }}` delivery.
+- Standardized on the default Supabase magic link with PKCE and the fixed Cloudflare redirect URL.
+- Required each link to be requested and opened in the same isolated browser profile.
+- Accepted only a one-time `?code=` callback and removed the consumed code from browser history.
+- Disabled implicit access and refresh token URL fragments.
 
 ### Synthetic profile seed
 
-- Added ten standalone, varied synthetic WebP portraits and ten canonical structured profile records.
+- Added ten varied synthetic WebP portraits and ten canonical structured profile records.
 - Added JSON, CSV, deterministic SQL and protected remote seed routes.
-- Added explicit `is_synthetic` and `synthetic_id` database markers.
-- Created ten confirmed Auth-linked test users, published ten discovery profiles and selected ten private Storage portraits.
+- Added explicit `is_synthetic` and `synthetic_id` markers.
+- Created ten confirmed Auth-linked test users, ten published discovery profiles and ten selected private Storage portraits.
 
 ### Backend proof foundation
 
 - Added versioned Supabase/PostgreSQL migrations, Row Level Security, least-privilege grants and private portrait-storage contracts.
 - Added server-authoritative attraction signals, reciprocal matches, contact entitlements, conversations, messages, blocking, private feedback, safety reports, moderation cases and audit events.
 - Added account-deletion cascades and retained audit-identifier anonymisation.
-- Added fail-closed publication and eligibility/opposite-sex discovery rules.
+- Added fail-closed publication and opposite-sex discovery rules.
 - Added true parallel race protection for simultaneous first likes and contact-opening requests.
 - Added empty-database replay, pgTAP, race tests and schema lint.
 
 ### Auth and resumable onboarding contracts
 
-- Added a provider-injectable passwordless/session adapter with email normalization, redirect configuration, session restore, current-user lookup, auth-state subscription and sign-out.
-- Added owner-derived stage persistence with strict per-domain field allowlists.
-- Added versioned `onboarding_progress`, first-class prompts/interests and transactional personality save.
+- Added a provider-injectable passwordless/session adapter with normalization, redirect configuration, session restore, current-user lookup, auth-state subscription and sign-out.
+- Added owner-derived stage persistence with strict field allowlists.
+- Added versioned onboarding progress, prompts/interests and transactional personality save.
 - Added owner-only sanitized onboarding snapshots.
 - Added `publish_profile()` as the only server-side publication action.
-- Publication requires eligible single/adult/serious/community state, family context, a selected privacy portrait, at least two prompts and at least three interests.
 - Added cross-account draft-isolation and publication-lifecycle tests.
 
-### Supabase proof lane
+### Private interaction and cleanup harness
 
-- Provisioned non-production `RendezvueProject` in West EU (Ireland) on Nano compute.
-- Added a separate `apps/private-preview` interface connected to Supabase using only browser-safe configuration.
-- Added protected GitHub Actions deployment through environment `rendezvue-private-preview`.
-- Added recursive credential scanning for secret/service-role material, database URLs, access tokens, passwords and private keys.
-- Added project Auth health and supported Data API metadata validation.
-- Added one shared browser Supabase client for authentication, onboarding, interaction and cleanup.
-- Added authenticated provider-orchestrated account cleanup and unauthenticated HTTP 401 verification.
-
-### Private interaction harness
-
-- Added `claim_private_proof_entitlement()` for exactly one synthetic proof contact right per eligible published proof account.
+- Added exactly one synthetic proof contact right per eligible published proof account.
 - Prevented a second proof right after consumption.
 - Added idempotent conversation opening and participant-only Realtime messages.
-- Added `end_match_contact(...)` to close match/conversation state and revoke both attraction signals.
-- Added active-match-only portrait-path access and five-minute signed matched-portrait delivery.
-- Stopped portrait and message access after contact ending or blocking.
+- Added participant-controlled contact ending and active-match-only private portrait access.
 - Added private safety-report and structured-feedback controls without public ratings.
+- Added authenticated Edge Function `delete-private-proof-account` with exact destructive confirmation and JWT-derived account identity.
+- Deleted UUID-scoped object bytes before Auth deletion and returned only sanitized deletion status and object count.
+- Added Deno type checking, CORS tests and unauthenticated HTTP 401 verification.
 
-### Provider-orchestrated account cleanup
+### Remaining gates
 
-- Added authenticated Edge Function `delete-private-proof-account`.
-- Requires exact confirmation `DELETE_SYNTHETIC_ACCOUNT` and derives the account ID only from the authenticated JWT.
-- Lists only private portrait objects below the caller's UUID prefix.
-- Deletes object bytes before deleting the Auth account so storage failure leaves the account intact and retryable.
-- Uses existing foreign-key cascades and audit anonymisation after Auth deletion.
-- Returns only deletion status and object count; paths and credentials are never returned.
-- Added Deno type checking and Edge Runtime tests for CORS and unauthenticated HTTP 401.
-
-### Historical validation and remote evidence
-
-- Backend foundation PR #17 merged as `8bbf1398`.
-- Concurrency proof PR #19 merged as `5976ddea`.
-- Auth/onboarding PR #20 merged as `1de81465`.
-- Protected private proof lane PR #22 merged as `5a532629`.
-- Supported health-check PR #24 merged as `9403330f`.
-- Contact/chat/safety harness PR #25 merged as `11964e91`.
-- Provider cleanup PR #26 merged as `8400ebc7`.
-- Historical private Hugging Face architecture PR #29 merged as `37420b21`.
-- Synthetic seed PR #32 merged as `e058696b` and remote seed execution reported 10 Auth-linked profiles, 10 published profiles and 10 selected portraits.
-- Hosted callback experiments PR #33 and OTP experiment PR #34 documented the Hugging Face gateway and free-tier provider constraints; neither authentication route remains canonical.
-- Cloudflare canonical staging PR #36 merged as `fad220bc`.
-- Fail-closed migration evidence PR #37 merged as `d5947cc3`.
-- Cloudflare verifier/Auth deployment repair PR #38 merged as `544022a8`.
-- Free-tier PKCE correction PR #39 merged as `5f43022a`.
-- Production bootstrap PR #40 merged as `c1632fc4`.
-- Protected run `30699577670` proved the canonical Cloudflare Site URL and allow-list, migrations, remote health, cleanup deployment, anonymous rejection and browser credential boundary.
-- Production verification run `30712250023` proved the fixed Pages URL served commit `c1632fc4`, real browser-safe Supabase configuration, PKCE auth metadata, security/no-store headers and no Hugging Face runtime dependency.
-- CI validates application artifacts, browser/server credential separation, Deno type checking, Edge Runtime/CORS/auth gates, Docker, clean migration replay, pgTAP assertions, true parallel match/contact races and schema lint.
-- Real-user admission remains unauthorized.
-
-### Pending review and proof
-
-- Execute WP-057 under issue #41 using two isolated controlled synthetic browser profiles.
-- Execute same-browser-profile magic-link callback exchange, consumed-code removal, session recovery and global sign-out using two controlled synthetic accounts.
-- Execute persistent two-account onboarding, publication, reciprocal discovery/likes and exactly one match.
-- Execute remote one-time entitlement, realtime chat, signed portrait, end-contact, block/report and private feedback.
-- Execute authenticated deletion of private objects and both proof accounts, including relational cascades and retained audit anonymisation.
-- Complete desktop/mobile field review and camera/privacy portrait review in the eventual integrated Cloudflare application.
-- Complete legal, privacy, security and moderation gates before any real-user pilot.
+- Implement account recovery and duplicate-account controls.
+- Approve abandonment retention and scheduled cleanup.
+- Replace the transition Cloudflare bootstrap with direct Pages environment variables when operationally available.
+- Integrate proof contracts into the polished Cloudflare product interface.
+- Complete desktop/mobile camera and privacy-portrait review.
+- Complete legal, DPIA, sensitive-data, age/liveness, accessibility, moderation, support and security readiness.
+- Authorize a constrained real-user city pilot explicitly before admitting any real users.
 
 ## [0.3.0-alpha.1] - 2026-07-29
 
