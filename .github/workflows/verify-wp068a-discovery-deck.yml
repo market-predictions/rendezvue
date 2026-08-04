@@ -10,6 +10,7 @@ on:
       - 'apps/private-preview/discovery-deck.js'
       - 'apps/private-preview/discovery-deck.css'
       - 'scripts/build-private-preview.mjs'
+      - 'scripts/finalize-discovery-deck-artifact.mjs'
       - 'scripts/validate-wp068a-discovery-deck.mjs'
       - 'package.json'
   workflow_dispatch:
@@ -71,7 +72,7 @@ jobs:
             exit 1
           fi
 
-      - name: Verify delivered discovery deck contract
+      - name: Verify delivered discovery deck and cache coherence
         shell: bash
         run: |
           set -euo pipefail
@@ -79,13 +80,17 @@ jobs:
           fetch_artifact() {
             local relative_path="$1"
             local destination="$2"
+            local headers="$3"
+            local separator='?'
+            [[ "$relative_path" == *'?'* ]] && separator='&'
             local status
             status="$(curl --silent --show-error --location \
+              --dump-header "$headers" \
               --output "$destination" --write-out '%{http_code}' \
               --header 'cache-control: no-cache' \
-              "${STAGING_URL}${relative_path}?commit=${GITHUB_SHA}" || true)"
+              "${STAGING_URL}${relative_path}${separator}verify=${GITHUB_SHA}" || true)"
             [[ "$status" == "200" ]] || {
-              echo "::error title=WP-068A artifact missing::${relative_path} returned HTTP ${status}."
+              echo "::error title=WP-068A artifact missing::${relative_path:-/} returned HTTP ${status}."
               exit 1
             }
           }
@@ -100,17 +105,34 @@ jobs:
             }
           }
 
+          require_revalidation_header() {
+            local file="$1"
+            local label="$2"
+            grep -Eiq '^cache-control:.*no-cache.*max-age=0' "$file" || {
+              echo "::error title=WP-068A cache contract missing::${label} is not served with no-cache and max-age=0."
+              cat "$file"
+              exit 1
+            }
+          }
+
+          index="$RUNNER_TEMP/index.html"
+          index_headers="$RUNNER_TEMP/index.headers"
           account_shell="$RUNNER_TEMP/account-shell.js"
+          account_headers="$RUNNER_TEMP/account-shell.headers"
           product_shell="$RUNNER_TEMP/product-shell.js"
+          product_headers="$RUNNER_TEMP/product-shell.headers"
           deck="$RUNNER_TEMP/discovery-deck.js"
+          deck_headers="$RUNNER_TEMP/discovery-deck.headers"
           deck_css="$RUNNER_TEMP/discovery-deck.css"
+          css_headers="$RUNNER_TEMP/discovery-deck-css.headers"
 
-          fetch_artifact 'account-shell.js' "$account_shell"
-          fetch_artifact 'product-shell.js' "$product_shell"
-          fetch_artifact 'discovery-deck.js' "$deck"
-          fetch_artifact 'discovery-deck.css' "$deck_css"
+          fetch_artifact '' "$index" "$index_headers"
+          fetch_artifact 'account-shell.js' "$account_shell" "$account_headers"
+          fetch_artifact 'product-shell.js' "$product_shell" "$product_headers"
+          fetch_artifact "discovery-deck.js?commit=${GITHUB_SHA}" "$deck" "$deck_headers"
+          fetch_artifact "discovery-deck.css?commit=${GITHUB_SHA}" "$deck_css" "$css_headers"
 
-          require_marker "$account_shell" "import './discovery-deck.js';" 'account shell discovery-deck import'
+          require_marker "$index" "./discovery-deck.js?commit=${GITHUB_SHA}" 'commit-versioned direct discovery entry'
           require_marker "$product_shell" "copy.className = 'rv-discovery-copy';" 'profile information projection'
           require_marker "$product_shell" "actions.append(pass, like, context);" 'Pass/Like/Respond controls'
           require_marker "$deck" "card.hidden = !active;" 'single active card controller'
@@ -120,12 +142,19 @@ jobs:
           require_marker "$deck" "dataset.discoveryAction = 'pass'" 'Pass presentation'
           require_marker "$deck" "dataset.discoveryAction = 'like'" 'Like presentation'
           require_marker "$deck" "dataset.discoveryAction = 'context'" 'Respond presentation'
+          require_marker "$deck" 'discoveryDeckStyleHref(import.meta.url)' 'commit-versioned stylesheet propagation'
           require_marker "$deck_css" '.rv-discovery-deck > .rv-discovery-card[hidden]' 'inactive-card CSS'
           require_marker "$deck_css" '.rv-discovery-deck > .rv-discovery-card-active' 'active-card CSS'
           require_marker "$deck_css" '.rv-discovery-deck .rv-discovery-actions' 'persistent action-area CSS'
           require_marker "$deck_css" '[data-discovery-action="pass"]' 'distinct Pass styling'
           require_marker "$deck_css" '[data-discovery-action="like"]' 'distinct Like styling'
           require_marker "$deck_css" '[data-discovery-action="context"]' 'distinct Respond styling'
+
+          require_revalidation_header "$index_headers" 'canonical root document'
+          require_revalidation_header "$account_headers" 'account shell'
+          require_revalidation_header "$product_headers" 'product shell'
+          require_revalidation_header "$deck_headers" 'discovery deck module'
+          require_revalidation_header "$css_headers" 'discovery deck stylesheet'
 
           if grep -Eiq 'createClient\s*\(|auth\.admin|service_role|sb_secret_|SUPABASE_SERVICE_ROLE_KEY|execute-account-email-replacement' "$deck"; then
             echo '::error title=Privileged discovery capability exposed::The discovery deck contains prohibited client or support material.'
@@ -141,6 +170,8 @@ jobs:
           - Canonical URL: $STAGING_URL
           - Commit matched: \`$GITHUB_SHA\`
           - Remote Supabase configuration: passed
+          - Commit-versioned module and stylesheet: passed
+          - Root and product asset cache revalidation: passed
           - One active discovery profile: passed
           - Profile information visibility: passed
           - Pass / Like / Respond controls: passed
@@ -162,6 +193,8 @@ jobs:
           - canonical URL: $STAGING_URL
           - commit: \`$GITHUB_SHA\`
           - workflow: $RUN_URL
+          - commit-versioned module and stylesheet: passed
+          - root and product asset cache revalidation: passed
           - one active profile at a time: passed
           - visible profile information: passed
           - persistent Pass / Like / Respond controls: passed
@@ -183,6 +216,6 @@ jobs:
           - canonical URL: $STAGING_URL
           - expected commit: \`$GITHUB_SHA\`
           - workflow: $RUN_URL
-          - result: commit matching, delivered discovery assets or the single-card/action visibility contract failed
+          - result: commit matching, versioned delivery, cache revalidation or the single-card/action visibility contract failed
           - real-user admission: not authorized
           EOF

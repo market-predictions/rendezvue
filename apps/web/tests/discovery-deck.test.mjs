@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   discoveryDeckCopy,
+  discoveryDeckStyleHref,
   normaliseDiscoveryLanguage,
   resolveDiscoveryDeckProgress
 } from '../../private-preview/discovery-deck.js';
@@ -44,6 +45,17 @@ test('discovery deck action labels remain explicit in both languages', () => {
     assert.match(discoveryDeckCopy(language, 'like'), /Leuk|Like/);
     assert.match(discoveryDeckCopy(language, 'context'), /Reageer|Respond/);
   }
+});
+
+test('discovery deck stylesheet inherits the module commit token', () => {
+  assert.equal(
+    discoveryDeckStyleHref('https://example.test/discovery-deck.js?commit=abc1234'),
+    'https://example.test/discovery-deck.css?commit=abc1234'
+  );
+  assert.equal(
+    discoveryDeckStyleHref('https://example.test/assets/discovery-deck.js?other=ignored'),
+    'https://example.test/assets/discovery-deck.css'
+  );
 });
 
 test('discovery deck rejects unknown copy keys', () => {
