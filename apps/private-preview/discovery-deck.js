@@ -46,12 +46,21 @@ export function resolveDiscoveryDeckProgress(total, remaining) {
   return Object.freeze({ total: safeTotal, remaining: safeRemaining, current, completed, percent });
 }
 
+export function discoveryDeckStyleHref(moduleUrl) {
+  const source = new URL(String(moduleUrl));
+  const style = new URL('./discovery-deck.css', source);
+  const commit = source.searchParams.get('commit');
+  style.search = '';
+  if (commit) style.searchParams.set('commit', commit);
+  return style.toString();
+}
+
 function installStyle() {
   if (document.querySelector(`#${STYLE_ID}`)) return;
   const link = document.createElement('link');
   link.id = STYLE_ID;
   link.rel = 'stylesheet';
-  link.href = './discovery-deck.css';
+  link.href = discoveryDeckStyleHref(import.meta.url);
   document.head.append(link);
 }
 
