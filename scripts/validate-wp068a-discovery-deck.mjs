@@ -57,10 +57,10 @@ for (const [source, label] of [[deckSource, 'source deck'], [generatedDeck, 'gen
   requireMarker(source, "card.toggleAttribute('inert', !active);", `${label} must remove inactive cards from keyboard interaction`);
   requireMarker(source, "copy.hidden = false;", `${label} must force profile information visible`);
   requireMarker(source, "controls.actions.hidden = false;", `${label} must force interaction controls visible`);
-  requireMarker(source, "data.discoveryCardComplete", `${label} must record whether profile copy and controls are complete`);
-  requireMarker(source, "data.discoveryAction = 'pass'", `${label} is missing the Pass presentation contract`);
-  requireMarker(source, "data.discoveryAction = 'like'", `${label} is missing the Like presentation contract`);
-  requireMarker(source, "data.discoveryAction = 'context'", `${label} is missing the contextual-like presentation contract`);
+  requireMarker(source, "card.dataset.discoveryCardComplete", `${label} must record whether profile copy and controls are complete`);
+  requireMarker(source, "dataset.discoveryAction = 'pass'", `${label} is missing the Pass presentation contract`);
+  requireMarker(source, "dataset.discoveryAction = 'like'", `${label} is missing the Like presentation contract`);
+  requireMarker(source, "dataset.discoveryAction = 'context'", `${label} is missing the contextual-like presentation contract`);
   requireMarker(source, "resolveDiscoveryDeckProgress", `${label} must maintain discovery position and progress`);
   forbidPattern(source, /createClient\s*\(|auth\.admin|service_role|sb_secret_|SUPABASE_SERVICE_ROLE_KEY/i, `${label} must not introduce a second client or privileged browser capability`);
 }
