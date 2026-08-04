@@ -19,23 +19,28 @@ if (!/^[a-f0-9]{7,40}$|^local$/.test(buildCommit)) {
   throw new Error('Discovery deck finalization requires a valid build commit marker');
 }
 
-for (const file of ['discovery-deck.js', 'discovery-deck.css']) {
+for (const file of ['discovery-deck.js', 'discovery-deck.css', 'discovery-portrait-fallback.js']) {
   const info = await stat(resolve(dist, file));
   if (!info.isFile() || info.size < 100) {
-    throw new Error(`Discovery deck artifact is missing or unexpectedly small: ${file}`);
+    throw new Error(`Discovery artifact is missing or unexpectedly small: ${file}`);
   }
 }
 
-const versionedModule = `./discovery-deck.js?commit=${encodeURIComponent(buildCommit)}`;
-const directModulePattern = /\s*<script\s+type="module"\s+src="\.\/discovery-deck\.js(?:\?[^\"]*)?"\s*><\/script>\s*/g;
+const moduleEntries = [
+  `./discovery-deck.js?commit=${encodeURIComponent(buildCommit)}`,
+  `./discovery-portrait-fallback.js?commit=${encodeURIComponent(buildCommit)}`
+];
+const directModulePattern = /\s*<script\s+type="module"\s+src="\.\/(?:discovery-deck|discovery-portrait-fallback)\.js(?:\?[^\"]*)?"\s*><\/script>\s*/g;
 let generatedIndex = indexSource.replace(directModulePattern, '\n');
 generatedIndex = generatedIndex.replace(
   '</body>',
-  `  <script type="module" src="${versionedModule}"></script>\n</body>`
+  `${moduleEntries.map((source) => `  <script type="module" src="${source}"></script>`).join('\n')}\n</body>`
 );
 
-if (!generatedIndex.includes(versionedModule)) {
-  throw new Error('Commit-versioned discovery deck module was not added to the generated index');
+for (const moduleEntry of moduleEntries) {
+  if (!generatedIndex.includes(moduleEntry)) {
+    throw new Error(`Commit-versioned discovery module was not added to the generated index: ${moduleEntry}`);
+  }
 }
 
 const cacheControl = 'Cache-Control: no-cache, max-age=0, must-revalidate';
@@ -46,7 +51,8 @@ const cacheRoutes = [
   '/product-shell.js',
   '/product-shell.css',
   '/discovery-deck.js',
-  '/discovery-deck.css'
+  '/discovery-deck.css',
+  '/discovery-portrait-fallback.js'
 ];
 let generatedHeaders = headersSource.trimEnd();
 for (const route of cacheRoutes) {
@@ -62,4 +68,4 @@ await Promise.all([
   writeFile(headersPath, generatedHeaders, 'utf8')
 ]);
 
-console.log(`Discovery deck entry finalized with commit token ${buildCommit}.`);
+console.log(`Discovery modules finalized with commit token ${buildCommit}.`);

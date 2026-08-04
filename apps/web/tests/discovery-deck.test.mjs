@@ -6,6 +6,10 @@ import {
   normaliseDiscoveryLanguage,
   resolveDiscoveryDeckProgress
 } from '../../private-preview/discovery-deck.js';
+import {
+  normaliseSyntheticDisplayName,
+  seededPortraitAssetForDisplayName
+} from '../../private-preview/discovery-portrait-fallback.js';
 
 test('discovery deck defaults to Dutch and supports explicit English', () => {
   assert.equal(normaliseDiscoveryLanguage('nl-NL'), 'nl');
@@ -56,6 +60,23 @@ test('discovery deck stylesheet inherits the module commit token', () => {
     discoveryDeckStyleHref('https://example.test/assets/discovery-deck.js?other=ignored'),
     'https://example.test/assets/discovery-deck.css'
   );
+});
+
+test('seeded portrait fallback normalizes extended display names', () => {
+  assert.equal(normaliseSyntheticDisplayName('  Ámina — Utrecht  '), 'amina utrecht');
+  assert.equal(normaliseSyntheticDisplayName('Youssef / HBO'), 'youssef hbo');
+});
+
+test('seeded portrait fallback resolves approved names inside extended display names', () => {
+  assert.equal(seededPortraitAssetForDisplayName('Amina Noor'), './assets/profiles/amina.webp');
+  assert.equal(seededPortraitAssetForDisplayName('Student · Youssef El Amrani'), './assets/profiles/youssef.webp');
+  assert.equal(seededPortraitAssetForDisplayName('Hafsa — Rotterdam'), './assets/profiles/hafsa.webp');
+});
+
+test('seeded portrait fallback remains closed for unknown names', () => {
+  assert.equal(seededPortraitAssetForDisplayName('Proof A'), null);
+  assert.equal(seededPortraitAssetForDisplayName(''), null);
+  assert.equal(seededPortraitAssetForDisplayName(null), null);
 });
 
 test('discovery deck rejects unknown copy keys', () => {
