@@ -1,5 +1,6 @@
 import { supabase } from './app.js';
 import './product-shell.js';
+import './discovery-deck.js';
 import {
   accountCopy,
   classifyAuthCallback,
