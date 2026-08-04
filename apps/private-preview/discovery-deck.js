@@ -1,4 +1,7 @@
 const STYLE_ID = 'rendezvue-discovery-deck-style';
+const MODULE_URL = new URL(import.meta.url);
+const MODULE_VERSION = MODULE_URL.searchParams.get('commit') || 'unversioned';
+const REGISTRY_KEY = '__RENDEZVUE_DISCOVERY_DECK__';
 
 const COPY = Object.freeze({
   nl: Object.freeze({
@@ -56,11 +59,16 @@ export function discoveryDeckStyleHref(moduleUrl) {
 }
 
 function installStyle() {
-  if (document.querySelector(`#${STYLE_ID}`)) return;
+  const href = discoveryDeckStyleHref(import.meta.url);
+  const existing = document.querySelector(`#${STYLE_ID}`);
+  if (existing) {
+    if (MODULE_VERSION !== 'unversioned' && existing.href !== href) existing.href = href;
+    return;
+  }
   const link = document.createElement('link');
   link.id = STYLE_ID;
   link.rel = 'stylesheet';
-  link.href = discoveryDeckStyleHref(import.meta.url);
+  link.href = href;
   document.head.append(link);
 }
 
@@ -143,10 +151,19 @@ function scrollToActiveCard(card) {
 
 function initialiseDiscoveryDeck() {
   const list = document.querySelector('#rv-discovery-list');
-  if (!list || list.dataset.discoveryDeckReady === 'true') return;
+  if (!list) return;
 
   installStyle();
+  const existingVersion = list.dataset.discoveryDeckVersion;
+  if (list.dataset.discoveryDeckReady === 'true') {
+    if (existingVersion === MODULE_VERSION || MODULE_VERSION === 'unversioned') return;
+  }
+
+  const previous = globalThis[REGISTRY_KEY];
+  previous?.cleanup?.();
+
   list.dataset.discoveryDeckReady = 'true';
+  list.dataset.discoveryDeckVersion = MODULE_VERSION;
   list.classList.add('rv-discovery-deck');
 
   const meta = createDeckMeta(list);
@@ -234,12 +251,20 @@ function initialiseDiscoveryDeck() {
   const observer = new MutationObserver(scheduleSync);
   observer.observe(list, { childList: true });
 
-  refresh?.addEventListener('click', () => {
+  const resetDeck = () => {
     deck.resetRequested = true;
-  }, { capture: true });
-
+  };
+  refresh?.addEventListener('click', resetDeck, { capture: true });
   globalThis.addEventListener('rendezvue:language-change', scheduleSync);
-  globalThis.addEventListener('pagehide', () => observer.disconnect(), { once: true });
+
+  const cleanup = () => {
+    observer.disconnect();
+    refresh?.removeEventListener('click', resetDeck, { capture: true });
+    globalThis.removeEventListener('rendezvue:language-change', scheduleSync);
+    if (globalThis[REGISTRY_KEY]?.version === MODULE_VERSION) delete globalThis[REGISTRY_KEY];
+  };
+  globalThis[REGISTRY_KEY] = Object.freeze({ version: MODULE_VERSION, cleanup });
+  globalThis.addEventListener('pagehide', cleanup, { once: true });
   scheduleSync();
 }
 
