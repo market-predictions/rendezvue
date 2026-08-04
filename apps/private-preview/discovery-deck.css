@@ -47,7 +47,10 @@
 }
 
 .rv-discovery-stack.rv-discovery-deck {
+  container-name: rv-discovery-deck;
+  container-type: inline-size;
   display: block !important;
+  min-width: 0;
 }
 
 .rv-discovery-deck > .rv-discovery-card[hidden] {
@@ -56,36 +59,58 @@
 
 .rv-discovery-deck > .rv-discovery-card-active {
   display: grid !important;
-  width: min(100%, 36rem);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "media"
+    "copy"
+    "actions"
+    "context";
+  width: min(100%, 42rem);
+  min-width: 0;
   margin: 0 auto;
-  overflow: visible;
+  overflow: hidden;
   border: 1px solid #d7ccc1;
   border-radius: 1.35rem;
   background: #fff;
   box-shadow: 0 20px 56px rgba(56, 41, 31, 0.13);
 }
 
+.rv-discovery-deck .rv-discovery-media,
+.rv-discovery-deck .rv-discovery-copy,
+.rv-discovery-deck .rv-discovery-actions,
+.rv-discovery-deck .rv-context-form {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .rv-discovery-deck .rv-discovery-media {
-  aspect-ratio: 4 / 5 !important;
+  grid-area: media;
+  position: relative;
+  width: 100% !important;
+  height: clamp(20rem, 72cqi, 34rem);
   min-height: 0 !important;
-  max-height: min(62vh, 39rem);
+  max-height: none !important;
+  aspect-ratio: auto !important;
   overflow: hidden;
   border-radius: 1.3rem 1.3rem 0 0;
+  background: linear-gradient(145deg, #bfd4cc, #e7c6b5);
 }
 
 .rv-discovery-deck .rv-discovery-media img {
   display: block !important;
   width: 100% !important;
   height: 100% !important;
+  max-width: 100% !important;
   object-fit: cover !important;
 }
 
 .rv-discovery-deck .rv-discovery-copy {
+  grid-area: copy;
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
-  min-height: 8.5rem;
-  padding: 1rem 1rem 0.45rem !important;
+  padding: 1rem 1rem 0.75rem !important;
+  overflow-wrap: anywhere;
   color: #211b18 !important;
   background: #fff;
 }
@@ -94,8 +119,8 @@
   display: block !important;
   margin: 0 !important;
   color: #211b18 !important;
-  font-size: clamp(1.45rem, 5vw, 1.9rem) !important;
-  line-height: 1.05;
+  font-size: clamp(1.45rem, 6cqi, 1.9rem) !important;
+  line-height: 1.08;
 }
 
 .rv-discovery-deck .rv-discovery-copy strong,
@@ -103,12 +128,14 @@
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
+  max-width: 100%;
 }
 
 .rv-discovery-deck .rv-discovery-copy strong {
   margin-top: 0.6rem;
   color: #215f50;
   font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 .rv-discovery-deck .rv-discovery-copy p {
@@ -124,32 +151,33 @@
 }
 
 .rv-discovery-deck .rv-discovery-actions {
-  position: sticky;
-  bottom: 0.45rem;
-  z-index: 12;
+  grid-area: actions;
+  position: static !important;
+  z-index: auto;
   display: grid !important;
   visibility: visible !important;
   opacity: 1 !important;
-  grid-template-columns: 0.9fr 1fr 1.25fr !important;
-  gap: 0.55rem !important;
-  margin: 0.45rem 0.65rem 0.65rem;
-  padding: 0.62rem !important;
-  border: 1px solid rgba(211, 199, 187, 0.95);
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.97);
-  box-shadow: 0 12px 32px rgba(54, 39, 29, 0.15);
-  backdrop-filter: blur(12px);
+  grid-template-columns: 1fr;
+  gap: 0.5rem !important;
+  margin: 0;
+  padding: 0.75rem 1rem 1rem !important;
+  border-top: 1px solid #ece4dc;
+  background: #fff;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .rv-discovery-deck .rv-discovery-actions button {
   display: block !important;
+  width: 100%;
+  min-width: 0;
   min-height: 3rem;
   padding: 0.65rem 0.55rem !important;
   border: 0;
   border-radius: 0.82rem;
   font-size: 0.82rem !important;
   font-weight: 850;
-  line-height: 1.1;
+  line-height: 1.15;
   white-space: normal;
 }
 
@@ -169,11 +197,12 @@
 }
 
 .rv-discovery-deck .rv-context-form {
-  margin: -0.15rem 0.65rem 0.75rem;
-  padding: 0.75rem !important;
-  border: 1px solid #dfd5cb;
-  border-radius: 0.95rem;
-  background: #fbf8f4;
+  grid-area: context;
+  margin: 0;
+  padding: 0 1rem 1rem !important;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
 }
 
 .rv-discovery-deck .rv-context-form.open {
@@ -182,51 +211,59 @@
 
 .rv-discovery-deck .rv-context-form input {
   display: block !important;
+  width: 100%;
+  min-width: 0;
   min-height: 3rem;
   margin: 0;
   background: #fff;
 }
 
-@media (min-width: 760px) {
+@container rv-discovery-deck (min-width: 24rem) {
+  .rv-discovery-deck .rv-discovery-actions {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr) minmax(0, 1.2fr);
+  }
+}
+
+@container rv-discovery-deck (min-width: 48rem) {
   .rv-discovery-deck > .rv-discovery-card-active {
-    grid-template-columns: minmax(0, 1.08fr) minmax(15rem, 0.92fr);
-    grid-template-rows: auto auto auto;
-    width: min(100%, 54rem);
-    overflow: hidden;
+    grid-template-columns: minmax(21rem, 1.08fr) minmax(20rem, 0.92fr);
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "media copy"
+      "media actions"
+      "media context";
+    width: min(100%, 60rem);
+    min-height: 34rem;
   }
 
   .rv-discovery-deck .rv-discovery-media {
-    grid-column: 1;
-    grid-row: 1 / span 3;
-    height: min(68vh, 38rem);
-    max-height: none;
+    width: 100% !important;
+    height: 100%;
+    min-height: 34rem !important;
     border-radius: 1.3rem 0 0 1.3rem;
   }
 
   .rv-discovery-deck .rv-discovery-copy {
-    grid-column: 2;
-    grid-row: 1;
     align-self: start;
-    padding: 1.2rem 1.15rem 0.55rem !important;
+    padding: 1.2rem 1.15rem 0.75rem !important;
+  }
+
+  .rv-discovery-deck .rv-discovery-copy h3 {
+    font-size: 1.85rem !important;
   }
 
   .rv-discovery-deck .rv-discovery-actions {
-    position: static;
-    grid-column: 2;
-    grid-row: 2;
     align-self: end;
-    grid-template-columns: 1fr !important;
-    margin: 0.5rem 0.85rem 0.85rem;
+    grid-template-columns: 1fr;
+    padding: 0.75rem 1rem 1rem !important;
   }
 
   .rv-discovery-deck .rv-context-form {
-    grid-column: 2;
-    grid-row: 3;
-    margin: -0.25rem 0.85rem 0.85rem;
+    padding: 0 1rem 1rem !important;
   }
 }
 
-@media (max-width: 520px) {
+@container rv-discovery-deck (max-width: 23.99rem) {
   .rv-discovery-deck-row {
     display: grid;
     gap: 0.2rem;
@@ -236,27 +273,7 @@
     text-align: left;
   }
 
-  .rv-discovery-deck .rv-discovery-media {
-    max-height: 58vh;
-  }
-
   .rv-discovery-deck .rv-discovery-actions {
-    grid-template-columns: 0.8fr 0.9fr 1.15fr !important;
-    gap: 0.38rem !important;
-    margin-inline: 0.45rem;
-    padding: 0.45rem !important;
-  }
-
-  .rv-discovery-deck .rv-discovery-actions button {
-    min-height: 2.9rem;
-    padding-inline: 0.3rem !important;
-    font-size: 0.72rem !important;
-  }
-}
-
-@media (max-width: 360px) {
-  .rv-discovery-deck .rv-discovery-actions {
-    grid-template-columns: 1fr !important;
-    position: static;
+    grid-template-columns: 1fr;
   }
 }
