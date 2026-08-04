@@ -127,6 +127,11 @@ Canonical Cloudflare staging opens with a Dutch-first, English-capable, mobile-f
 **Status:** complete for controlled synthetic staging; accepted in issue #74  
 The signed-in Cloudflare experience provides mobile product navigation, resumable onboarding, derived opposite-sex discovery, private portrait upload, profile preview/publication, synthetic portrait-backed discovery, pass/direct/contextual likes, match/contact flow, Realtime conversation and plain-language safety actions. Internal IDs and proof terminology remain outside visible product projections, while the diagnostic harness stays behind the advanced synthetic-test boundary. PR #75 merged as `21596e03ddf624f4eca5b272c77539985617e742`; verifier repair PR #76 merged as `2bcd6f884ab6cc7a4ef68291b46e03e754be845b`; canonical product verification run `30860701792` passed. Manual disposable-account field proof and owner mobile review remain pending. Detailed evidence: `docs/WP-067-INTEGRATED-PRODUCT-SHELL.md`.
 
+## WP-068 — Discovery field-review hardening
+
+**Status:** complete for the owner-observed discovery defects; accepted in issues #78, #82 and #85  
+WP-068A replaced the portrait wall with one active profile, visible profile information, explicit Pass/Like/Respond controls, keyboard-safe inactive cards and cache-coherent versioned delivery. WP-068B replaced the viewport-driven split with a card-container query, stacked narrow/intermediate fallback, minimum split-column widths and separate non-overlapping portrait/copy/actions/context regions. WP-068C resolves the ten approved bundled synthetic portraits from normalized extended display-name tokens while unknown names retain initials and no external or private portrait source is used. Canonical verification runs `30935664310`, `30948012861` and `30949504738` passed. Detailed evidence: `docs/WP-068-DISCOVERY-HARDENING.md` and `docs/WP-068B-RESPONSIVE-DISCOVERY-LAYOUT.md`.
+
 ## WP-070 — Trust and safety operations
 
 **Status:** planned  
