@@ -1,0 +1,124 @@
+name: Verify WP-068B responsive discovery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-wp068b-responsive-discovery.yml'
+      - 'apps/private-preview/discovery-deck.css'
+      - 'apps/private-preview/discovery-deck.js'
+      - 'scripts/validate-wp068a-discovery-deck.mjs'
+      - 'scripts/validate-wp068b-responsive-discovery.mjs'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: rendezvue-wp068b-production-verification
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify canonical responsive discovery layout
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      STAGING_URL: https://rendezvue-private-preview.pages.dev/
+
+    steps:
+      - name: Wait for commit-matched Cloudflare deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          metadata="$RUNNER_TEMP/deployment.json"
+          matched=false
+          for attempt in {1..72}; do
+            status="$(curl --silent --show-error --location --output "$metadata" --write-out '%{http_code}' --header 'cache-control: no-cache' "${STAGING_URL}deployment.json?commit=${GITHUB_SHA}&attempt=${attempt}" || true)"
+            if [[ "$status" == "200" ]] && node --input-type=module --eval "
+              import { readFileSync } from 'node:fs';
+              const document = JSON.parse(readFileSync(process.argv[1], 'utf8'));
+              if (document.buildCommit !== process.argv[2]) process.exit(1);
+              if (document.configurationMode !== 'remote-supabase') process.exit(1);
+              if (document.remoteBackendConfigured !== true) process.exit(1);
+              if (document.realUserAdmissionAuthorized !== false) process.exit(1);
+            " "$metadata" "$GITHUB_SHA"; then
+              matched=true
+              break
+            fi
+            echo "WP-068B deployment not commit-matched yet (attempt $attempt, HTTP $status)."
+            sleep 10
+          done
+          [[ "$matched" == "true" ]] || { echo '::error title=WP-068B deployment did not converge::Canonical deployment was not commit-matched within 12 minutes.'; exit 1; }
+
+      - name: Verify delivered responsive layout contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          css="$RUNNER_TEMP/discovery-deck.css"
+          status="$(curl --silent --show-error --location --output "$css" --write-out '%{http_code}' --header 'cache-control: no-cache' "${STAGING_URL}discovery-deck.css?commit=${GITHUB_SHA}" || true)"
+          [[ "$status" == "200" ]] || { echo "::error title=WP-068B stylesheet missing::HTTP ${status}."; exit 1; }
+
+          require_marker() {
+            grep -Fq "$2" "$1" || { echo "::error title=WP-068B layout marker missing::$3 is missing $2."; exit 1; }
+          }
+
+          require_marker "$css" 'container-name: rv-discovery-deck;' 'named discovery container'
+          require_marker "$css" 'container-type: inline-size;' 'container-width responsive boundary'
+          require_marker "$css" 'grid-area: media;' 'portrait layout region'
+          require_marker "$css" 'grid-area: copy;' 'profile-copy layout region'
+          require_marker "$css" 'grid-area: actions;' 'action layout region'
+          require_marker "$css" 'grid-area: context;' 'context-form layout region'
+          require_marker "$css" 'position: static !important;' 'non-floating actions'
+          require_marker "$css" 'aspect-ratio: auto !important;' 'portrait overflow prevention'
+          require_marker "$css" '@container rv-discovery-deck (min-width: 48rem)' 'container-driven split layout'
+          require_marker "$css" 'minmax(21rem, 1.08fr) minmax(20rem, 0.92fr)' 'minimum split-column widths'
+          require_marker "$css" '@container rv-discovery-deck (max-width: 23.99rem)' 'narrow-card fallback'
+
+          if grep -Eiq '@media[[:space:]]*\(min-width:[[:space:]]*760px\)[\s\S]*rv-discovery-card-active' "$css"; then
+            echo '::error title=Viewport-driven discovery layout::Discovery still switches its card layout from browser width.'
+            exit 1
+          fi
+          if grep -Eiq '\.rv-discovery-deck[[:space:]]+\.rv-discovery-actions[[:space:]]*\{[^}]*position:[[:space:]]*(absolute|fixed|sticky)' "$css"; then
+            echo '::error title=Floating discovery actions::Actions can overlap portrait or profile copy.'
+            exit 1
+          fi
+
+      - name: Record WP-068B production evidence
+        if: success()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment 82 --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
+          ## WP-068B canonical responsive discovery verified
+
+          - canonical URL: $STAGING_URL
+          - commit: \`$GITHUB_SHA\`
+          - workflow: $RUN_URL
+          - card-container responsive boundary: passed
+          - stacked narrow/intermediate layout: passed
+          - split layout minimum widths: passed
+          - portrait/copy/actions/context regions: non-overlapping
+          - floating action controls: absent
+          - real-user admission: not authorized
+          EOF
+
+      - name: Record WP-068B verification failure
+        if: failure()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment 82 --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
+          ## WP-068B canonical verification failed
+
+          - expected commit: \`$GITHUB_SHA\`
+          - workflow: $RUN_URL
+          - result: commit matching or responsive layout contract failed
+          - real-user admission: not authorized
+          EOF
