@@ -1,0 +1,223 @@
+name: Verify WP069 realistic portraits
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/verify-wp069-realistic-portraits.yml'
+      - 'synthetic-seed/portraits/**'
+      - 'scripts/copy-product-assets.mjs'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-wp069-realistic-portraits.yml'
+      - 'synthetic-seed/portraits/**'
+      - 'scripts/copy-product-assets.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: rendezvue-wp069-realistic-portraits-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-assets:
+    name: Validate realistic synthetic portraits
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install Pillow
+        run: python -m pip install --disable-pip-version-check Pillow==11.3.0
+
+      - name: Validate local portrait contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+          from PIL import Image
+
+          root = Path('synthetic-seed/portraits')
+          expected = ('yasmin', 'bilal', 'amina', 'idris', 'maryam', 'samir', 'noura', 'youssef', 'hafsa', 'omar')
+          actual = tuple(sorted(path.stem for path in root.glob('*.webp')))
+          if actual != tuple(sorted(expected)):
+              raise SystemExit(f'portrait names differ: {actual}')
+
+          hashes = set()
+          for name in expected:
+              path = root / f'{name}.webp'
+              data = path.read_bytes()
+              if data[:4] != b'RIFF' or data[8:12] != b'WEBP':
+                  raise SystemExit(f'{path}: invalid WebP signature')
+              if not 40_000 <= len(data) <= 900_000:
+                  raise SystemExit(f'{path}: size outside staging contract: {len(data)} bytes')
+              digest = sha256(data).hexdigest()
+              if digest in hashes:
+                  raise SystemExit(f'{path}: duplicate portrait bytes')
+              hashes.add(digest)
+              with Image.open(path) as image:
+                  image.load()
+                  if image.format != 'WEBP':
+                      raise SystemExit(f'{path}: Pillow detected {image.format}')
+                  if image.width < 600 or image.height < 750:
+                      raise SystemExit(f'{path}: dimensions too small: {image.size}')
+                  print(f'{name}: {image.size}, {len(data)} bytes, {digest[:12]}')
+          PY
+
+  verify-canonical:
+    name: Verify canonical Cloudflare portrait delivery
+    if: github.event_name != 'pull_request'
+    needs: validate-assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      STAGING_URL: https://rendezvue-private-preview.pages.dev/
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install Pillow
+        run: python -m pip install --disable-pip-version-check Pillow==11.3.0
+
+      - name: Wait for commit-matched deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          metadata="$RUNNER_TEMP/deployment.json"
+          matched=false
+          for attempt in {1..72}; do
+            status="$(curl --silent --show-error --location \
+              --output "$metadata" --write-out '%{http_code}' \
+              --header 'cache-control: no-cache' \
+              "${STAGING_URL}deployment.json?commit=${GITHUB_SHA}&attempt=${attempt}" || true)"
+            if [[ "$status" == "200" ]]; then
+              if node --input-type=module --eval "
+                import { readFileSync } from 'node:fs';
+                const document = JSON.parse(readFileSync(process.argv[1], 'utf8'));
+                if (document.hostingPlatform !== 'cloudflare-pages') process.exit(1);
+                if (document.canonicalUrl !== 'https://rendezvue-private-preview.pages.dev/') process.exit(1);
+                if (document.buildCommit !== process.argv[2]) process.exit(1);
+                if (document.remoteBackendConfigured !== true) process.exit(1);
+                if (document.realUserAdmissionAuthorized !== false) process.exit(1);
+              " "$metadata" "$GITHUB_SHA"; then
+                matched=true
+                break
+              fi
+            fi
+            echo "Cloudflare production is not commit-matched yet (attempt $attempt, HTTP $status)."
+            sleep 10
+          done
+          if [[ "$matched" != true ]]; then
+            echo '::error title=Cloudflare deployment did not converge::Canonical deployment did not match this commit within 12 minutes.'
+            [[ -f "$metadata" ]] && cat "$metadata" || true
+            exit 1
+          fi
+          cat "$metadata"
+
+      - name: Verify manifest and all ten delivered portraits
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="$RUNNER_TEMP/manifest.json"
+          status="$(curl --silent --show-error --location \
+            --output "$manifest" --write-out '%{http_code}' \
+            --header 'cache-control: no-cache' \
+            "${STAGING_URL}assets/profiles/manifest.json?commit=${GITHUB_SHA}" || true)"
+          [[ "$status" == 200 ]] || {
+            echo "::error title=Portrait manifest missing::HTTP ${status}"
+            exit 1
+          }
+
+          node --input-type=module --eval "
+            import { readFileSync } from 'node:fs';
+            const manifest = JSON.parse(readFileSync(process.argv[1], 'utf8'));
+            const expected = ['yasmin','bilal','amina','idris','maryam','samir','noura','youssef','hafsa','omar'];
+            if (manifest.syntheticOnly !== true) throw new Error('manifest is not synthetic-only');
+            if (manifest.count !== expected.length) throw new Error('manifest count is not ten');
+            if (JSON.stringify(manifest.names) !== JSON.stringify(expected)) throw new Error('manifest mapping differs');
+          " "$manifest"
+
+          mkdir -p "$RUNNER_TEMP/portraits"
+          for name in yasmin bilal amina idris maryam samir noura youssef hafsa omar; do
+            body="$RUNNER_TEMP/portraits/${name}.webp"
+            headers="$RUNNER_TEMP/portraits/${name}.headers"
+            status="$(curl --silent --show-error --location \
+              --dump-header "$headers" --output "$body" --write-out '%{http_code}' \
+              --header 'cache-control: no-cache' \
+              "${STAGING_URL}assets/profiles/${name}.webp?commit=${GITHUB_SHA}" || true)"
+            [[ "$status" == 200 ]] || {
+              echo "::error title=Portrait missing::${name}.webp returned HTTP ${status}"
+              exit 1
+            }
+            grep -Eiq '^content-type:[[:space:]]*image/webp' "$headers" || {
+              echo "::error title=Portrait content type invalid::${name}.webp is not served as image/webp"
+              exit 1
+            }
+          done
+
+          python - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+          from PIL import Image
+
+          root = Path(__import__('os').environ['RUNNER_TEMP']) / 'portraits'
+          expected = ('yasmin', 'bilal', 'amina', 'idris', 'maryam', 'samir', 'noura', 'youssef', 'hafsa', 'omar')
+          hashes = set()
+          for name in expected:
+              path = root / f'{name}.webp'
+              data = path.read_bytes()
+              if data[:4] != b'RIFF' or data[8:12] != b'WEBP':
+                  raise SystemExit(f'{name}: invalid delivered WebP signature')
+              if not 40_000 <= len(data) <= 900_000:
+                  raise SystemExit(f'{name}: delivered size outside contract: {len(data)}')
+              digest = sha256(data).hexdigest()
+              if digest in hashes:
+                  raise SystemExit(f'{name}: duplicate delivered portrait bytes')
+              hashes.add(digest)
+              with Image.open(path) as image:
+                  image.load()
+                  if image.format != 'WEBP':
+                      raise SystemExit(f'{name}: delivered format is {image.format}')
+                  if image.width < 600 or image.height < 750:
+                      raise SystemExit(f'{name}: delivered dimensions too small: {image.size}')
+                  print(f'{name}: delivered {image.size}, {len(data)} bytes, {digest[:12]}')
+          PY
+
+      - name: Write verification summary
+        shell: bash
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## WP-069 realistic synthetic portraits
+
+          - Canonical URL: $STAGING_URL
+          - Commit matched: \`$GITHUB_SHA\`
+          - Synthetic-only manifest: passed
+          - Expected portrait mapping: passed
+          - Ten unique genuine WebP portraits: passed
+          - Content type, dimensions and delivery size: passed
+          - External/private portrait dependency: none
+          - Real-user admission authorized: no
+          EOF
+
+      - name: Record verification evidence
+        if: success()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          gh issue comment 89 --body "WP-069 canonical portrait verification passed for commit \`${GITHUB_SHA}\`. All ten realistic synthetic portraits were delivered as unique genuine WebP files with the approved manifest, content type, dimensions and bounded size. Run: ${RUN_URL}"
