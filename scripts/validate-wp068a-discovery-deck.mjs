@@ -91,7 +91,7 @@ for (const [source, label] of [[deckCss, 'source deck CSS'], [generatedDeckCss, 
   requireMarker(source, '.rv-discovery-deck > .rv-discovery-card-active', `${label} must style exactly one active card`);
   requireMarker(source, 'display: block !important;', `${label} must override accidental profile-copy hiding`);
   requireMarker(source, '.rv-discovery-deck .rv-discovery-actions', `${label} must keep the action area visible`);
-  requireMarker(source, 'position: sticky;', `${label} must keep mobile actions reachable while reviewing a card`);
+  requireMarker(source, 'position: static !important;', `${label} must keep actions in a dedicated non-overlapping layout region`);
   requireMarker(source, '[data-discovery-action="pass"]', `${label} is missing distinct Pass styling`);
   requireMarker(source, '[data-discovery-action="like"]', `${label} is missing distinct Like styling`);
   requireMarker(source, '[data-discovery-action="context"]', `${label} is missing distinct contextual-like styling`);
@@ -122,4 +122,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`WP-068A discovery deck validated (commit ${buildCommit}, single active card, visible profile copy, persistent Pass/Like/Respond controls).`);
+console.log(`WP-068A discovery deck validated (commit ${buildCommit}, single active card, visible profile copy, dedicated Pass/Like/Respond region).`);
