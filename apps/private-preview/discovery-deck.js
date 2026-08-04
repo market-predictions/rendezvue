@@ -126,6 +126,12 @@ function enhanceCard(card, language, current, total) {
   return true;
 }
 
+function scrollToActiveCard(card) {
+  const stickyOffset = 86;
+  const top = card.getBoundingClientRect().top + globalThis.scrollY - stickyOffset;
+  globalThis.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+}
+
 function initialiseDiscoveryDeck() {
   const list = document.querySelector('#rv-discovery-list');
   if (!list || list.dataset.discoveryDeckReady === 'true') return;
@@ -166,22 +172,27 @@ function initialiseDiscoveryDeck() {
     const remaining = cards.length;
 
     if (!remaining) {
+      if (!deck.total) {
+        meta.hidden = true;
+        deck.lastRemaining = 0;
+        return;
+      }
       meta.hidden = false;
-      position.textContent = deck.total
-        ? discoveryDeckCopy(language(), 'complete')
-        : '';
+      position.textContent = discoveryDeckCopy(language(), 'complete');
       guidance.textContent = '';
-      progress.setAttribute('aria-valuenow', deck.total ? '100' : '0');
-      bar.style.width = deck.total ? '100%' : '0%';
+      progress.setAttribute('aria-valuenow', '100');
+      bar.style.width = '100%';
       deck.lastRemaining = 0;
       return;
     }
 
     if (deck.resetRequested || !deck.total || remaining > deck.total) {
       deck.total = remaining;
+      deck.lastRemaining = remaining;
       deck.resetRequested = false;
     }
 
+    const advanced = deck.lastRemaining > 0 && remaining < deck.lastRemaining;
     const state = resolveDiscoveryDeckProgress(deck.total, remaining);
     let complete = true;
 
@@ -201,6 +212,7 @@ function initialiseDiscoveryDeck() {
     bar.style.width = `${state.percent}%`;
 
     if (!complete) showDeckDefect(discoveryDeckCopy(language(), 'incomplete'));
+    if (advanced) scrollToActiveCard(cards[0]);
     deck.lastRemaining = remaining;
   }
 
