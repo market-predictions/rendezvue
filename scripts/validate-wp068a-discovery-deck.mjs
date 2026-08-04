@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import {
   discoveryDeckCopy,
+  discoveryDeckStyleHref,
   normaliseDiscoveryLanguage,
   resolveDiscoveryDeckProgress
 } from '../apps/private-preview/discovery-deck.js';
@@ -24,6 +25,9 @@ const [
   productShell,
   deckSource,
   deckCss,
+  generatedIndex,
+  generatedHeaders,
+  generatedDeployment,
   generatedAccountShell,
   generatedProductShell,
   generatedDeck,
@@ -33,14 +37,30 @@ const [
   read('apps/private-preview/product-shell.js'),
   read('apps/private-preview/discovery-deck.js'),
   read('apps/private-preview/discovery-deck.css'),
+  readFile(resolve(dist, 'index.html'), 'utf8'),
+  readFile(resolve(dist, '_headers'), 'utf8'),
+  readFile(resolve(dist, 'deployment.json'), 'utf8'),
   readFile(resolve(dist, 'account-shell.js'), 'utf8'),
   readFile(resolve(dist, 'product-shell.js'), 'utf8'),
   readFile(resolve(dist, 'discovery-deck.js'), 'utf8'),
   readFile(resolve(dist, 'discovery-deck.css'), 'utf8')
 ]);
 
+const deployment = JSON.parse(generatedDeployment);
+const buildCommit = String(deployment.buildCommit ?? '').trim();
+const versionedModule = `./discovery-deck.js?commit=${encodeURIComponent(buildCommit)}`;
+
 for (const [source, label] of [[accountShell, 'source account shell'], [generatedAccountShell, 'generated account shell']]) {
-  requireMarker(source, "import './discovery-deck.js';", `${label} must load the discovery deck controller`);
+  requireMarker(source, "import './discovery-deck.js';", `${label} must load the discovery deck controller as a fallback`);
+}
+
+requireMarker(generatedIndex, versionedModule, 'generated index must load the discovery deck through a commit-versioned direct module entry');
+const directDeckEntries = generatedIndex.match(/<script\s+type="module"\s+src="\.\/discovery-deck\.js\?commit=[^"]+"\s*><\/script>/g) ?? [];
+if (directDeckEntries.length !== 1) failures.push('generated index must contain exactly one commit-versioned direct discovery deck entry');
+
+for (const path of ['/index.html', '/account-shell.js', '/product-shell.js', '/product-shell.css', '/discovery-deck.js', '/discovery-deck.css']) {
+  const contract = `${path}\n  Cache-Control: no-cache, max-age=0, must-revalidate`;
+  requireMarker(generatedHeaders, contract, `generated headers are missing the cache-coherence contract for ${path}`);
 }
 
 for (const [source, label] of [[productShell, 'source product shell'], [generatedProductShell, 'generated product shell']]) {
@@ -62,6 +82,7 @@ for (const [source, label] of [[deckSource, 'source deck'], [generatedDeck, 'gen
   requireMarker(source, "dataset.discoveryAction = 'like'", `${label} is missing the Like presentation contract`);
   requireMarker(source, "dataset.discoveryAction = 'context'", `${label} is missing the contextual-like presentation contract`);
   requireMarker(source, "resolveDiscoveryDeckProgress", `${label} must maintain discovery position and progress`);
+  requireMarker(source, "discoveryDeckStyleHref(import.meta.url)", `${label} must propagate its commit token to the stylesheet`);
   forbidPattern(source, /createClient\s*\(|auth\.admin|service_role|sb_secret_|SUPABASE_SERVICE_ROLE_KEY/i, `${label} must not introduce a second client or privileged browser capability`);
 }
 
@@ -78,6 +99,9 @@ for (const [source, label] of [[deckCss, 'source deck CSS'], [generatedDeckCss, 
 
 if (normaliseDiscoveryLanguage('fr-FR') !== 'nl') failures.push('discovery deck must default to Dutch');
 if (normaliseDiscoveryLanguage('en-GB') !== 'en') failures.push('discovery deck must support explicit English');
+if (discoveryDeckStyleHref('https://example.test/discovery-deck.js?commit=abc1234') !== 'https://example.test/discovery-deck.css?commit=abc1234') {
+  failures.push('discovery deck stylesheet does not inherit the module commit token');
+}
 
 const initial = resolveDiscoveryDeckProgress(10, 10);
 const advanced = resolveDiscoveryDeckProgress(10, 7);
@@ -98,4 +122,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('WP-068A discovery deck validated (single active card, visible profile copy, persistent Pass/Like/Respond controls).');
+console.log(`WP-068A discovery deck validated (commit ${buildCommit}, single active card, visible profile copy, persistent Pass/Like/Respond controls).`);
