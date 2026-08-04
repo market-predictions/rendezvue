@@ -38,31 +38,24 @@ if (!generatedIndex.includes(versionedModule)) {
   throw new Error('Commit-versioned discovery deck module was not added to the generated index');
 }
 
-const cacheSection = `
-
-/index.html
-  Cache-Control: no-cache, max-age=0, must-revalidate
-
-/account-shell.js
-  Cache-Control: no-cache, max-age=0, must-revalidate
-
-/product-shell.js
-  Cache-Control: no-cache, max-age=0, must-revalidate
-
-/product-shell.css
-  Cache-Control: no-cache, max-age=0, must-revalidate
-
-/discovery-deck.js
-  Cache-Control: no-cache, max-age=0, must-revalidate
-
-/discovery-deck.css
-  Cache-Control: no-cache, max-age=0, must-revalidate
-`;
-
-const cacheMarker = '/discovery-deck.js\n  Cache-Control: no-cache, max-age=0, must-revalidate';
-const generatedHeaders = headersSource.includes(cacheMarker)
-  ? headersSource
-  : `${headersSource.trimEnd()}${cacheSection}`;
+const cacheControl = 'Cache-Control: no-cache, max-age=0, must-revalidate';
+const cacheRoutes = [
+  '/',
+  '/index.html',
+  '/account-shell.js',
+  '/product-shell.js',
+  '/product-shell.css',
+  '/discovery-deck.js',
+  '/discovery-deck.css'
+];
+let generatedHeaders = headersSource.trimEnd();
+for (const route of cacheRoutes) {
+  const contract = `${route}\n  ${cacheControl}`;
+  if (!generatedHeaders.includes(contract)) {
+    generatedHeaders += `\n\n${contract}`;
+  }
+}
+generatedHeaders += '\n';
 
 await Promise.all([
   writeFile(indexPath, generatedIndex, 'utf8'),
