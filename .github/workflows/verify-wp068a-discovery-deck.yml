@@ -1,0 +1,188 @@
+name: Verify WP-068A discovery deck
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-wp068a-discovery-deck.yml'
+      - 'apps/private-preview/account-shell.js'
+      - 'apps/private-preview/product-shell.js'
+      - 'apps/private-preview/discovery-deck.js'
+      - 'apps/private-preview/discovery-deck.css'
+      - 'scripts/build-private-preview.mjs'
+      - 'scripts/validate-wp068a-discovery-deck.mjs'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: rendezvue-wp068a-production-verification
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify canonical single-card discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      STAGING_URL: https://rendezvue-private-preview.pages.dev/
+
+    steps:
+      - name: Wait for commit-matched Cloudflare deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          metadata="$RUNNER_TEMP/deployment.json"
+          matched=false
+
+          for attempt in {1..72}; do
+            status="$(curl --silent --show-error --location \
+              --output "$metadata" --write-out '%{http_code}' \
+              --header 'cache-control: no-cache' \
+              "${STAGING_URL}deployment.json?commit=${GITHUB_SHA}&attempt=${attempt}" || true)"
+
+            if [[ "$status" == "200" ]]; then
+              if node --input-type=module --eval "
+                import { readFileSync } from 'node:fs';
+                const document = JSON.parse(readFileSync(process.argv[1], 'utf8'));
+                const expected = process.argv[2];
+                if (document.hostingPlatform !== 'cloudflare-pages') process.exit(1);
+                if (document.canonicalUrl !== 'https://rendezvue-private-preview.pages.dev/') process.exit(1);
+                if (document.buildCommit !== expected) process.exit(1);
+                if (document.configurationMode !== 'remote-supabase') process.exit(1);
+                if (document.remoteBackendConfigured !== true) process.exit(1);
+                if (document.realUserAdmissionAuthorized !== false) process.exit(1);
+              " "$metadata" "$GITHUB_SHA"; then
+                matched=true
+                break
+              fi
+            fi
+
+            echo "WP-068A canonical deployment is not commit-matched yet (attempt $attempt, HTTP $status)."
+            sleep 10
+          done
+
+          if [[ "$matched" != "true" ]]; then
+            echo '::error title=WP-068A deployment did not converge::Canonical deployment metadata did not match the pushed commit within 12 minutes.'
+            [[ -f "$metadata" ]] && cat "$metadata" || true
+            exit 1
+          fi
+
+      - name: Verify delivered discovery deck contract
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          fetch_artifact() {
+            local relative_path="$1"
+            local destination="$2"
+            local status
+            status="$(curl --silent --show-error --location \
+              --output "$destination" --write-out '%{http_code}' \
+              --header 'cache-control: no-cache' \
+              "${STAGING_URL}${relative_path}?commit=${GITHUB_SHA}" || true)"
+            [[ "$status" == "200" ]] || {
+              echo "::error title=WP-068A artifact missing::${relative_path} returned HTTP ${status}."
+              exit 1
+            }
+          }
+
+          require_marker() {
+            local file="$1"
+            local marker="$2"
+            local label="$3"
+            grep -Fq "$marker" "$file" || {
+              echo "::error title=WP-068A marker missing::${label} is missing ${marker}."
+              exit 1
+            }
+          }
+
+          account_shell="$RUNNER_TEMP/account-shell.js"
+          product_shell="$RUNNER_TEMP/product-shell.js"
+          deck="$RUNNER_TEMP/discovery-deck.js"
+          deck_css="$RUNNER_TEMP/discovery-deck.css"
+
+          fetch_artifact 'account-shell.js' "$account_shell"
+          fetch_artifact 'product-shell.js' "$product_shell"
+          fetch_artifact 'discovery-deck.js' "$deck"
+          fetch_artifact 'discovery-deck.css' "$deck_css"
+
+          require_marker "$account_shell" "import './discovery-deck.js';" 'account shell discovery-deck import'
+          require_marker "$product_shell" "copy.className = 'rv-discovery-copy';" 'profile information projection'
+          require_marker "$product_shell" "actions.append(pass, like, context);" 'Pass/Like/Respond controls'
+          require_marker "$deck" "card.hidden = !active;" 'single active card controller'
+          require_marker "$deck" "card.toggleAttribute('inert', !active);" 'inactive-card keyboard boundary'
+          require_marker "$deck" "copy.hidden = false;" 'visible profile information enforcement'
+          require_marker "$deck" "controls.actions.hidden = false;" 'visible action enforcement'
+          require_marker "$deck" "dataset.discoveryAction = 'pass'" 'Pass presentation'
+          require_marker "$deck" "dataset.discoveryAction = 'like'" 'Like presentation'
+          require_marker "$deck" "dataset.discoveryAction = 'context'" 'Respond presentation'
+          require_marker "$deck_css" '.rv-discovery-deck > .rv-discovery-card[hidden]' 'inactive-card CSS'
+          require_marker "$deck_css" '.rv-discovery-deck > .rv-discovery-card-active' 'active-card CSS'
+          require_marker "$deck_css" '.rv-discovery-deck .rv-discovery-actions' 'persistent action-area CSS'
+          require_marker "$deck_css" '[data-discovery-action="pass"]' 'distinct Pass styling'
+          require_marker "$deck_css" '[data-discovery-action="like"]' 'distinct Like styling'
+          require_marker "$deck_css" '[data-discovery-action="context"]' 'distinct Respond styling'
+
+          if grep -Eiq 'createClient\s*\(|auth\.admin|service_role|sb_secret_|SUPABASE_SERVICE_ROLE_KEY|execute-account-email-replacement' "$deck"; then
+            echo '::error title=Privileged discovery capability exposed::The discovery deck contains prohibited client or support material.'
+            exit 1
+          fi
+
+      - name: Write verification summary
+        shell: bash
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## WP-068A discovery deck
+
+          - Canonical URL: $STAGING_URL
+          - Commit matched: \`$GITHUB_SHA\`
+          - Remote Supabase configuration: passed
+          - One active discovery profile: passed
+          - Profile information visibility: passed
+          - Pass / Like / Respond controls: passed
+          - Inactive-card keyboard boundary: passed
+          - Privileged browser capability scan: passed
+          - Real-user admission authorized: no
+          EOF
+
+      - name: Record WP-068A production evidence
+        if: success()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment 78 --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
+          ## WP-068A canonical discovery deck verified
+
+          - canonical URL: $STAGING_URL
+          - commit: \`$GITHUB_SHA\`
+          - workflow: $RUN_URL
+          - one active profile at a time: passed
+          - visible profile information: passed
+          - persistent Pass / Like / Respond controls: passed
+          - inactive cards hidden and inert: passed
+          - privileged browser capability scan: passed
+          - real-user admission: not authorized
+          EOF
+
+      - name: Record WP-068A verification failure
+        if: failure()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment 78 --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
+          ## WP-068A canonical verification failed
+
+          - canonical URL: $STAGING_URL
+          - expected commit: \`$GITHUB_SHA\`
+          - workflow: $RUN_URL
+          - result: commit matching, delivered discovery assets or the single-card/action visibility contract failed
+          - real-user admission: not authorized
+          EOF
