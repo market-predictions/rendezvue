@@ -111,10 +111,13 @@ select ok(
   not (public.load_onboarding_snapshot() -> 'privacy_portrait' ? 'source_object_path'),
   'onboarding snapshot redacts normalized source path'
 );
+
+reset role;
 select ok(
   (select payload::text not like '%.webp%' from public.audit_events where event_type = 'prepared_portrait_registered' order by id desc limit 1),
   'prepared portrait audit event contains no Storage paths'
 );
+set local role authenticated;
 
 insert into prepared_result (label, portrait_id)
 select 'retry', public.register_prepared_portrait(
