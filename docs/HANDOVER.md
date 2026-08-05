@@ -1,7 +1,7 @@
 # Project handover
 
 **Updated:** 2026-08-05  
-**Milestone:** WP-069B participant profile image preparation technical foundation accepted; owner field review pending
+**Milestone:** WP-069C human-readable profile labels implemented; canonical owner verification pending
 
 ## GitHub state
 
@@ -15,9 +15,14 @@
 - Registered-email replacement foundation: issue #68 / PR #69 / `docs/WP-065F-EMAIL-REPLACEMENT-FOUNDATION.md`.
 - Product-facing account/recovery UX: issue #71 / PR #72 / `docs/WP-066-ACCOUNT-RECOVERY-UX.md`.
 - Integrated product shell: issue #74 / PR #75 / verifier repair PR #76 / `docs/WP-067-INTEGRATED-PRODUCT-SHELL.md`.
+- Profile display-label correction: issue #94 / WP-069C.
 - Detailed WP-057 completion record: `docs/WP-057-COMPLETION.md`.
 - Supabase project: `RendezvueProject`, Healthy, West EU (Ireland), Nano.
 - Real-user admission is not authorized.
+
+## Current WP-069C display-label correction
+
+Owner testing confirmed the WP-069B image upload and crop flow works, but exposed `serious_relationship` in customer-facing profile copy. WP-069C adds a shared Dutch/English display mapper for relationship intent and life stage, preserves custom prose and humanises unknown snake-case values. Issue #94 remains open until the canonical deployment is visually confirmed.
 
 ## Current WP-069 image-quality milestone
 

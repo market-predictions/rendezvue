@@ -142,6 +142,11 @@ The ten childlike illustrated discovery fixtures were replaced with unique photo
 **Status:** technical foundation complete and canonically verified; owner field review pending; issue #91  
 Arbitrary JPEG/PNG/WebP uploads now enter a user-controlled 4:5 framing flow with pan, zoom, reset, safe-area guidance, square avatar preview and quality warnings. Rendezvue privately stores a normalized metadata-free WebP source plus explicit 960×1200 card and 384×384 avatar derivatives linked by one preparation ID. Only the card can be selected; exact account-scoped paths, one selected card, idempotency, concurrency serialization, path redaction and cross-account isolation are enforced. PR #92 merged as `a06f2ae7b7c4b5779e80143d62960856e63d9ac7`; protected run `30994962258` and canonical run `30995029165` passed. Detailed evidence: `docs/WP-069B-PROFILE-IMAGE-PREPARATION.md`.
 
+## WP-069C — Human-readable customer-facing profile labels
+
+**Status:** implementation complete; canonical owner verification pending; issue #94  
+Stored backend values such as `serious_relationship`, `recent_graduate` and `self_employed` are now translated at one shared profile-display boundary before reaching preview or discovery. Dutch/English labels are explicit, genuine custom text remains unchanged and unknown snake-case values are humanised without underscores. Regression tests prevent direct rendering of stored enum values.
+
 ## WP-070 — Trust and safety operations
 
 **Status:** planned  
