@@ -284,6 +284,48 @@ export function productCopyKeys(language) {
   return Object.keys(COPY[normaliseProductLanguage(language)]).sort();
 }
 
+const PROFILE_DISPLAY_LABELS = Object.freeze({
+  nl: Object.freeze({
+    relationshipIntent: Object.freeze({
+      serious_relationship: 'Serieuze relatie',
+      serious_introduction: 'Serieuze kennismaking',
+      marriage_intent: 'Kennismaking met huwelijk als doel'
+    }),
+    lifeStage: Object.freeze({
+      student: 'Student',
+      recent_graduate: 'Recent afgestudeerd',
+      employed: 'Werkend',
+      self_employed: 'Zelfstandig'
+    })
+  }),
+  en: Object.freeze({
+    relationshipIntent: Object.freeze({
+      serious_relationship: 'Serious relationship',
+      serious_introduction: 'Serious introduction',
+      marriage_intent: 'Getting to know someone with marriage in mind'
+    }),
+    lifeStage: Object.freeze({
+      student: 'Student',
+      recent_graduate: 'Recent graduate',
+      employed: 'Employed',
+      self_employed: 'Self-employed'
+    })
+  })
+});
+
+export function profileDisplayValue(language, field, value) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+  const lang = normaliseProductLanguage(language);
+  const mapped = PROFILE_DISPLAY_LABELS[lang]?.[field]?.[raw];
+  if (mapped) return mapped;
+  if (/^[a-z0-9]+(?:_[a-z0-9]+)+$/.test(raw)) {
+    const humanised = raw.replaceAll('_', ' ');
+    return humanised.charAt(0).toUpperCase() + humanised.slice(1);
+  }
+  return raw;
+}
+
 export function derivePartnerSex(sex) {
   if (sex === 'woman') return 'man';
   if (sex === 'man') return 'woman';

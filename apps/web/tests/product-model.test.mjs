@@ -9,6 +9,7 @@ import {
   onboardingProgress,
   portraitAssetForNickname,
   productCopy,
+  profileDisplayValue,
   productCopyKeys,
   profilePreview,
   projectDiscoveryProfile,
@@ -21,6 +22,16 @@ test('Dutch is the product default and English has complete key parity', () => {
   assert.deepEqual(productCopyKeys('nl'), productCopyKeys('en'));
   assert.equal(productCopy('nl', 'nav.discover'), 'Ontdekken');
   assert.equal(productCopy('en', 'nav.discover'), 'Discover');
+});
+
+test('profile enums are localized before customer-facing display', () => {
+  assert.equal(profileDisplayValue('nl', 'relationshipIntent', 'serious_relationship'), 'Serieuze relatie');
+  assert.equal(profileDisplayValue('en', 'relationshipIntent', 'serious_relationship'), 'Serious relationship');
+  assert.equal(profileDisplayValue('nl', 'lifeStage', 'recent_graduate'), 'Recent afgestudeerd');
+  assert.equal(profileDisplayValue('en', 'lifeStage', 'self_employed'), 'Self-employed');
+  assert.equal(profileDisplayValue('nl', 'relationshipIntent', 'Kennismaking met huwelijk als doel'), 'Kennismaking met huwelijk als doel');
+  assert.equal(profileDisplayValue('nl', 'relationshipIntent', 'future_enum_value'), 'Future enum value');
+  assert.equal(profileDisplayValue('nl', 'relationshipIntent', 'serious_relationship').includes('_'), false);
 });
 
 test('partner preference is derived only from sex', () => {

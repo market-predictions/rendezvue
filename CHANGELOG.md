@@ -4,6 +4,18 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
+### Human-readable customer-facing profile labels
+
+- Added WP-069C after owner field review exposed `serious_relationship` in visible profile copy.
+- Added one shared Dutch/English presentation mapper for relationship-intent and life-stage values.
+- `serious_relationship` now renders as `Serieuze relatie` in Dutch and `Serious relationship` in English.
+- Added explicit labels for `student`, `recent_graduate`, `employed` and `self_employed`.
+- Preserved genuine custom text and humanised unknown snake-case values without underscores.
+- Applied the display boundary to both profile preview and discovery.
+- Added regression tests for Dutch/English mapping, custom-copy preservation and unknown-value fallback.
+- No backend values, profile data, Auth, RLS, Storage or real-user authorization were changed.
+
+
 ### Participant profile image preparation foundation completed
 
 - Implemented WP-069B through issue #91 and PR #92, merged as `a06f2ae7b7c4b5779e80143d62960856e63d9ac7`.

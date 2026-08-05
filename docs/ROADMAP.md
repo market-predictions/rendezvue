@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 2.10  
+**Version:** 2.11  
 **Updated:** 2026-08-05
 
 ## Operating doctrine
@@ -321,6 +321,12 @@ Not yet proven:
 - real-user usability, accessibility, scale or operational readiness.
 
 Detailed evidence: `docs/WP-067-INTEGRATED-PRODUCT-SHELL.md`.
+
+### 2N. Customer-facing profile value presentation
+
+**Status:** WP-069C implementation complete; canonical owner verification pending.
+
+Profile preview and discovery now translate stable backend relationship-intent and life-stage values at the presentation boundary. Known Dutch and English labels are explicit, custom prose remains untouched and unknown snake-case values are humanised rather than exposed as implementation identifiers.
 
 ## Phase 3 — Closed city-based PWA pilot
 
