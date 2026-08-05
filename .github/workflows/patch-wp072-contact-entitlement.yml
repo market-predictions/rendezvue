@@ -6,6 +6,7 @@ on:
       - fix/wp072-contact-entitlement
     paths:
       - '.github/workflows/patch-wp072-contact-entitlement.yml'
+      - 'apps/web/tests/contact-entitlement-flow.test.mjs'
 
 permissions:
   contents: write
@@ -37,7 +38,8 @@ jobs:
           npm test
           npm run validate:synthetic-seed
           npm run build:cloudflare
-          grep --fixed-strings --quiet "unwrap(await supabase.rpc('claim_private_proof_entitlement')," apps/private-preview/product-shell.js
+          grep --fixed-strings --quiet "claim_private_proof_entitlement" apps/private-preview/product-shell.js
+          grep --fixed-strings --quiet "contact entitlement activation" apps/private-preview/product-shell.js
           grep --fixed-strings --quiet 'contactOpenErrorMessage(error, state.language)' apps/private-preview/product-shell.js
           grep --fixed-strings --quiet "'synthetic-product-2026-08'" supabase/migrations/20260805194500_private_proof_entitlement_terms_alignment.sql
           grep --fixed-strings --quiet 'select plan(35);' supabase/tests/database/006_private_proof_interaction.test.sql
