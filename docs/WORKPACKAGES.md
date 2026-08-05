@@ -132,6 +132,16 @@ The signed-in Cloudflare experience provides mobile product navigation, resumabl
 **Status:** complete for the owner-observed discovery defects; accepted in issues #78, #82 and #85  
 WP-068A replaced the portrait wall with one active profile, visible profile information, explicit Pass/Like/Respond controls, keyboard-safe inactive cards and cache-coherent versioned delivery. WP-068B replaced the viewport-driven split with a card-container query, stacked narrow/intermediate fallback, minimum split-column widths and separate non-overlapping portrait/copy/actions/context regions. WP-068C resolves the ten approved bundled synthetic portraits from normalized extended display-name tokens while unknown names retain initials and no external or private portrait source is used. Canonical verification runs `30935664310`, `30948012861` and `30949504738` passed. Detailed evidence: `docs/WP-068-DISCOVERY-HARDENING.md` and `docs/WP-068B-RESPONSIVE-DISCOVERY-LAYOUT.md`.
 
+## WP-069A — Realistic synthetic profile portrait fixtures
+
+**Status:** complete for controlled synthetic staging; accepted in issue #89  
+The ten childlike illustrated discovery fixtures were replaced with unique photorealistic AI-generated adult synthetic portraits while retaining the deterministic Yasmin/Bilal/Amina/Idris/Maryam/Samir/Noura/Youssef/Hafsa/Omar mapping. Genuine optimized WebP delivery, synthetic-only manifest, uniqueness, dimensions and canonical Cloudflare availability were verified in run `30960048211`. Implementation PR #88 merged as `14eeaf60018e0cd507d570854b91e4f8418f380f`; durable verifier PR #90 merged as `dd64d7d5eb202e03934f819694fa6060999f237e`.
+
+## WP-069B — Participant profile image preparation
+
+**Status:** technical foundation complete and canonically verified; owner field review pending; issue #91  
+Arbitrary JPEG/PNG/WebP uploads now enter a user-controlled 4:5 framing flow with pan, zoom, reset, safe-area guidance, square avatar preview and quality warnings. Rendezvue privately stores a normalized metadata-free WebP source plus explicit 960×1200 card and 384×384 avatar derivatives linked by one preparation ID. Only the card can be selected; exact account-scoped paths, one selected card, idempotency, concurrency serialization, path redaction and cross-account isolation are enforced. PR #92 merged as `a06f2ae7b7c4b5779e80143d62960856e63d9ac7`; protected run `30994962258` and canonical run `30995029165` passed. Detailed evidence: `docs/WP-069B-PROFILE-IMAGE-PREPARATION.md`.
+
 ## WP-070 — Trust and safety operations
 
 **Status:** planned  
