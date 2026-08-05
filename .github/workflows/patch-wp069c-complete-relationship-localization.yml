@@ -1,0 +1,215 @@
+name: Apply complete WP069C relationship localization
+
+on:
+  push:
+    branches: [agent/wp069c-complete-relationship-localization]
+    paths:
+      - '.github/workflows/patch-wp069c-complete-relationship-localization.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Complete relationship-intent localization and governance
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync, unlinkSync } from 'node:fs';
+
+          function replaceOnce(path, before, after) {
+            const source = readFileSync(path, 'utf8');
+            const first = source.indexOf(before);
+            if (first < 0) throw new Error(`${path}: expected marker not found: ${before.slice(0, 120)}`);
+            if (source.indexOf(before, first + before.length) >= 0) {
+              throw new Error(`${path}: expected marker is not unique`);
+            }
+            writeFileSync(path, source.slice(0, first) + after + source.slice(first + before.length));
+          }
+
+          replaceOnce(
+            'apps/private-preview/product-model.js',
+            "      marriage_intent: 'Kennismaking met huwelijk als doel'",
+            "      marriage_intent: 'Kennismaking met huwelijk als doel',\n      marriage_oriented: 'Kennismaking met huwelijk als doel'"
+          );
+          replaceOnce(
+            'apps/private-preview/product-model.js',
+            "      marriage_intent: 'Getting to know someone with marriage in mind'",
+            "      marriage_intent: 'Getting to know someone with marriage in mind',\n      marriage_oriented: 'Getting to know someone with marriage in mind'"
+          );
+
+          replaceOnce(
+            'apps/web/tests/product-model.test.mjs',
+            "import test from 'node:test';\nimport assert from 'node:assert/strict';",
+            "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { readFileSync } from 'node:fs';"
+          );
+
+          replaceOnce(
+            'apps/web/tests/product-model.test.mjs',
+            `test('profile enums are localized before customer-facing display', () => {
+  assert.equal(profileDisplayValue('nl', 'relationshipIntent', 'serious_relationship'), 'Serieuze relatie');
+  assert.equal(profileDisplayValue('en', 'relationshipIntent', 'serious_relationship'), 'Serious relationship');
+  assert.equal(profileDisplayValue('nl', 'lifeStage', 'recent_graduate'), 'Recent afgestudeerd');
+  assert.equal(profileDisplayValue('en', 'lifeStage', 'self_employed'), 'Self-employed');
+  assert.equal(profileDisplayValue('nl', 'relationshipIntent', 'Kennismaking met huwelijk als doel'), 'Kennismaking met huwelijk als doel');
+  assert.equal(profileDisplayValue('nl', 'relationshipIntent', 'future_enum_value'), 'Future enum value');
+  assert.equal(profileDisplayValue('nl', 'relationshipIntent', 'serious_relationship').includes('_'), false);
+});`,
+            `test('profile enums are localized before customer-facing display', () => {
+  assert.equal(profileDisplayValue('nl', 'relationshipIntent', 'serious_relationship'), 'Serieuze relatie');
+  assert.equal(profileDisplayValue('en', 'relationshipIntent', 'serious_relationship'), 'Serious relationship');
+  assert.equal(profileDisplayValue('nl', 'relationshipIntent', 'marriage_oriented'), 'Kennismaking met huwelijk als doel');
+  assert.equal(profileDisplayValue('en', 'relationshipIntent', 'marriage_oriented'), 'Getting to know someone with marriage in mind');
+  assert.equal(profileDisplayValue('nl', 'lifeStage', 'recent_graduate'), 'Recent afgestudeerd');
+  assert.equal(profileDisplayValue('en', 'lifeStage', 'self_employed'), 'Self-employed');
+  assert.equal(profileDisplayValue('nl', 'relationshipIntent', 'Kennismaking met huwelijk als doel'), 'Kennismaking met huwelijk als doel');
+  assert.equal(profileDisplayValue('nl', 'relationshipIntent', 'future_enum_value'), 'Future enum value');
+  assert.equal(profileDisplayValue('nl', 'relationshipIntent', 'serious_relationship').includes('_'), false);
+});
+
+test('every synthetic seed relationship intent has explicit bilingual copy', () => {
+  const profiles = JSON.parse(readFileSync(
+    new URL('../../../synthetic-seed/profiles.json', import.meta.url),
+    'utf8'
+  ));
+  const expected = Object.freeze({
+    marriage_oriented: Object.freeze({
+      nl: 'Kennismaking met huwelijk als doel',
+      en: 'Getting to know someone with marriage in mind'
+    }),
+    serious_relationship: Object.freeze({
+      nl: 'Serieuze relatie',
+      en: 'Serious relationship'
+    })
+  });
+  const intents = [...new Set(profiles.map((profile) => profile.relationship_intent))].sort();
+  assert.deepEqual(intents, Object.keys(expected).sort());
+  for (const intent of intents) {
+    assert.equal(profileDisplayValue('nl', 'relationshipIntent', intent), expected[intent].nl);
+    assert.equal(profileDisplayValue('en', 'relationshipIntent', intent), expected[intent].en);
+  }
+});`
+          );
+
+          replaceOnce(
+            '.github/workflows/verify-wp069c-display-labels.yml',
+            "      - 'apps/web/tests/product-model.test.mjs'\n      - 'scripts/build-private-preview.mjs'",
+            "      - 'apps/web/tests/product-model.test.mjs'\n      - 'synthetic-seed/profiles.json'\n      - 'scripts/build-private-preview.mjs'"
+          );
+          replaceOnce(
+            '.github/workflows/verify-wp069c-display-labels.yml',
+            `          require_marker apps/private-preview/product-model.js "serious_relationship: 'Serieuze relatie'" 'Dutch relationship label'
+          require_marker apps/private-preview/product-model.js "serious_relationship: 'Serious relationship'" 'English relationship label'`,
+            `          require_marker apps/private-preview/product-model.js "serious_relationship: 'Serieuze relatie'" 'Dutch serious-relationship label'
+          require_marker apps/private-preview/product-model.js "serious_relationship: 'Serious relationship'" 'English serious-relationship label'
+          require_marker apps/private-preview/product-model.js "marriage_oriented: 'Kennismaking met huwelijk als doel'" 'Dutch marriage-oriented label'
+          require_marker apps/private-preview/product-model.js "marriage_oriented: 'Getting to know someone with marriage in mind'" 'English marriage-oriented label'`
+          );
+          replaceOnce(
+            '.github/workflows/verify-wp069c-display-labels.yml',
+            `          require_marker dist-private-preview/product-model.js "serious_relationship: 'Serieuze relatie'" 'generated Dutch relationship label'
+          require_marker dist-private-preview/product-model.js "serious_relationship: 'Serious relationship'" 'generated English relationship label'`,
+            `          require_marker dist-private-preview/product-model.js "serious_relationship: 'Serieuze relatie'" 'generated Dutch serious-relationship label'
+          require_marker dist-private-preview/product-model.js "serious_relationship: 'Serious relationship'" 'generated English serious-relationship label'
+          require_marker dist-private-preview/product-model.js "marriage_oriented: 'Kennismaking met huwelijk als doel'" 'generated Dutch marriage-oriented label'
+          require_marker dist-private-preview/product-model.js "marriage_oriented: 'Getting to know someone with marriage in mind'" 'generated English marriage-oriented label'`
+          );
+          replaceOnce(
+            '.github/workflows/verify-wp069c-display-labels.yml',
+            `          grep --fixed-strings --quiet "serious_relationship: 'Serieuze relatie'" "$model"
+          grep --fixed-strings --quiet "serious_relationship: 'Serious relationship'" "$model"`,
+            `          grep --fixed-strings --quiet "serious_relationship: 'Serieuze relatie'" "$model"
+          grep --fixed-strings --quiet "serious_relationship: 'Serious relationship'" "$model"
+          grep --fixed-strings --quiet "marriage_oriented: 'Kennismaking met huwelijk als doel'" "$model"
+          grep --fixed-strings --quiet "marriage_oriented: 'Getting to know someone with marriage in mind'" "$model"`
+          );
+          replaceOnce(
+            '.github/workflows/verify-wp069c-display-labels.yml',
+            `          - Dutch \`serious_relationship\` label: \`Serieuze relatie\`
+          - English \`serious_relationship\` label: \`Serious relationship\`
+          - life-stage labels: translated through the shared display boundary`,
+            `          - Dutch \`serious_relationship\` label: \`Serieuze relatie\`
+          - English \`serious_relationship\` label: \`Serious relationship\`
+          - Dutch \`marriage_oriented\` label: \`Kennismaking met huwelijk als doel\`
+          - English \`marriage_oriented\` label: \`Getting to know someone with marriage in mind\`
+          - complete synthetic-seed relationship-intent vocabulary: explicitly bilingual
+          - life-stage labels: translated through the shared display boundary`
+          );
+
+          replaceOnce(
+            'CHANGELOG.md',
+            `- \`serious_relationship\` now renders as \`Serieuze relatie\` in Dutch and \`Serious relationship\` in English.
+- Added explicit labels for \`student\`, \`recent_graduate\`, \`employed\` and \`self_employed\`.`,
+            `- \`serious_relationship\` now renders as \`Serieuze relatie\` in Dutch and \`Serious relationship\` in English.
+- Completed seeded relationship-intent coverage: \`marriage_oriented\` now renders as \`Kennismaking met huwelijk als doel\` in Dutch and \`Getting to know someone with marriage in mind\` in English.
+- Added a regression that derives the complete relationship-intent vocabulary from \`synthetic-seed/profiles.json\`, so a new seed value cannot bypass explicit Dutch/English copy.
+- Added explicit labels for \`student\`, \`recent_graduate\`, \`employed\` and \`self_employed\`.`
+          );
+
+          replaceOnce(
+            'docs/HANDOVER.md',
+            '**Milestone:** WP-069C human-readable profile labels implemented; canonical owner verification pending',
+            '**Milestone:** WP-069C seeded relationship-intent vocabulary corrected; canonical owner verification pending'
+          );
+          replaceOnce(
+            'docs/HANDOVER.md',
+            'Owner testing confirmed the WP-069B image upload and crop flow works, but exposed `serious_relationship` in customer-facing profile copy. WP-069C adds a shared Dutch/English display mapper for relationship intent and life stage, preserves custom prose and humanises unknown snake-case values. Issue #94 remains open until the canonical deployment is visually confirmed.',
+            'Owner testing confirmed the WP-069B image upload and crop flow works, but first exposed `serious_relationship` and then mixed Dutch/English labels because the seeded alias `marriage_oriented` was not explicitly mapped. WP-069C now covers the complete relationship-intent vocabulary found in `synthetic-seed/profiles.json`: `serious_relationship` and `marriage_oriented`, in both Dutch and English. The regression suite reads the canonical seed directly, while the shared display boundary continues to preserve genuine custom prose and localize life-stage values. Issue #94 remains open until the corrected canonical deployment is visually confirmed.'
+          );
+
+          replaceOnce('docs/ROADMAP.md', '**Version:** 2.11', '**Version:** 2.12');
+          replaceOnce(
+            'docs/ROADMAP.md',
+            '**Status:** WP-069C implementation complete; canonical owner verification pending.\n\nProfile preview and discovery now translate stable backend relationship-intent and life-stage values at the presentation boundary. Known Dutch and English labels are explicit, custom prose remains untouched and unknown snake-case values are humanised rather than exposed as implementation identifiers.',
+            '**Status:** WP-069C implementation corrected after owner field review; canonical owner verification pending.\n\nProfile preview and discovery translate stable backend relationship-intent and life-stage values at the presentation boundary. The complete synthetic-seed relationship-intent vocabulary (`serious_relationship` and `marriage_oriented`) now has explicit Dutch and English copy, and the regression suite derives that vocabulary directly from the canonical seed. Custom prose remains untouched and unknown snake-case values are humanised rather than exposed with underscores.'
+          );
+
+          replaceOnce(
+            'docs/WORKPACKAGES.md',
+            'Stored backend values such as `serious_relationship`, `recent_graduate` and `self_employed` are now translated at one shared profile-display boundary before reaching preview or discovery. Dutch/English labels are explicit, genuine custom text remains unchanged and unknown snake-case values are humanised without underscores. Regression tests prevent direct rendering of stored enum values.',
+            'Stored backend values such as `serious_relationship`, `marriage_oriented`, `recent_graduate` and `self_employed` are translated at one shared profile-display boundary before reaching preview or discovery. The regression suite reads `synthetic-seed/profiles.json` and requires every seeded relationship-intent value to have explicit Dutch and English copy. Genuine custom text remains unchanged, unknown snake-case values are humanised without underscores, and direct rendering of stored enum values remains prohibited.'
+          );
+
+          replaceOnce(
+            'docs/WORK-CLAIMS.md',
+            '| WC-070 | Stored relationship-intent and life-stage identifiers are translated before customer-facing profile display. | Implemented and unit-tested | issue #94, WP-069C model/renderer tests | Canonical owner verification remains pending; unknown future values are humanised but require explicit translations for polished copy. |',
+            '| WC-070 | Stored relationship-intent and life-stage identifiers are translated before customer-facing profile display. | Implemented and seed-vocabulary tested | issue #94, WP-069C model/renderer tests and canonical `synthetic-seed/profiles.json` vocabulary regression | Canonical owner verification remains pending; future seed values must receive explicit Dutch/English labels before tests pass. |'
+          );
+
+          unlinkSync('.github/workflows/patch-wp069c-complete-relationship-localization.yml');
+          NODE
+
+      - name: Validate corrected display contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          node --test apps/web/tests/product-model.test.mjs
+          npm run validate:synthetic-seed
+          npm run build:cloudflare
+          grep --fixed-strings --quiet "marriage_oriented: 'Kennismaking met huwelijk als doel'" dist-private-preview/product-model.js
+          grep --fixed-strings --quiet "marriage_oriented: 'Getting to know someone with marriage in mind'" dist-private-preview/product-model.js
+
+      - name: Commit completed correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'Complete seeded relationship-intent localization'
+          git push origin "HEAD:${GITHUB_REF_NAME}"
