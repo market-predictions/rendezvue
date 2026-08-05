@@ -6,6 +6,8 @@ on:
       - ux/wp073-conversation-inbox
     paths:
       - '.github/workflows/patch-wp073-conversation-inbox.yml'
+      - 'scripts/patch-wp073-conversation-inbox.py'
+      - 'apps/web/tests/contact-entitlement-flow.test.mjs'
 
 permissions:
   contents: write
@@ -39,6 +41,7 @@ jobs:
           grep --fixed-strings --quiet "createConversationInboxController" dist-private-preview/product-shell.js
           grep --fixed-strings --quiet "rv-messaging-shell" dist-private-preview/product-shell.js
           grep --fixed-strings --quiet "scalable match and conversation inbox" dist-private-preview/product-shell.css
+          ! grep --fixed-strings --quiet "function bindEvents() {function bindEvents()" apps/private-preview/product-shell.js
 
       - name: Commit integrated product changes
         run: |
