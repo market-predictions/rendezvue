@@ -1,0 +1,54 @@
+name: Apply WP072 source and governance patch
+
+on:
+  push:
+    branches:
+      - fix/wp072-contact-entitlement
+    paths:
+      - '.github/workflows/patch-wp072-contact-entitlement.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Apply WP-072 patch
+        run: python scripts/patch-wp072.py
+
+      - name: Validate application and artifact contracts
+        env:
+          SUPABASE_URL: https://example.supabase.co
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_only_placeholder_00000000000000000000
+        run: |
+          set -euo pipefail
+          npm ci
+          npm test
+          npm run validate:synthetic-seed
+          npm run build:cloudflare
+          grep --fixed-strings --quiet "unwrap(await supabase.rpc('claim_private_proof_entitlement')," apps/private-preview/product-shell.js
+          grep --fixed-strings --quiet 'contactOpenErrorMessage(error, state.language)' apps/private-preview/product-shell.js
+          grep --fixed-strings --quiet "'synthetic-product-2026-08'" supabase/migrations/20260805194500_private_proof_entitlement_terms_alignment.sql
+          grep --fixed-strings --quiet 'select plan(35);' supabase/tests/database/006_private_proof_interaction.test.sql
+
+      - name: Commit patched source and governance
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/private-preview/product-shell.js \
+            supabase/tests/database/006_private_proof_interaction.test.sql \
+            CHANGELOG.md docs/ROADMAP.md docs/WORKPACKAGES.md docs/WORK-CLAIMS.md docs/HANDOVER.md
+          git commit -m 'Fix WP-072 entitlement activation flow'
+          git push origin "HEAD:${GITHUB_REF_NAME}"
