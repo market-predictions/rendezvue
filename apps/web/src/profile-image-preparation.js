@@ -25,8 +25,8 @@ export function clamp(value, minimum, maximum) {
 
 export function normaliseFraming(value = {}) {
   return Object.freeze({
-    focalX: clamp(value.focalX, 0, 1),
-    focalY: clamp(value.focalY, 0, 1),
+    focalX: clamp(value.focalX ?? PROFILE_IMAGE_CONTRACT.defaultFocalX, 0, 1),
+    focalY: clamp(value.focalY ?? PROFILE_IMAGE_CONTRACT.defaultFocalY, 0, 1),
     zoom: clamp(
       value.zoom ?? PROFILE_IMAGE_CONTRACT.minimumZoom,
       PROFILE_IMAGE_CONTRACT.minimumZoom,
