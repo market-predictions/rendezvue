@@ -44,31 +44,12 @@ jobs:
               '  requireMarker(source, "card: `${prefix}/card-4x5.webp`", `${label} must use a canonical card derivative path`);\n'
               '  requireMarker(source, "avatar: `${prefix}/avatar-square.webp`", `${label} must use a canonical avatar derivative path`);\n'
           )
-          if '`${label} must use a normalized source path`' not in source:
+          controller_section, model_section = source.split("for (const [source, label] of [[model, 'source model']", 1)
+          if 'must use a normalized source path' not in model_section:
               if model_marker not in source:
                   raise SystemExit('shared model validator marker not found')
               source = source.replace(model_marker, model_paths, 1)
           validator.write_text(source)
-
-          for workflow_path in (
-              Path('.github/workflows/configure-cloudflare-staging.yml'),
-              Path('.github/workflows/verify-cloudflare-staging.yml')
-          ):
-              workflow = workflow_path.read_text()
-              marker = "      - 'apps/web/src/onboarding-repository.js'\n"
-              addition = marker + "      - 'apps/web/src/profile-image-preparation.js'\n"
-              if "apps/web/src/profile-image-preparation.js" not in workflow:
-                  if marker not in workflow:
-                      raise SystemExit(f'path filter marker not found in {workflow_path}')
-                  workflow = workflow.replace(marker, addition, 1)
-              if workflow_path.name == 'verify-cloudflare-staging.yml':
-                  validation_marker = "      - 'scripts/validate-wp067-product-shell.mjs'\n"
-                  validation_addition = validation_marker + "      - 'scripts/validate-wp070-profile-image-preparation.mjs'\n"
-                  if "scripts/validate-wp070-profile-image-preparation.mjs" not in workflow:
-                      if validation_marker not in workflow:
-                          raise SystemExit('production validation path marker not found')
-                      workflow = workflow.replace(validation_marker, validation_addition, 1)
-              workflow_path.write_text(workflow)
           PY
 
       - name: Verify repaired privacy contract
@@ -77,8 +58,6 @@ jobs:
           ! grep -Fq 'cardObjectPath: paths.card' apps/private-preview/profile-image-preparation.js
           ! grep -Fq 'avatarObjectPath: paths.avatar' apps/private-preview/profile-image-preparation.js
           grep -Fq 'must use a normalized source path' scripts/validate-wp070-profile-image-preparation.mjs
-          grep -Fq "apps/web/src/profile-image-preparation.js" .github/workflows/configure-cloudflare-staging.yml
-          grep -Fq "scripts/validate-wp070-profile-image-preparation.mjs" .github/workflows/verify-cloudflare-staging.yml
           node --check apps/private-preview/profile-image-preparation.js
           node --check scripts/validate-wp070-profile-image-preparation.mjs
 
@@ -89,9 +68,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add \
             apps/private-preview/profile-image-preparation.js \
-            scripts/validate-wp070-profile-image-preparation.mjs \
-            .github/workflows/configure-cloudflare-staging.yml \
-            .github/workflows/verify-cloudflare-staging.yml
+            scripts/validate-wp070-profile-image-preparation.mjs
           if git diff --cached --quiet; then
             echo 'No privacy repair changes required.'
             exit 0
