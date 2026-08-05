@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/configure-cloudflare-staging.yml'
+      - '.github/workflows/verify-wp072-contact-entitlement.yml'
       - 'apps/private-preview/**'
       - 'apps/web/src/auth-session.js'
       - 'apps/web/src/backend-contract.js'
