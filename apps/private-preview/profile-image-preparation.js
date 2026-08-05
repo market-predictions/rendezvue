@@ -324,8 +324,6 @@ async function uploadPreparedPortrait() {
     globalThis.dispatchEvent(new CustomEvent('rendezvue:portrait-prepared', {
       detail: Object.freeze({
         preparationId,
-        cardObjectPath: paths.card,
-        avatarObjectPath: paths.avatar,
         framing,
         qualityFlags: inspection.warnings
       })

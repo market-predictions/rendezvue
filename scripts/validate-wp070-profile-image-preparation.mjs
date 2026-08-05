@@ -65,9 +65,6 @@ for (const [source, label] of [[controller, 'source controller'], [generatedCont
   requireMarker(source, "createImageBitmap(file, { imageOrientation: 'from-image' })", `${label} must normalize source orientation where supported`);
   requireMarker(source, "canvas.toBlob", `${label} must derive browser-safe encoded assets`);
   requireMarker(source, "'image/webp'", `${label} must create WebP derivatives`);
-  requireMarker(source, "source: `${prefix}/source.webp`", `${label} must use a normalized source path`);
-  requireMarker(source, "card: `${prefix}/card-4x5.webp`", `${label} must use a canonical card derivative path`);
-  requireMarker(source, "avatar: `${prefix}/avatar-square.webp`", `${label} must use a canonical avatar derivative path`);
   requireMarker(source, "supabase.rpc('register_prepared_portrait'", `${label} must register the complete preparation transactionally`);
   requireMarker(source, "supabase.rpc('load_onboarding_snapshot'", `${label} must merge existing onboarding progress`);
   requireMarker(source, "supabase.rpc('save_onboarding_progress'", `${label} must persist portrait completion without erasing prior stages`);
@@ -90,6 +87,9 @@ for (const [source, label] of [[model, 'source model'], [generatedModel, 'genera
   requireMarker(source, "warnings.push('low-resolution')", `${label} must warn on low-resolution sources`);
   requireMarker(source, 'cropRectForAspect', `${label} must derive crops from focal metadata`);
   requireMarker(source, 'preparedObjectPaths', `${label} must generate account-scoped private paths`);
+  requireMarker(source, "source: `${prefix}/source.webp`", `${label} must use a normalized source path`);
+  requireMarker(source, "card: `${prefix}/card-4x5.webp`", `${label} must use a canonical card derivative path`);
+  requireMarker(source, "avatar: `${prefix}/avatar-square.webp`", `${label} must use a canonical avatar derivative path`);
   requireMarker(source, 'mergeCompletedStages', `${label} must preserve existing onboarding progress`);
 }
 
