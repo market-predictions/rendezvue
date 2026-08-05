@@ -4,6 +4,31 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
+### Participant profile image preparation foundation completed
+
+- Implemented WP-069B through issue #91 and PR #92, merged as `a06f2ae7b7c4b5779e80143d62960856e63d9ac7`.
+- Added a mobile-first 4:5 framing editor with pan, zoom, reset, safe-area guidance and square avatar preview.
+- Added warnings for low-resolution, landscape and unusually narrow sources without introducing biometric analysis.
+- Normalized orientation where supported and re-encoded the source to metadata-free private WebP rather than using the original upload directly.
+- Added explicit 960×1200 card and 384×384 avatar derivatives linked to one preparation ID.
+- Restricted selected portraits to the card role and enforced one selected card per account, exact private paths, idempotency and serialized replacement.
+- Redacted source and selected Storage paths from onboarding snapshots and kept object paths out of audit payloads and browser events.
+- Added resilient `contain` plus blurred same-image rendering so the app does not crop through face, chin or forehead merely to fill a slot.
+- Added pure framing tests, 37 pgTAP assertions, generated-artifact checks and a protected read-only staging verifier.
+- Protected run `30994962258` applied the migrations to the existing synthetic Supabase project.
+- Canonical run `30995029165` passed delivered browser behavior and the protected schema/RPC contract for merge `a06f2ae7b7c4b5779e80143d62960856e63d9ac7`.
+- Owner field review with difficult controlled uploads remains pending; real-user admission remains unauthorized.
+
+### Realistic synthetic discovery portraits completed
+
+- Completed WP-069A through issue #89 and PR #88, merged as `14eeaf60018e0cd507d570854b91e4f8418f380f`.
+- Replaced the ten childlike illustrated fixtures with unique photorealistic AI-generated adult synthetic portraits.
+- Retained deterministic profile-name mapping and the synthetic-only manifest.
+- Converted mislabeled PNG uploads to genuine optimized WebP assets before merge.
+- Added durable portrait-only canonical verification through PR #90, merged as `dd64d7d5eb202e03934f819694fa6060999f237e`.
+- Canonical run `30960048211` verified all ten images, dimensions, uniqueness, content types, bounded sizes and synthetic-only status.
+- No real-user photographs or biometric reference images were introduced.
+
 ### Integrated onboarding, discovery and conversation product shell completed
 
 - Completed WP-067 through issue #74 and implementation PR #75, merged as `21596e03ddf624f4eca5b272c77539985617e742`.

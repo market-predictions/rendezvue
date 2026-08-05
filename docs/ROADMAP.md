@@ -1,7 +1,7 @@
 # Rendezvue roadmap
 
-**Version:** 2.9  
-**Updated:** 2026-08-04
+**Version:** 2.10  
+**Updated:** 2026-08-05
 
 ## Operating doctrine
 
@@ -372,3 +372,22 @@ Add thin iOS/Android shells only where app-store distribution, push reliability,
 - moderation or sensitive-data obligations are not operationally viable;
 - monetisation materially suppresses contact formation;
 - feedback mechanisms show unacceptable bias or retaliation.
+## Phase 2M — Profile image quality and resilient participant preparation
+
+**Status:** WP-069A complete; WP-069B technical foundation complete and canonically verified; owner field review pending.
+
+WP-069A replaced the childlike synthetic discovery fixtures with ten unique, realistic adult synthetic portraits and added durable canonical delivery verification.
+
+WP-069B addresses the production condition that participants will upload inconsistent source material. The normal portrait flow now provides user-controlled 4:5 framing, pan, zoom, reset, safe-area guidance, a square avatar preview and warnings for low-resolution, landscape and unusually narrow images. Source files are orientation-normalized where supported and browser-re-encoded to a private metadata-free WebP source. Explicit 960×1200 card and 384×384 avatar derivatives are generated and registered under one preparation ID.
+
+The database permits only the card role to become the selected profile portrait, enforces one selected card per account, serializes replacement, validates exact private paths and redacts Storage coordinates from onboarding snapshots and audit evidence. Resilient rendering uses the complete prepared image over a blurred background instead of cropping through face, forehead or chin merely to fill the card.
+
+Accepted technical evidence:
+
+- WP-069A issue #89, PRs #88/#90 and canonical run `30960048211`;
+- WP-069B issue #91 and PR #92 merged as `a06f2ae7b7c4b5779e80143d62960856e63d9ac7`;
+- protected migration/configuration run `30994962258`;
+- correctly sequenced canonical browser and protected-schema run `30995029165`;
+- pure framing tests, 37 new pgTAP assertions, complete migration replay, existing database contracts, race tests, seed, lint, Cloudflare and Docker validation.
+
+The next acceptance action is an owner-led desktop/mobile field review using deliberately difficult controlled uploads: tight selfie, off-centre landscape, tall/narrow source, low-resolution source and well-composed 4:5 portrait. Automatic face recognition is not included or claimed. Real-user admission remains unauthorized.

@@ -1,7 +1,7 @@
 # Project handover
 
-**Updated:** 2026-08-04  
-**Milestone:** WP-067 integrated onboarding, discovery and conversation product shell accepted on canonical staging
+**Updated:** 2026-08-05  
+**Milestone:** WP-069B participant profile image preparation technical foundation accepted; owner field review pending
 
 ## GitHub state
 
@@ -18,6 +18,18 @@
 - Detailed WP-057 completion record: `docs/WP-057-COMPLETION.md`.
 - Supabase project: `RendezvueProject`, Healthy, West EU (Ireland), Nano.
 - Real-user admission is not authorized.
+
+## Current WP-069 image-quality milestone
+
+WP-069A replaced the childlike synthetic portrait fixtures with realistic adult synthetic faces. PR #88 merged as `14eeaf60018e0cd507d570854b91e4f8418f380f`, verifier PR #90 merged as `dd64d7d5eb202e03934f819694fa6060999f237e`, and canonical run `30960048211` verified all ten unique WebP assets and the synthetic-only manifest.
+
+WP-069B makes the participant upload flow resilient to arbitrary sources. PR #92 merged as `a06f2ae7b7c4b5779e80143d62960856e63d9ac7`. Protected run `30994962258` applied the schema to staging; canonical run `30995029165` passed the delivered framing editor, derivative contract and protected read-only schema verifier.
+
+The normal portrait flow now offers 4:5 pan/zoom framing, safe-area guidance, square avatar preview and quality warnings. It stores a private normalized source plus card/avatar derivatives, selects only the card derivative and renders uncertain aspect ratios with `contain` over a blurred same-image background rather than clipping the subject.
+
+Owner acceptance is still required. Test one controlled synthetic account with a tight selfie, off-centre landscape image, very tall image, low-resolution image and well-composed portrait on both desktop and mobile. Explicitly verify warning copy, drag/zoom/reset, chin/forehead visibility, immediate profile preview, discovery rendering, refresh behaviour and portrait replacement. Issue #91 remains open until this review is recorded.
+
+Detailed evidence: `docs/WP-069B-PROFILE-IMAGE-PREPARATION.md`.
 
 ## Architecture
 
