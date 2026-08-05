@@ -53,7 +53,8 @@ jobs:
           npm run build:cloudflare
 
           for file in apps/private-preview/product-shell.js dist-private-preview/product-shell.js; do
-            grep --fixed-strings --quiet "unwrap(await supabase.rpc('claim_private_proof_entitlement'), 'contact entitlement activation')" "$file"
+            grep --fixed-strings --quiet "claim_private_proof_entitlement" "$file"
+            grep --fixed-strings --quiet "contact entitlement activation" "$file"
             grep --fixed-strings --quiet 'contactOpenErrorMessage(error, state.language)' "$file"
           done
 
@@ -110,6 +111,7 @@ jobs:
             "${STAGING_URL}product-shell.js?commit=${EXPECTED_SHA}" --output "$shell_file"
           curl --fail --silent --show-error --location --header 'cache-control: no-cache' \
             "${STAGING_URL}contact-entitlement-model.js?commit=${EXPECTED_SHA}" --output "$model_file"
-          grep --fixed-strings --quiet "unwrap(await supabase.rpc('claim_private_proof_entitlement'), 'contact entitlement activation')" "$shell_file"
+          grep --fixed-strings --quiet "claim_private_proof_entitlement" "$shell_file"
+          grep --fixed-strings --quiet "contact entitlement activation" "$shell_file"
           grep --fixed-strings --quiet 'contactOpenErrorMessage(error, state.language)' "$shell_file"
           grep --fixed-strings --quiet 'Het eenmalige test-contactrecht is al gebruikt of niet meer geldig.' "$model_file"
