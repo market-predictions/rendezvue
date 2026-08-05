@@ -52,6 +52,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add CHANGELOG.md docs/ROADMAP.md docs/WORKPACKAGES.md docs/WORK-CLAIMS.md docs/HANDOVER.md
-          git diff --cached --check
           git commit -m 'Document WP-071 profile-form hierarchy'
           git push origin "HEAD:${GITHUB_REF_NAME}"
