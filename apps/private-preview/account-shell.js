@@ -1,4 +1,5 @@
 import { supabase } from './app.js';
+import './profile-image-preparation.js';
 import './product-shell.js';
 import './discovery-deck.js';
 import {
