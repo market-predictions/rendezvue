@@ -1,0 +1,121 @@
+name: Verify WP069C seeded relationship vocabulary
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-wp069c-seed-vocabulary.yml'
+      - 'apps/private-preview/product-model.js'
+      - 'apps/web/tests/product-model.test.mjs'
+      - 'synthetic-seed/profiles.json'
+      - 'scripts/build-private-preview.mjs'
+      - 'scripts/copy-product-assets.mjs'
+      - 'scripts/finalize-discovery-deck-artifact.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_run:
+    workflows: ['Configure Cloudflare staging backend']
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rendezvue-wp069c-seed-vocabulary-${{ github.event.pull_request.number || github.event.workflow_run.head_sha || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    name: Validate seeded bilingual profile labels
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: https://example.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_only_placeholder_00000000000000000000
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Validate source, seed vocabulary and generated artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          node --test apps/web/tests/product-model.test.mjs
+          npm run validate:synthetic-seed
+          npm run build:cloudflare
+
+          for file in apps/private-preview/product-model.js dist-private-preview/product-model.js; do
+            grep --fixed-strings --quiet "serious_relationship: 'Serieuze relatie'" "$file"
+            grep --fixed-strings --quiet "serious_relationship: 'Serious relationship'" "$file"
+            grep --fixed-strings --quiet "marriage_oriented: 'Kennismaking met huwelijk als doel'" "$file"
+            grep --fixed-strings --quiet "marriage_oriented: 'Getting to know someone with marriage in mind'" "$file"
+          done
+
+  canonical:
+    name: Verify canonical seeded bilingual labels
+    if: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') }}
+    runs-on: ubuntu-latest
+    env:
+      STAGING_URL: https://rendezvue-private-preview.pages.dev/
+      EXPECTED_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - name: Wait for commit-matched canonical deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SHA" =~ ^[a-f0-9]{40}$ ]] || {
+            echo '::error title=Invalid commit::EXPECTED_SHA is not a full Git commit.'
+            exit 1
+          }
+
+          metadata="$RUNNER_TEMP/deployment.json"
+          matched=false
+          for attempt in {1..72}; do
+            status="$(curl --silent --show-error --location \
+              --output "$metadata" --write-out '%{http_code}' \
+              --header 'cache-control: no-cache' \
+              "${STAGING_URL}deployment.json?commit=${EXPECTED_SHA}&attempt=${attempt}" || true)"
+            if [[ "$status" == "200" ]] && node --input-type=module --eval "
+              import { readFileSync } from 'node:fs';
+              const document = JSON.parse(readFileSync(process.argv[1], 'utf8'));
+              if (document.buildCommit !== process.argv[2]) process.exit(1);
+              if (document.hostingPlatform !== 'cloudflare-pages') process.exit(1);
+              if (document.remoteBackendConfigured !== true) process.exit(1);
+              if (document.realUserAdmissionAuthorized !== false) process.exit(1);
+            " "$metadata" "$EXPECTED_SHA"; then
+              matched=true
+              break
+            fi
+            echo "Canonical deployment is not commit-matched yet (attempt $attempt, HTTP $status)."
+            sleep 10
+          done
+          [[ "$matched" == "true" ]] || {
+            echo '::error title=Deployment did not converge::Canonical deployment was not commit-matched within the bounded verification window.'
+            exit 1
+          }
+
+      - name: Verify delivered relationship-intent labels
+        shell: bash
+        run: |
+          set -euo pipefail
+          model="$RUNNER_TEMP/product-model.js"
+          status="$(curl --silent --show-error --location \
+            --output "$model" --write-out '%{http_code}' \
+            --header 'cache-control: no-cache' \
+            "${STAGING_URL}product-model.js?commit=${EXPECTED_SHA}" || true)"
+          [[ "$status" == "200" ]] || {
+            echo "::error title=Canonical model missing::product-model.js returned HTTP ${status}."
+            exit 1
+          }
+          grep --fixed-strings --quiet "serious_relationship: 'Serieuze relatie'" "$model"
+          grep --fixed-strings --quiet "serious_relationship: 'Serious relationship'" "$model"
+          grep --fixed-strings --quiet "marriage_oriented: 'Kennismaking met huwelijk als doel'" "$model"
+          grep --fixed-strings --quiet "marriage_oriented: 'Getting to know someone with marriage in mind'" "$model"
