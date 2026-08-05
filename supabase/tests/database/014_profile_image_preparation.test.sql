@@ -53,6 +53,8 @@ create temporary table prepared_result (
   portrait_id uuid not null
 ) on commit drop;
 
+grant select, insert on table prepared_result to authenticated;
+
 set local "request.jwt.claims" = '{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated"}';
 set local role authenticated;
 
