@@ -1,4 +1,4 @@
--- WP-070: non-destructive profile image preparation.
+-- WP-069B: non-destructive profile image preparation.
 -- Raw browser uploads are replaced by a normalized private source plus explicit
 -- 4:5 card and square avatar derivatives linked by one preparation identifier.
 

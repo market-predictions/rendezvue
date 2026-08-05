@@ -11,7 +11,7 @@ import {
 } from './src/profile-image-preparation.js';
 
 const STYLE_ID = 'rendezvue-profile-image-preparation-style';
-const MODULE_BOUNDARY = 'wp070-profile-image-preparation';
+const MODULE_BOUNDARY = 'wp069b-profile-image-preparation';
 const copy = Object.freeze({
   nl: Object.freeze({
     title: 'Bepaal hoe je portret zichtbaar wordt',
@@ -381,7 +381,7 @@ function editorMarkup() {
   const root = document.createElement('section');
   root.id = 'rv-image-preparation-editor';
   root.className = 'rv-image-preparation';
-  root.dataset.wp070Boundary = MODULE_BOUNDARY;
+  root.dataset.wp069bBoundary = MODULE_BOUNDARY;
   root.hidden = true;
   root.innerHTML = `
     <div class="rv-image-preparation-heading">
@@ -411,12 +411,12 @@ function editorMarkup() {
 
 function enhancePortraitForm() {
   const form = document.querySelector('#rv-portrait-form');
-  if (!form || form.dataset.wp070Enhanced === 'true') return;
+  if (!form || form.dataset.wp069bEnhanced === 'true') return;
   const input = form.querySelector('#rv-portrait-file');
   if (!input) return;
   const root = editorMarkup();
   form.insertBefore(root, form.querySelector('button[type="submit"]'));
-  form.dataset.wp070Enhanced = 'true';
+  form.dataset.wp069bEnhanced = 'true';
   editor = {
     form,
     input,

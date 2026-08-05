@@ -1,4 +1,4 @@
--- WP-070: keep private Storage coordinates out of the browser snapshot.
+-- WP-069B: keep private Storage coordinates out of the browser snapshot.
 
 create or replace function public.load_onboarding_snapshot()
 returns jsonb

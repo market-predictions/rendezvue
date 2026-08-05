@@ -137,7 +137,7 @@ forbidPattern(migration.match(/jsonb_build_object\([\s\S]*?\n\s*\)\n\s*\);/i)?.[
 requireMarker(snapshotMigration, "- 'source_object_path'", 'onboarding snapshot must redact normalized source path');
 requireMarker(snapshotMigration, "- 'object_path'", 'onboarding snapshot must redact selected card path');
 
-requireMarker(databaseTest, 'select plan(37);', 'database proof must have the complete WP-070 plan');
+requireMarker(databaseTest, 'select plan(37);', 'database proof must have the complete WP-069B plan');
 requireMarker(databaseTest, 'another authenticated account cannot read prepared portrait metadata', 'database proof must cover cross-account isolation');
 requireMarker(databaseTest, 'retry is idempotent for the same preparation ID', 'database proof must cover idempotency');
 requireMarker(databaseTest, 'new preparation atomically supersedes the former selected card', 'database proof must cover replacement semantics');
@@ -145,9 +145,9 @@ requireMarker(databaseTest, 'legacy direct portrait inserts receive an isolated 
 requireMarker(databaseTest, 'source asset cannot be promoted to selected profile portrait', 'database proof must reject source publication');
 
 if (failures.length) {
-  console.error('WP-070 profile image preparation validation failed:');
+  console.error('WP-069B profile image preparation validation failed:');
   for (const failure of failures) console.error(`- ${failure}`);
   process.exit(1);
 }
 
-console.log('WP-070 profile image preparation validated (user framing, private normalized source, 4:5 and square derivatives, focal metadata, resilient rendering and persistence isolation).');
+console.log('WP-069B profile image preparation validated (user framing, private normalized source, 4:5 and square derivatives, focal metadata, resilient rendering and persistence isolation).');

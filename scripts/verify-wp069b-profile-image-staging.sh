@@ -10,8 +10,8 @@ if [[ ! "$SUPABASE_PROJECT_REF" =~ ^[a-z0-9]{15,30}$ ]]; then
 fi
 
 work_dir="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
-request="$work_dir/wp070-profile-image-request.json"
-response="$work_dir/wp070-profile-image-response.json"
+request="$work_dir/wp069b-profile-image-request.json"
+response="$work_dir/wp069b-profile-image-response.json"
 
 node --input-type=module - "$request" <<'NODE'
 import { writeFileSync } from 'node:fs';
@@ -82,7 +82,7 @@ status="$(curl --silent --show-error \
   "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query")"
 
 if [[ "$status" != "200" && "$status" != "201" ]]; then
-  echo "Remote WP-070 query failed with HTTP $status" >&2
+  echo "Remote WP-069B query failed with HTTP $status" >&2
   node --input-type=module - "$response" <<'NODE'
 import { readFileSync } from 'node:fs';
 const raw = readFileSync(process.argv[2], 'utf8');
@@ -110,7 +110,7 @@ const rows = Array.isArray(payload)
         ? payload.rows
         : [];
 if (rows.length !== 1 || typeof rows[0] !== 'object' || rows[0] === null) {
-  throw new Error('Remote WP-070 verifier returned an unexpected response shape');
+  throw new Error('Remote WP-069B verifier returned an unexpected response shape');
 }
 
 const row = rows[0];
