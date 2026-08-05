@@ -4,6 +4,18 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
+### Scalable conversation inbox
+
+- Added WP-073 after owner review established that the one-match layout would become ambiguous with multiple matches and conversations.
+- Separated ongoing conversations, new matches and previous contacts into distinct inbox sections.
+- Added portrait, participant name, latest-message preview, activity time and unread state to conversation rows.
+- Added a persistent selected-conversation header so the active participant remains explicit after scrolling or switching threads.
+- Scoped messages, Realtime, contact termination, blocking and reporting to the selected match and conversation.
+- Added a two-column desktop inbox and a list-to-conversation mobile transition with a clear back control.
+- Stored only local conversation read timestamps; no message bodies or profile content are written to browser storage.
+- Added model, integration, entitlement, artifact and commit-matched canonical regression controls.
+- No database permissions or real-user authorization were expanded.
+
 ### Synthetic contact-entitlement activation
 
 - Added WP-072 after canonical owner testing exposed `conversation open: no contact entitlement available` for a valid active synthetic match.

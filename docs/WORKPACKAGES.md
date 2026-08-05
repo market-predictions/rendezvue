@@ -162,6 +162,11 @@ The long profile form now gives section grouping, field labels and entered value
 **Status:** implementation in review; canonical owner verification pending; issue #100  
 The active synthetic match flow now aligns current product terms with the one-time private proof entitlement, validates the claim RPC before opening a conversation, retains legacy proof compatibility, rejects unknown terms and replaces raw database errors with bilingual participant-facing copy. Application, pgTAP, artifact and canonical verifiers cover the repair. Detailed evidence: `docs/WP-072-CONTACT-ENTITLEMENT-ACTIVATION.md`.
 
+## WP-073 — Scalable conversation inbox
+
+**Status:** implementation in review; canonical owner verification pending; issue #104  
+The former single-match surface is replaced by a scalable inbox that separates conversations, new matches and previous contacts. Rows show portrait, name, latest message, activity time and unread state; a persistent header identifies the selected participant. Switching threads reloads the correct messages, portrait, Realtime subscription and safety target. Desktop uses two columns, while mobile moves clearly between list and conversation. Detailed evidence: `docs/WP-073-CONVERSATION-INBOX.md`.
+
 ## WP-080 — Closed city pilot readiness
 
 **Status:** planned  

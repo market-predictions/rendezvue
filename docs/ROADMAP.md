@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 2.14  
+**Version:** 2.15  
 **Updated:** 2026-08-05
 
 ## Operating doctrine
@@ -339,6 +339,12 @@ The profile form now separates section grouping, supporting field labels and pri
 **Status:** WP-072 implementation in review; canonical owner verification pending.
 
 The current product onboarding terms and the private synthetic entitlement helper are now aligned. Entitlement activation is validated before conversation opening, older controlled proof fixtures remain supported, unknown terms remain rejected, and raw backend errors are translated into bilingual product copy. Database and browser regressions guard the one-time entitlement and canonical delivery boundaries. Detailed evidence: `docs/WP-072-CONTACT-ENTITLEMENT-ACTIVATION.md`.
+
+### 2Q. Scalable conversation inbox
+
+**Status:** WP-073 implementation in review; canonical owner verification pending.
+
+Matches now scale into an inbox with separate ongoing conversations, new matches and previous contacts. Conversation rows expose participant identity, latest-message context, activity time and unread state; the selected thread has a persistent identity header. Desktop uses a list/detail layout and mobile uses an explicit list-to-conversation transition. Message, Realtime and safety actions remain scoped to the selected match. Detailed evidence: `docs/WP-073-CONVERSATION-INBOX.md`.
 
 ## Phase 3 — Closed city-based PWA pilot
 
