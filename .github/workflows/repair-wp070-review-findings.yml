@@ -18,7 +18,7 @@ jobs:
           ref: feature/wp070-profile-image-preparation
           fetch-depth: 0
 
-      - name: Apply reviewed compatibility, build and SQL fixes
+      - name: Apply reviewed compatibility, build, SQL and test fixes
         shell: bash
         run: |
           set -euo pipefail
@@ -102,6 +102,23 @@ jobs:
                   raise SystemExit('cache route marker not found')
               source = source.replace(old_routes, new_routes, 1)
           finalizer.write_text(source)
+
+          test = Path('supabase/tests/database/014_profile_image_preparation.test.sql')
+          source = test.read_text()
+          assertion = """select is(
+            (select crop_aspect from public.privacy_portraits where asset_role = 'card'),
+            '4:5',
+            'selected card records the canonical crop aspect'
+          );
+          """
+          if "selected card records the canonical crop aspect" not in source:
+              marker = """select is(
+            (select output_width::text || 'x' || output_height::text from public.privacy_portraits where asset_role = 'avatar'),
+          """
+              if marker not in source:
+                  raise SystemExit('profile image test insertion marker not found')
+              source = source.replace(marker, assertion + marker, 1)
+          test.write_text(source)
           PY
 
       - name: Verify repaired markers
@@ -112,6 +129,7 @@ jobs:
           grep -Fq "is distinct from (v_prefix || 'card-4x5.webp')" supabase/migrations/20260805084500_profile_image_preparation.sql
           grep -Fq "'profile-image-preparation.js'" scripts/build-private-preview.mjs
           grep -Fq "'/profile-image-preparation.css'" scripts/finalize-discovery-deck-artifact.mjs
+          grep -Fq 'selected card records the canonical crop aspect' supabase/tests/database/014_profile_image_preparation.test.sql
           grep -Fq 'function ensurePreparedImage(container)' apps/private-preview/profile-image-preparation.js
           node --check apps/private-preview/profile-image-preparation.js
           node --check apps/web/src/profile-image-preparation.js
@@ -125,6 +143,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add \
             supabase/migrations/20260805084500_profile_image_preparation.sql \
+            supabase/tests/database/014_profile_image_preparation.test.sql \
             apps/private-preview/profile-image-preparation.js \
             scripts/build-private-preview.mjs \
             scripts/finalize-discovery-deck-artifact.mjs
