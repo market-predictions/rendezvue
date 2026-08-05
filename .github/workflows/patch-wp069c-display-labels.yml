@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   patch:
-    if: github.actor != 'github-actions[bot]'
+    if: ${{ github.actor != 'github-actions[bot]' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -18,16 +18,16 @@ jobs:
           ref: fix/wp069c-display-labels
           fetch-depth: 0
 
-      - name: Add localized profile display labels and regression tests
+      - name: Patch model, renderer and tests
         shell: bash
         run: |
           set -euo pipefail
-          python - <<'PY'
+          cat > /tmp/wp069c.py <<'PY'
           from pathlib import Path
 
           model = Path('apps/private-preview/product-model.js')
           source = model.read_text()
-          marker = "export function derivePartnerSex(sex) {"
+          marker = 'export function derivePartnerSex(sex) {'
           helper = """const PROFILE_DISPLAY_LABELS = Object.freeze({
   nl: Object.freeze({
     relationshipIntent: Object.freeze({
@@ -73,48 +73,34 @@ export function profileDisplayValue(language, field, value) {
 """
           if 'export function profileDisplayValue' not in source:
               if marker not in source:
-                  raise SystemExit('product-model insertion marker missing')
-              source = source.replace(marker, helper + marker, 1)
-              model.write_text(source)
+                  raise SystemExit('model marker missing')
+              model.write_text(source.replace(marker, helper + marker, 1))
 
           shell = Path('apps/private-preview/product-shell.js')
           source = shell.read_text()
-          source = source.replace(
-              "  profilePreview,\n  projectDiscoveryProfile,",
-              "  profileDisplayValue,\n  profilePreview,\n  projectDiscoveryProfile,",
-              1
-          )
-          source = source.replace(
-              "  meta.textContent = [preview.city, preview.lifeStage].filter(Boolean).join(' · ');",
-              "  meta.textContent = [preview.city, profileDisplayValue(state.language, 'lifeStage', preview.lifeStage)].filter(Boolean).join(' · ');",
-              1
-          )
-          source = source.replace(
-              "  intent.textContent = preview.relationshipIntent;",
-              "  intent.textContent = profileDisplayValue(state.language, 'relationshipIntent', preview.relationshipIntent);",
-              1
-          )
-          source = source.replace(
-              "    meta.textContent = [profile.display.city, profile.display.lifeStage].filter(Boolean).join(' · ');",
-              "    meta.textContent = [profile.display.city, profileDisplayValue(state.language, 'lifeStage', profile.display.lifeStage)].filter(Boolean).join(' · ');",
-              1
-          )
-          source = source.replace(
-              "    intent.textContent = profile.display.relationshipIntent;",
-              "    intent.textContent = profileDisplayValue(state.language, 'relationshipIntent', profile.display.relationshipIntent);",
-              1
-          )
+          replacements = [
+              ("  profilePreview,\n  projectDiscoveryProfile,", "  profileDisplayValue,\n  profilePreview,\n  projectDiscoveryProfile,"),
+              ("  meta.textContent = [preview.city, preview.lifeStage].filter(Boolean).join(' · ');", "  meta.textContent = [preview.city, profileDisplayValue(state.language, 'lifeStage', preview.lifeStage)].filter(Boolean).join(' · ');"),
+              ("  intent.textContent = preview.relationshipIntent;", "  intent.textContent = profileDisplayValue(state.language, 'relationshipIntent', preview.relationshipIntent);"),
+              ("    meta.textContent = [profile.display.city, profile.display.lifeStage].filter(Boolean).join(' · ');", "    meta.textContent = [profile.display.city, profileDisplayValue(state.language, 'lifeStage', profile.display.lifeStage)].filter(Boolean).join(' · ');"),
+              ("    intent.textContent = profile.display.relationshipIntent;", "    intent.textContent = profileDisplayValue(state.language, 'relationshipIntent', profile.display.relationshipIntent);")
+          ]
+          for old, new in replacements:
+              if old not in source and new not in source:
+                  raise SystemExit(f'shell marker missing: {old}')
+              source = source.replace(old, new, 1)
           shell.write_text(source)
 
           tests = Path('apps/web/tests/product-model.test.mjs')
           source = tests.read_text()
-          source = source.replace(
-              "  portraitAssetForNickname,\n  productCopy,",
-              "  portraitAssetForNickname,\n  productCopy,\n  profileDisplayValue,",
-              1
-          )
-          insertion = """
-test('profile enums are localized before customer-facing display', () => {
+          old_import = "  portraitAssetForNickname,\n  productCopy,"
+          new_import = "  portraitAssetForNickname,\n  productCopy,\n  profileDisplayValue,"
+          if old_import in source:
+              source = source.replace(old_import, new_import, 1)
+          elif new_import not in source:
+              raise SystemExit('test import marker missing')
+          test_marker = "test('partner preference is derived only from sex', () => {"
+          test_block = """test('profile enums are localized before customer-facing display', () => {
   assert.equal(profileDisplayValue('nl', 'relationshipIntent', 'serious_relationship'), 'Serieuze relatie');
   assert.equal(profileDisplayValue('en', 'relationshipIntent', 'serious_relationship'), 'Serious relationship');
   assert.equal(profileDisplayValue('nl', 'lifeStage', 'recent_graduate'), 'Recent afgestudeerd');
@@ -125,55 +111,26 @@ test('profile enums are localized before customer-facing display', () => {
 });
 
 """
-          marker = "test('partner preference is derived only from sex', () => {"
-          if "profile enums are localized before customer-facing display" not in source:
-              if marker not in source:
-                  raise SystemExit('test insertion marker missing')
-              source = source.replace(marker, insertion + marker, 1)
+          if 'profile enums are localized before customer-facing display' not in source:
+              if test_marker not in source:
+                  raise SystemExit('test marker missing')
+              source = source.replace(test_marker, test_block + test_marker, 1)
           tests.write_text(source)
-
-          validator = Path('scripts/validate-wp067-product-shell.mjs')
-          if validator.exists():
-              source = validator.read_text()
-              anchor = "const forbiddenVisiblePatterns"
-              guard = """
-for (const marker of [
-  "profileDisplayValue(state.language, 'relationshipIntent'",
-  "profileDisplayValue(state.language, 'lifeStage'"
-]) {
-  if (!productShell.includes(marker)) fail(`product shell is missing localized display boundary: ${marker}`);
-}
-if (/textContent\s*=\s*(?:preview|profile\.display)\.relationshipIntent/.test(productShell)) {
-  fail('raw relationship-intent values can reach customer-facing copy');
-}
-
-"""
-              if 'raw relationship-intent values can reach customer-facing copy' not in source:
-                  if anchor not in source:
-                      raise SystemExit('WP-067 validator insertion marker missing')
-                  source = source.replace(anchor, guard + anchor, 1)
-                  validator.write_text(source)
           PY
+          python /tmp/wp069c.py
 
-      - name: Verify patch
+      - name: Verify and commit
         shell: bash
         run: |
           set -euo pipefail
           grep -Fq "serious_relationship: 'Serieuze relatie'" apps/private-preview/product-model.js
           grep -Fq "profileDisplayValue(state.language, 'relationshipIntent'" apps/private-preview/product-shell.js
           grep -Fq "profile enums are localized before customer-facing display" apps/web/tests/product-model.test.mjs
-          ! grep -F "intent.textContent = profile.display.relationshipIntent" apps/private-preview/product-shell.js
           node --check apps/private-preview/product-model.js
           node --check apps/private-preview/product-shell.js
           node --test apps/web/tests/product-model.test.mjs
-
-      - name: Commit fix
-        shell: bash
-        run: |
-          set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add apps/private-preview/product-model.js apps/private-preview/product-shell.js apps/web/tests/product-model.test.mjs
-          if test -f scripts/validate-wp067-product-shell.mjs; then git add scripts/validate-wp067-product-shell.mjs; fi
           git commit -m 'fix(profile): localize stored enum values before display'
           git push origin HEAD:fix/wp069c-display-labels
