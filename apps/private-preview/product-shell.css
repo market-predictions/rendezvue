@@ -436,7 +436,7 @@
 .rv-chat-form[hidden] { display: none; }
 .rv-chat-form input { margin: 0; min-height: 3rem; }
 
-.rv-safety-grid {.rv-safety-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.55rem; }
+.rv-safety-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.55rem; }
 .rv-safety-grid button.secondary { background: #eee7df; color: #4d433d; }
 .rv-report-form { display: none; gap: 0.7rem; margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid #e2d8ce; }
 .rv-report-form.open { display: grid; }
