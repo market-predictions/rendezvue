@@ -64,11 +64,11 @@ jobs:
           require_marker apps/private-preview/product-model.js "serious_relationship: 'Serious relationship'" 'English relationship label'
           require_marker apps/private-preview/product-shell.js "profileDisplayValue(state.language, 'relationshipIntent'" 'relationship display boundary'
           require_marker apps/private-preview/product-shell.js "profileDisplayValue(state.language, 'lifeStage'" 'life-stage display boundary'
-          require_marker dist/private-preview/product-model.js "serious_relationship: 'Serieuze relatie'" 'generated Dutch relationship label'
-          require_marker dist/private-preview/product-model.js "serious_relationship: 'Serious relationship'" 'generated English relationship label'
-          require_marker dist/private-preview/product-shell.js "profileDisplayValue(state.language, 'relationshipIntent'" 'generated relationship display boundary'
+          require_marker dist-private-preview/product-model.js "serious_relationship: 'Serieuze relatie'" 'generated Dutch relationship label'
+          require_marker dist-private-preview/product-model.js "serious_relationship: 'Serious relationship'" 'generated English relationship label'
+          require_marker dist-private-preview/product-shell.js "profileDisplayValue(state.language, 'relationshipIntent'" 'generated relationship display boundary'
 
-          for file in apps/private-preview/product-shell.js dist/private-preview/product-shell.js; do
+          for file in apps/private-preview/product-shell.js dist-private-preview/product-shell.js; do
             if grep --extended-regexp --quiet 'textContent[[:space:]]*=[[:space:]]*(preview|profile\.display)\.relationshipIntent' "$file"; then
               echo "::error title=Raw relationship enum rendering::${file} can render relationship_intent without the customer-facing mapper."
               exit 1
