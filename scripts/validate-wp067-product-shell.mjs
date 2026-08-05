@@ -18,28 +18,35 @@ const forbidPattern = (source, pattern, message) => {
   if (pattern.test(source)) failures.push(message);
 };
 
-const [accountShell, productShell, productModel, productCss, generatedAccountShell, generatedProductShell, generatedModel] = await Promise.all([
+const [
+  accountShell,
+  productShell,
+  inboxController,
+  productModel,
+  productCss,
+  generatedAccountShell,
+  generatedProductShell,
+  generatedInboxController,
+  generatedModel
+] = await Promise.all([
   read('apps/private-preview/account-shell.js'),
   read('apps/private-preview/product-shell.js'),
+  read('apps/private-preview/conversation-inbox-controller.js'),
   read('apps/private-preview/product-model.js'),
   read('apps/private-preview/product-shell.css'),
   readFile(resolve(dist, 'account-shell.js'), 'utf8'),
   readFile(resolve(dist, 'product-shell.js'), 'utf8'),
+  readFile(resolve(dist, 'conversation-inbox-controller.js'), 'utf8'),
   readFile(resolve(dist, 'product-model.js'), 'utf8')
 ]);
 
-for (const [source, label] of [[productShell, 'source'], [generatedProductShell, 'generated artifact']]) {
+for (const [source, label] of [[productShell, 'source shell'], [generatedProductShell, 'generated shell']]) {
   requireMarker(source, "import { supabase } from './app.js';", `${label} must reuse the shared Supabase browser client`);
-  requireMarker(source, "createOnboardingRepository", `${label} must use the established onboarding repository`);
-  requireMarker(source, "record_attraction_signal", `${label} is missing server-authoritative attraction signals`);
-  requireMarker(source, "open_match_conversation", `${label} is missing server-authoritative conversation opening`);
-  requireMarker(source, ".from('messages')", `${label} is missing participant-scoped messages`);
-  requireMarker(source, "postgres_changes", `${label} is missing Realtime message subscription`);
-  requireMarker(source, "end_match_contact", `${label} is missing end-contact handling`);
-  requireMarker(source, "block_user", `${label} is missing blocking`);
-  requireMarker(source, "create_safety_report", `${label} is missing private safety reporting`);
-  requireMarker(source, "privacy-portraits", `${label} is missing private portrait storage`);
-  requireMarker(source, "textContent = profile.display.nickname", `${label} must render profile copy through textContent`);
+  requireMarker(source, 'createOnboardingRepository', `${label} must use the established onboarding repository`);
+  requireMarker(source, 'record_attraction_signal', `${label} is missing server-authoritative attraction signals`);
+  requireMarker(source, 'createConversationInboxController', `${label} must delegate selected-thread behaviour to the conversation inbox controller`);
+  requireMarker(source, 'privacy-portraits', `${label} is missing private portrait storage`);
+  requireMarker(source, 'textContent = profile.display.nickname', `${label} must render profile copy through textContent`);
   requireMarker(source, "advancedTools.dataset.productBoundary = 'operator-synthetic-only'", `${label} must retain an explicit operator-only proof boundary`);
 
   forbidPattern(source, /createClient\s*\(/, `${label} must not create a second Supabase client`);
@@ -47,7 +54,32 @@ for (const [source, label] of [[productShell, 'source'], [generatedProductShell,
   forbidPattern(source, /execute-account-email-replacement|claim_account_email_replacement|complete_account_email_replacement/i, `${label} must not expose the support e-mail replacement executor`);
   forbidPattern(source, /deleteUser\s*\(|updateUserById\s*\(/, `${label} must not perform browser-side Auth administration`);
   forbidPattern(source, /account merge|merge account|merge_accounts/i, `${label} must not introduce account merging`);
+}
 
+for (const [source, label] of [[inboxController, 'source inbox controller'], [generatedInboxController, 'generated inbox controller']]) {
+  requireMarker(source, "open_match_conversation", `${label} is missing server-authoritative conversation opening`);
+  requireMarker(source, ".from('messages')", `${label} is missing participant-scoped messages`);
+  requireMarker(source, 'postgres_changes', `${label} is missing Realtime message subscription`);
+  requireMarker(source, 'end_match_contact', `${label} is missing end-contact handling`);
+  requireMarker(source, 'block_user', `${label} is missing blocking`);
+  requireMarker(source, 'create_safety_report', `${label} is missing private safety reporting`);
+  requireMarker(source, 'selectedMatchId', `${label} is missing explicit selected-match state`);
+  requireMarker(source, 'conversation_id=eq.${conversation.id}', `${label} must scope Realtime to the selected conversation`);
+  requireMarker(source, 'get_matched_portrait_path', `${label} must retain server-gated matched portrait access`);
+
+  forbidPattern(source, /createClient\s*\(/, `${label} must not create a second Supabase client`);
+  forbidPattern(source, /auth\.admin|service_role|sb_secret_|SUPABASE_SERVICE_ROLE_KEY/i, `${label} contains prohibited administrative credential or Auth material`);
+  forbidPattern(source, /execute-account-email-replacement|claim_account_email_replacement|complete_account_email_replacement/i, `${label} must not expose the support e-mail replacement executor`);
+  forbidPattern(source, /deleteUser\s*\(|updateUserById\s*\(/, `${label} must not perform browser-side Auth administration`);
+  forbidPattern(source, /account merge|merge account|merge_accounts/i, `${label} must not introduce account merging`);
+}
+
+for (const [source, label] of [
+  [productShell, 'source shell'],
+  [generatedProductShell, 'generated shell'],
+  [inboxController, 'source inbox controller'],
+  [generatedInboxController, 'generated inbox controller']
+]) {
   const visibleIdentifierLines = source
     .split('\n')
     .filter((line) => line.includes('.textContent'))
@@ -58,7 +90,7 @@ for (const [source, label] of [[productShell, 'source'], [generatedProductShell,
 }
 
 requireMarker(accountShell, "import './product-shell.js';", 'account shell must load the integrated product shell');
-requireMarker(accountShell, "rendezvue:language-change", 'account shell must broadcast language changes');
+requireMarker(accountShell, 'rendezvue:language-change', 'account shell must broadcast language changes');
 requireMarker(generatedAccountShell, "import './product-shell.js';", 'generated account shell must load the integrated product shell');
 requireMarker(productModel, "if (sex === 'woman') return 'man';", 'partner preference must be derived from woman to man');
 requireMarker(productModel, "if (sex === 'man') return 'woman';", 'partner preference must be derived from man to woman');
@@ -66,6 +98,7 @@ forbidPattern(productModel, /nonbinary|non-binair|partner_preference|who_to_meet
 requireMarker(productCss, '.rv-nav', 'product CSS is missing mobile application navigation');
 requireMarker(productCss, '.rv-discovery-card', 'product CSS is missing discovery cards');
 requireMarker(productCss, '.rv-bubble', 'product CSS is missing conversation bubbles');
+requireMarker(productCss, '.rv-thread-row.selected', 'product CSS is missing selected-conversation context');
 requireMarker(generatedModel, 'projectDiscoveryProfile', 'generated product model is missing the product-safe projection');
 
 if (normaliseProductLanguage('fr') !== 'nl') failures.push('Dutch must remain the default product language');
@@ -88,4 +121,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`WP-067 integrated product shell validated (${portraits.length} synthetic portraits, shared Auth client, product-safe projections).`);
+console.log(`WP-067 integrated product shell validated (${portraits.length} synthetic portraits, shared Auth client, selected-thread controller and product-safe projections).`);
