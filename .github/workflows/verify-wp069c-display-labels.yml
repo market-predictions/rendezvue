@@ -73,8 +73,12 @@ jobs:
               echo "::error title=Raw relationship enum rendering::${file} can render relationship_intent without the customer-facing mapper."
               exit 1
             fi
-            if grep --extended-regexp --quiet 'textContent[[:space:]]*=[[:space:]]*\[[^]]*(preview|profile\.display)\.lifeStage' "$file"; then
-              echo "::error title=Raw life-stage enum rendering::${file} can render primary_status without the customer-facing mapper."
+            if grep --fixed-strings --quiet "meta.textContent = [preview.city, preview.lifeStage]" "$file"; then
+              echo "::error title=Raw preview life-stage rendering::${file} bypasses the customer-facing mapper."
+              exit 1
+            fi
+            if grep --fixed-strings --quiet "meta.textContent = [profile.display.city, profile.display.lifeStage]" "$file"; then
+              echo "::error title=Raw discovery life-stage rendering::${file} bypasses the customer-facing mapper."
               exit 1
             fi
           done
@@ -153,8 +157,12 @@ jobs:
             echo '::error title=Raw relationship enum delivered::Canonical product shell bypasses the display mapper.'
             exit 1
           fi
-          if grep --extended-regexp --quiet 'textContent[[:space:]]*=[[:space:]]*\[[^]]*(preview|profile\.display)\.lifeStage' "$shell"; then
-            echo '::error title=Raw life-stage enum delivered::Canonical product shell bypasses the display mapper.'
+          if grep --fixed-strings --quiet "meta.textContent = [preview.city, preview.lifeStage]" "$shell"; then
+            echo '::error title=Raw preview life-stage delivered::Canonical product shell bypasses the display mapper.'
+            exit 1
+          fi
+          if grep --fixed-strings --quiet "meta.textContent = [profile.display.city, profile.display.lifeStage]" "$shell"; then
+            echo '::error title=Raw discovery life-stage delivered::Canonical product shell bypasses the display mapper.'
             exit 1
           fi
 
