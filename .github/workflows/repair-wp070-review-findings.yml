@@ -18,7 +18,7 @@ jobs:
           ref: feature/wp070-profile-image-preparation
           fetch-depth: 0
 
-      - name: Apply reviewed compatibility and observer fixes
+      - name: Apply reviewed compatibility, build and SQL fixes
         shell: bash
         run: |
           set -euo pipefail
@@ -27,71 +27,110 @@ jobs:
 
           migration = Path('supabase/migrations/20260805084500_profile_image_preparation.sql')
           sql = migration.read_text()
-          old = "alter table public.privacy_portraits\n  alter column preparation_id set not null,"
-          new = "alter table public.privacy_portraits\n  alter column preparation_id set default gen_random_uuid(),\n  alter column preparation_id set not null,"
-          if old not in sql:
-              raise SystemExit('preparation default marker not found')
-          migration.write_text(sql.replace(old, new, 1))
+          sql = sql.replace(
+              "alter table public.privacy_portraits\n  alter column preparation_id set not null,",
+              "alter table public.privacy_portraits\n  alter column preparation_id set default gen_random_uuid(),\n  alter column preparation_id set not null,",
+              1
+          )
+          duplicate_cleanup_marker = "create unique index if not exists privacy_portraits_preparation_role_unique"
+          duplicate_cleanup = """with ranked_selected as (
+            select id,
+                   row_number() over (
+                     partition by user_id
+                     order by updated_at desc, created_at desc, id desc
+                   ) as selected_rank
+            from public.privacy_portraits
+            where is_public_profile_portrait
+          )
+          update public.privacy_portraits portrait
+          set is_public_profile_portrait = false,
+              updated_at = timezone('utc', now())
+          from ranked_selected ranked
+          where portrait.id = ranked.id
+            and ranked.selected_rank > 1;
 
-          controller = Path('apps/private-preview/profile-image-preparation.js')
-          source = controller.read_text()
-          old_block = '''function applyPreparedPreview() {
-            if (!preparedCardUrl) return;
-            const portraitPreview = document.querySelector('#rv-portrait-preview');
-            if (portraitPreview) {
-              const image = document.createElement('img');
-              image.src = preparedCardUrl;
-              image.alt = '';
-              portraitPreview.replaceChildren(image);
-              setBackdrop(portraitPreview, image);
-            }
-            const profileMedia = document.querySelector('#rv-profile-preview .rv-profile-preview-media');
-            if (profileMedia) {
-              const image = document.createElement('img');
-              image.src = preparedCardUrl;
-              image.alt = '';
-              profileMedia.replaceChildren(image);
-              setBackdrop(profileMedia, image);
-            }
-          }'''
-          new_block = '''function ensurePreparedImage(container) {
-            if (!container || !preparedCardUrl) return;
-            let image = container.querySelector(':scope > img');
-            if (image?.src !== preparedCardUrl) {
-              image = document.createElement('img');
-              image.src = preparedCardUrl;
-              image.alt = '';
-              container.replaceChildren(image);
-            }
-            setBackdrop(container, image);
-          }
+          """
+          if duplicate_cleanup not in sql:
+              if duplicate_cleanup_marker not in sql:
+                  raise SystemExit('portrait index marker not found')
+              sql = sql.replace(duplicate_cleanup_marker, duplicate_cleanup + duplicate_cleanup_marker, 1)
 
-          function applyPreparedPreview() {
-            if (!preparedCardUrl) return;
-            ensurePreparedImage(document.querySelector('#rv-portrait-preview'));
-            ensurePreparedImage(document.querySelector('#rv-profile-preview .rv-profile-preview-media'));
-          }'''
-          if old_block not in source:
-              raise SystemExit('prepared preview marker not found')
-          controller.write_text(source.replace(old_block, new_block, 1))
+          sql = sql.replace(
+              "  if p_source_width not between 1 and 20000 or p_source_height not between 1 and 20000 then",
+              "  if coalesce(p_source_width, 0) not between 1 and 20000\n     or coalesce(p_source_height, 0) not between 1 and 20000 then",
+              1
+          )
+          sql = sql.replace(
+              "  if p_focal_x not between 0 and 1 or p_focal_y not between 0 and 1 then",
+              "  if coalesce(p_focal_x, -1) not between 0 and 1\n     or coalesce(p_focal_y, -1) not between 0 and 1 then",
+              1
+          )
+          sql = sql.replace(
+              "  if p_zoom not between 1 and 3 then raise exception 'invalid zoom'; end if;",
+              "  if coalesce(p_zoom, 0) not between 1 and 3 then raise exception 'invalid zoom'; end if;",
+              1
+          )
+          sql = sql.replace(
+              "  v_prefix := v_user_id::text || '/prepared/' || p_preparation_id::text || '/';\n  if p_source_object_path <> v_prefix || 'source.webp'\n     or p_card_object_path <> v_prefix || 'card-4x5.webp'\n     or p_avatar_object_path <> v_prefix || 'avatar-square.webp' then",
+              "  perform pg_advisory_xact_lock(hashtextextended(v_user_id::text, 0));\n\n  v_prefix := v_user_id::text || '/prepared/' || p_preparation_id::text || '/';\n  if p_source_object_path is distinct from (v_prefix || 'source.webp')\n     or p_card_object_path is distinct from (v_prefix || 'card-4x5.webp')\n     or p_avatar_object_path is distinct from (v_prefix || 'avatar-square.webp') then",
+              1
+          )
+          migration.write_text(sql)
+
+          build = Path('scripts/build-private-preview.mjs')
+          source = build.read_text()
+          old_files = "['auth-session.js', 'backend-contract.js', 'onboarding-repository.js', 'account-experience.js']"
+          new_files = "['auth-session.js', 'backend-contract.js', 'onboarding-repository.js', 'account-experience.js', 'profile-image-preparation.js']"
+          if new_files not in source:
+              if old_files not in source:
+                  raise SystemExit('shared browser source copy marker not found')
+              source = source.replace(old_files, new_files, 1)
+          build.write_text(source)
+
+          finalizer = Path('scripts/finalize-discovery-deck-artifact.mjs')
+          source = finalizer.read_text()
+          old_stat = "for (const file of ['discovery-deck.js', 'discovery-deck.css', 'discovery-portrait-fallback.js'])"
+          new_stat = "for (const file of ['discovery-deck.js', 'discovery-deck.css', 'discovery-portrait-fallback.js', 'profile-image-preparation.js', 'profile-image-preparation.css', 'src/profile-image-preparation.js'])"
+          if new_stat not in source:
+              if old_stat not in source:
+                  raise SystemExit('artifact stat marker not found')
+              source = source.replace(old_stat, new_stat, 1)
+          old_routes = "    '/discovery-portrait-fallback.js'\n"
+          new_routes = "    '/discovery-portrait-fallback.js',\n    '/profile-image-preparation.js',\n    '/profile-image-preparation.css',\n    '/src/profile-image-preparation.js'\n"
+          if "'/profile-image-preparation.js'" not in source:
+              if old_routes not in source:
+                  raise SystemExit('cache route marker not found')
+              source = source.replace(old_routes, new_routes, 1)
+          finalizer.write_text(source)
           PY
 
       - name: Verify repaired markers
         run: |
           set -euo pipefail
           grep -Fq 'alter column preparation_id set default gen_random_uuid()' supabase/migrations/20260805084500_profile_image_preparation.sql
+          grep -Fq 'pg_advisory_xact_lock' supabase/migrations/20260805084500_profile_image_preparation.sql
+          grep -Fq "is distinct from (v_prefix || 'card-4x5.webp')" supabase/migrations/20260805084500_profile_image_preparation.sql
+          grep -Fq "'profile-image-preparation.js'" scripts/build-private-preview.mjs
+          grep -Fq "'/profile-image-preparation.css'" scripts/finalize-discovery-deck-artifact.mjs
           grep -Fq 'function ensurePreparedImage(container)' apps/private-preview/profile-image-preparation.js
           node --check apps/private-preview/profile-image-preparation.js
+          node --check apps/web/src/profile-image-preparation.js
+          node --check scripts/build-private-preview.mjs
+          node --check scripts/finalize-discovery-deck-artifact.mjs
 
       - name: Commit repair
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add supabase/migrations/20260805084500_profile_image_preparation.sql apps/private-preview/profile-image-preparation.js
+          git add \
+            supabase/migrations/20260805084500_profile_image_preparation.sql \
+            apps/private-preview/profile-image-preparation.js \
+            scripts/build-private-preview.mjs \
+            scripts/finalize-discovery-deck-artifact.mjs
           if git diff --cached --quiet; then
             echo 'No repair changes required.'
             exit 0
           fi
-          git commit -m 'fix(images): apply WP-070 internal review findings'
+          git commit -m 'fix(images): harden WP-070 build and persistence contracts'
           git push origin HEAD:feature/wp070-profile-image-preparation
