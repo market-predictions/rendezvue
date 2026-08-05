@@ -1,0 +1,120 @@
+name: Apply WP071 governance records
+
+on:
+  push:
+    branches:
+      - ux/wp071-profile-form-hierarchy
+    paths:
+      - '.github/workflows/patch-wp071-governance.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Patch roadmap and governance records
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, before, after):
+              file = Path(path)
+              source = file.read_text(encoding='utf-8')
+              if source.count(before) != 1:
+                  raise RuntimeError(f'{path}: expected exactly one marker')
+              file.write_text(source.replace(before, after, 1), encoding='utf-8')
+
+          changelog_section = '''### Profile-form visual hierarchy and premium UX
+
+- Added WP-071 after owner field review showed that field labels and entered values had almost equal visual weight.
+- Established an explicit hierarchy: compact supporting labels, larger primary values and quiet section grouping.
+- Increased input/select scanability while retaining minimum touch-target height and permanently visible labels.
+- Added calmer fieldset surfaces, consistent spacing, hover/focus states and focus-linked label feedback.
+- Allocated more desktop width to the relationship-intent column and preserved one-column mobile behaviour.
+- Added source, generated-artifact and commit-matched canonical CSS verification plus a dedicated regression suite.
+- No profile data contracts, Auth, RLS, Storage or real-user authorization were changed.
+
+'''
+          replace_once('CHANGELOG.md', '## [Unreleased]\n\n', '## [Unreleased]\n\n' + changelog_section)
+
+          replace_once('docs/ROADMAP.md', '**Version:** 2.12', '**Version:** 2.13')
+          roadmap_section = '''### 2O. Profile-form visual hierarchy and premium UX
+
+**Status:** WP-071 implementation in review; canonical owner verification pending.
+
+The profile form now separates section grouping, supporting field labels and primary entered values through an explicit typography and spacing contract. Labels are smaller and quieter, values are larger and easier to scan, focus states are stronger, and the relationship-intent column receives more desktop width. Mobile remains single-column with full-size touch targets. The regression suite and canonical verifier guard these visual hierarchy invariants. Detailed evidence: `docs/WP-071-PROFILE-FORM-UX.md`.
+
+'''
+          replace_once('docs/ROADMAP.md', '## Phase 3 — Closed city-based PWA pilot', roadmap_section + '## Phase 3 — Closed city-based PWA pilot')
+
+          workpackage_section = '''## WP-071 — Profile-form visual hierarchy and premium UX
+
+**Status:** implementation in review; canonical owner verification pending; issue #98  
+The long profile form now gives section grouping, field labels and entered values deliberately different visual roles. Direct labels are compact supporting copy, values are the primary scan target, controls retain accessible touch targets and focus treatment, the relationship-intent column receives more desktop width, and all sections collapse to one column below 680 px. A dedicated regression and canonical stylesheet verifier prevent the hierarchy from silently collapsing again. Detailed evidence: `docs/WP-071-PROFILE-FORM-UX.md`.
+
+'''
+          replace_once('docs/WORKPACKAGES.md', '## WP-080 — Closed city pilot readiness', workpackage_section + '## WP-080 — Closed city pilot readiness')
+
+          replace_once(
+              'docs/WORK-CLAIMS.md',
+              '| WC-070 | Stored relationship-intent and life-stage identifiers are translated before customer-facing profile display. | Implemented and seed-vocabulary tested | issue #94, WP-069C model/renderer tests and canonical `synthetic-seed/profiles.json` vocabulary regression | Canonical owner verification remains pending; future seed values must receive explicit Dutch/English labels before tests pass. |',
+              '| WC-070 | Stored relationship-intent and life-stage identifiers are translated before customer-facing profile display. | Implemented and seed-vocabulary tested | issue #94, WP-069C model/renderer tests and canonical `synthetic-seed/profiles.json` vocabulary regression | Canonical owner verification remains pending; future seed values must receive explicit Dutch/English labels before tests pass. |\n| WC-071 | The profile form presents section headings, supporting labels and entered values with a stable, accessible visual hierarchy on desktop and mobile. | Implemented in source and regression-tested | issue #98, `apps/web/tests/profile-form-ux.test.mjs`, WP-071 source/artifact/canonical verifier | Canonical delivery and owner visual acceptance remain pending; this is not a full independent accessibility audit. |'
+          )
+
+          replace_once(
+              'docs/HANDOVER.md',
+              '**Milestone:** WP-069C seeded relationship-intent vocabulary corrected; canonical owner verification pending',
+              '**Milestone:** WP-071 profile-form hierarchy implemented; canonical owner verification pending'
+          )
+          replace_once(
+              'docs/HANDOVER.md',
+              '- Profile display-label correction: issue #94 / WP-069C.\n',
+              '- Profile display-label correction: issue #94 / WP-069C.\n- Profile-form visual hierarchy: issue #98 / WP-071 / `docs/WP-071-PROFILE-FORM-UX.md`.\n'
+          )
+          handover_section = '''## Current WP-071 profile-form UX correction
+
+Owner field review showed that the profile form gave labels and values almost equal visual weight, making the surface dense and prototype-like. WP-071 now uses compact supporting labels, larger primary values, calmer section grouping, consistent spacing and stronger focus treatment. The relationship-intent column receives more desktop width, while the mobile form remains one column with full-size controls. The technical contract is covered by `apps/web/tests/profile-form-ux.test.mjs` and a source/generated/canonical stylesheet verifier. Issue #98 remains open until canonical desktop and mobile visual acceptance is recorded. Real-user admission remains unauthorized.
+
+'''
+          replace_once('docs/HANDOVER.md', '## Current WP-069C display-label correction', handover_section + '## Current WP-069C display-label correction')
+          PY
+
+      - name: Validate WP-071 implementation
+        shell: bash
+        env:
+          SUPABASE_URL: https://example.supabase.co
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_only_placeholder_00000000000000000000
+        run: |
+          set -euo pipefail
+          npm ci
+          npm test
+          npm run validate:synthetic-seed
+          npm run build:cloudflare
+          grep --fixed-strings --quiet 'WP-071: make the value the primary scan target' dist-private-preview/product-shell.css
+          grep --fixed-strings --quiet 'font-size: 0.78rem' dist-private-preview/product-shell.css
+          grep --fixed-strings --quiet 'font-size: 1.03rem' dist-private-preview/product-shell.css
+
+      - name: Commit governance records
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add CHANGELOG.md docs/ROADMAP.md docs/WORKPACKAGES.md docs/WORK-CLAIMS.md docs/HANDOVER.md
+          git diff --cached --check
+          git commit -m 'Document WP-071 profile-form hierarchy'
+          git push origin "HEAD:${GITHUB_REF_NAME}"
