@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   buildOnboardingPayload,
   derivePartnerSex,
@@ -27,11 +28,36 @@ test('Dutch is the product default and English has complete key parity', () => {
 test('profile enums are localized before customer-facing display', () => {
   assert.equal(profileDisplayValue('nl', 'relationshipIntent', 'serious_relationship'), 'Serieuze relatie');
   assert.equal(profileDisplayValue('en', 'relationshipIntent', 'serious_relationship'), 'Serious relationship');
+  assert.equal(profileDisplayValue('nl', 'relationshipIntent', 'marriage_oriented'), 'Kennismaking met huwelijk als doel');
+  assert.equal(profileDisplayValue('en', 'relationshipIntent', 'marriage_oriented'), 'Getting to know someone with marriage in mind');
   assert.equal(profileDisplayValue('nl', 'lifeStage', 'recent_graduate'), 'Recent afgestudeerd');
   assert.equal(profileDisplayValue('en', 'lifeStage', 'self_employed'), 'Self-employed');
   assert.equal(profileDisplayValue('nl', 'relationshipIntent', 'Kennismaking met huwelijk als doel'), 'Kennismaking met huwelijk als doel');
   assert.equal(profileDisplayValue('nl', 'relationshipIntent', 'future_enum_value'), 'Future enum value');
   assert.equal(profileDisplayValue('nl', 'relationshipIntent', 'serious_relationship').includes('_'), false);
+});
+
+test('every synthetic seed relationship intent has explicit bilingual copy', () => {
+  const profiles = JSON.parse(readFileSync(
+    new URL('../../../synthetic-seed/profiles.json', import.meta.url),
+    'utf8'
+  ));
+  const expected = Object.freeze({
+    marriage_oriented: Object.freeze({
+      nl: 'Kennismaking met huwelijk als doel',
+      en: 'Getting to know someone with marriage in mind'
+    }),
+    serious_relationship: Object.freeze({
+      nl: 'Serieuze relatie',
+      en: 'Serious relationship'
+    })
+  });
+  const intents = [...new Set(profiles.map((profile) => profile.relationship_intent))].sort();
+  assert.deepEqual(intents, Object.keys(expected).sort());
+  for (const intent of intents) {
+    assert.equal(profileDisplayValue('nl', 'relationshipIntent', intent), expected[intent].nl);
+    assert.equal(profileDisplayValue('en', 'relationshipIntent', intent), expected[intent].en);
+  }
 });
 
 test('partner preference is derived only from sex', () => {
