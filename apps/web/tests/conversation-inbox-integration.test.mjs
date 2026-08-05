@@ -62,6 +62,7 @@ test('desktop and mobile layouts retain clear selected-conversation context', ()
   assert.match(css, /\.rv-messaging-shell\.conversation-open \.rv-thread-panel \{ display: none; \}/);
   assert.match(css, /\.rv-messaging-shell\.conversation-open \.rv-conversation-panel \{ display: grid; \}/);
   assert.match(css, /\.rv-conversation-back \{ display: inline-flex; \}/);
+  assert.doesNotMatch(css, /\.rv-safety-grid \{\.rv-safety-grid \{/);
 });
 
 test('conversation navigation copy has Dutch and English parity', () => {
