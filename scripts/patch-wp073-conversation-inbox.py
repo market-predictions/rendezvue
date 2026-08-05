@@ -135,7 +135,7 @@ replace_once(
     "    if (signalType === 'like') await loadMatch();",
     "    if (signalType === 'like') await conversationInbox.load(state.user);"
 )
-replace_between(shell, 'function otherParticipant(match) {', 'function bindEvents() {', 'function bindEvents() {')
+replace_between(shell, 'function otherParticipant(match) {', 'function bindEvents() {', '')
 
 for obsolete in [
     "  document.querySelector('#rv-refresh-match')?.addEventListener('click', () => loadMatch().catch((error) => setStatus(matchStatus, errorMessage(error), 'error')));\n",
