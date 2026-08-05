@@ -7,6 +7,7 @@ on:
       - '.github/workflows/record-cloudflare-migration-status.yml'
       - '.github/workflows/configure-cloudflare-staging.yml'
       - '.github/workflows/verify-cloudflare-staging.yml'
+      - '.github/workflows/verify-wp069c-display-labels.yml'
       - 'apps/private-preview/**'
       - 'scripts/build-private-preview.mjs'
       - 'scripts/validate-private-preview.mjs'
@@ -42,22 +43,22 @@ jobs:
               --header 'X-GitHub-Api-Version: 2022-11-28' \
               "/repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$GITHUB_SHA&per_page=100" > "$snapshot"
 
-            unsettled="$(node --input-type=module - "$snapshot" "$GITHUB_RUN_ID" <<'NODE'
-            import { readFileSync } from 'node:fs';
-            const data = JSON.parse(readFileSync(process.argv[2], 'utf8'));
-            const self = Number(process.argv[3]);
-            const relevant = data.workflow_runs.filter((run) =>
-              run.id !== self && [
+            unsettled="$(node --input-type=module --eval "
+              import { readFileSync } from 'node:fs';
+              const data = JSON.parse(readFileSync(process.argv[1], 'utf8'));
+              const self = Number(process.argv[2]);
+              const names = new Set([
                 'Configure Cloudflare staging backend',
                 'Verify Cloudflare Pages staging',
+                'Verify WP069C customer-facing profile labels',
                 'CI'
-              ].includes(run.name)
-            );
-            console.log(relevant.filter((run) => run.status !== 'completed').length);
-            NODE
-            )"
+              ]);
+              const relevant = data.workflow_runs.filter((run) => run.id !== self && names.has(run.name));
+              process.stdout.write(String(relevant.filter((run) => run.status !== 'completed').length));
+            " "$snapshot" "$GITHUB_RUN_ID")"
 
             [[ "$unsettled" == "0" ]] && break
+            echo "Related workflows still running (attempt $attempt, unsettled=$unsettled)."
             sleep 30
           done
 
@@ -82,6 +83,7 @@ jobs:
           const names = new Set([
             'Configure Cloudflare staging backend',
             'Verify Cloudflare Pages staging',
+            'Verify WP069C customer-facing profile labels',
             'CI',
             'Seed synthetic Rendezvue profiles'
           ]);
