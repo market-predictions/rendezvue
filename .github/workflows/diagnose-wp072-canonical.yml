@@ -1,0 +1,71 @@
+name: Diagnose WP072 canonical delivery
+
+on:
+  push:
+    branches:
+      - fix/wp072-canonical-diagnostics
+    paths:
+      - '.github/workflows/diagnose-wp072-canonical.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    env:
+      STAGING_URL: https://rendezvue-private-preview.pages.dev/
+      EXPECTED_SHA: 0d47109f5f6caedf3ffd170c418aeecb571f049b
+    steps:
+      - name: Inspect canonical public assets
+        shell: bash
+        run: |
+          set -u
+          shell_file="$RUNNER_TEMP/product-shell.js"
+          model_file="$RUNNER_TEMP/contact-entitlement-model.js"
+          metadata="$RUNNER_TEMP/deployment.json"
+
+          for spec in \
+            "product-shell.js:$shell_file" \
+            "contact-entitlement-model.js:$model_file" \
+            "deployment.json:$metadata"; do
+            name="${spec%%:*}"
+            file="${spec#*:}"
+            status="$(curl --silent --show-error --location \
+              --output "$file" --write-out '%{http_code}' \
+              --header 'cache-control: no-cache' \
+              "${STAGING_URL}${name}?commit=${EXPECTED_SHA}&diagnostic=${GITHUB_RUN_ID}" || true)"
+            echo "ASSET ${name}: HTTP ${status}; bytes $(wc -c < "$file" 2>/dev/null || echo 0)"
+            file "$file" || true
+          done
+
+          echo '--- deployment metadata ---'
+          cat "$metadata" || true
+
+          echo '--- product-shell markers ---'
+          for marker in \
+            "claim_private_proof_entitlement" \
+            "contact entitlement activation" \
+            "contactOpenErrorMessage(error, state.language)" \
+            "contact-entitlement-model.js"; do
+            if grep --fixed-strings --line-number "$marker" "$shell_file"; then
+              echo "PASS shell: $marker"
+            else
+              echo "FAIL shell: $marker"
+            fi
+          done
+
+          echo '--- entitlement model markers ---'
+          for marker in \
+            "Het eenmalige test-contactrecht is al gebruikt of niet meer geldig." \
+            "The one-time test contact right has already been used or is no longer valid." \
+            "contactOpenErrorMessage"; do
+            if grep --fixed-strings --line-number "$marker" "$model_file"; then
+              echo "PASS model: $marker"
+            else
+              echo "FAIL model: $marker"
+            fi
+          done
+
+          echo '--- model first lines ---'
+          sed -n '1,40p' "$model_file" || true
