@@ -361,24 +361,22 @@ function decoratePortraitRendering(root = document) {
   }
 }
 
+function ensurePreparedImage(container) {
+  if (!container || !preparedCardUrl) return;
+  let image = container.querySelector(':scope > img');
+  if (image?.src !== preparedCardUrl) {
+    image = document.createElement('img');
+    image.src = preparedCardUrl;
+    image.alt = '';
+    container.replaceChildren(image);
+  }
+  setBackdrop(container, image);
+}
+
 function applyPreparedPreview() {
   if (!preparedCardUrl) return;
-  const portraitPreview = document.querySelector('#rv-portrait-preview');
-  if (portraitPreview) {
-    const image = document.createElement('img');
-    image.src = preparedCardUrl;
-    image.alt = '';
-    portraitPreview.replaceChildren(image);
-    setBackdrop(portraitPreview, image);
-  }
-  const profileMedia = document.querySelector('#rv-profile-preview .rv-profile-preview-media');
-  if (profileMedia) {
-    const image = document.createElement('img');
-    image.src = preparedCardUrl;
-    image.alt = '';
-    profileMedia.replaceChildren(image);
-    setBackdrop(profileMedia, image);
-  }
+  ensurePreparedImage(document.querySelector('#rv-portrait-preview'));
+  ensurePreparedImage(document.querySelector('#rv-profile-preview .rv-profile-preview-media'));
 }
 
 function editorMarkup() {

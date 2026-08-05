@@ -33,6 +33,7 @@ where preparation_id is null
    or crop_aspect is null;
 
 alter table public.privacy_portraits
+  alter column preparation_id set default gen_random_uuid(),
   alter column preparation_id set not null,
   alter column focal_x set default 0.5,
   alter column focal_x set not null,
