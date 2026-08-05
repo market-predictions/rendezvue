@@ -289,7 +289,8 @@ const PROFILE_DISPLAY_LABELS = Object.freeze({
     relationshipIntent: Object.freeze({
       serious_relationship: 'Serieuze relatie',
       serious_introduction: 'Serieuze kennismaking',
-      marriage_intent: 'Kennismaking met huwelijk als doel'
+      marriage_intent: 'Kennismaking met huwelijk als doel',
+      marriage_oriented: 'Kennismaking met huwelijk als doel'
     }),
     lifeStage: Object.freeze({
       student: 'Student',
@@ -302,7 +303,8 @@ const PROFILE_DISPLAY_LABELS = Object.freeze({
     relationshipIntent: Object.freeze({
       serious_relationship: 'Serious relationship',
       serious_introduction: 'Serious introduction',
-      marriage_intent: 'Getting to know someone with marriage in mind'
+      marriage_intent: 'Getting to know someone with marriage in mind',
+      marriage_oriented: 'Getting to know someone with marriage in mind'
     }),
     lifeStage: Object.freeze({
       student: 'Student',

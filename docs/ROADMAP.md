@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 2.11  
+**Version:** 2.12  
 **Updated:** 2026-08-05
 
 ## Operating doctrine
@@ -324,9 +324,9 @@ Detailed evidence: `docs/WP-067-INTEGRATED-PRODUCT-SHELL.md`.
 
 ### 2N. Customer-facing profile value presentation
 
-**Status:** WP-069C implementation complete; canonical owner verification pending.
+**Status:** WP-069C implementation corrected after owner field review; canonical owner verification pending.
 
-Profile preview and discovery now translate stable backend relationship-intent and life-stage values at the presentation boundary. Known Dutch and English labels are explicit, custom prose remains untouched and unknown snake-case values are humanised rather than exposed as implementation identifiers.
+Profile preview and discovery translate stable backend relationship-intent and life-stage values at the presentation boundary. The complete synthetic-seed relationship-intent vocabulary (`serious_relationship` and `marriage_oriented`) now has explicit Dutch and English copy, and the regression suite derives that vocabulary directly from the canonical seed. Custom prose remains untouched and unknown snake-case values are humanised rather than exposed with underscores.
 
 ## Phase 3 — Closed city-based PWA pilot
 

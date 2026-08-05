@@ -1,7 +1,7 @@
 # Project handover
 
 **Updated:** 2026-08-05  
-**Milestone:** WP-069C human-readable profile labels implemented; canonical owner verification pending
+**Milestone:** WP-069C seeded relationship-intent vocabulary corrected; canonical owner verification pending
 
 ## GitHub state
 
@@ -22,7 +22,7 @@
 
 ## Current WP-069C display-label correction
 
-Owner testing confirmed the WP-069B image upload and crop flow works, but exposed `serious_relationship` in customer-facing profile copy. WP-069C adds a shared Dutch/English display mapper for relationship intent and life stage, preserves custom prose and humanises unknown snake-case values. Issue #94 remains open until the canonical deployment is visually confirmed.
+Owner testing confirmed the WP-069B image upload and crop flow works, but first exposed `serious_relationship` and then mixed Dutch/English labels because the seeded alias `marriage_oriented` was not explicitly mapped. WP-069C now covers the complete relationship-intent vocabulary found in `synthetic-seed/profiles.json`: `serious_relationship` and `marriage_oriented`, in both Dutch and English. The regression suite reads the canonical seed directly, while the shared display boundary continues to preserve genuine custom prose and localize life-stage values. Issue #94 remains open until the corrected canonical deployment is visually confirmed.
 
 ## Current WP-069 image-quality milestone
 

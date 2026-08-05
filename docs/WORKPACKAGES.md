@@ -145,7 +145,7 @@ Arbitrary JPEG/PNG/WebP uploads now enter a user-controlled 4:5 framing flow wit
 ## WP-069C — Human-readable customer-facing profile labels
 
 **Status:** implementation complete; canonical owner verification pending; issue #94  
-Stored backend values such as `serious_relationship`, `recent_graduate` and `self_employed` are now translated at one shared profile-display boundary before reaching preview or discovery. Dutch/English labels are explicit, genuine custom text remains unchanged and unknown snake-case values are humanised without underscores. Regression tests prevent direct rendering of stored enum values.
+Stored backend values such as `serious_relationship`, `marriage_oriented`, `recent_graduate` and `self_employed` are translated at one shared profile-display boundary before reaching preview or discovery. The regression suite reads `synthetic-seed/profiles.json` and requires every seeded relationship-intent value to have explicit Dutch and English copy. Genuine custom text remains unchanged, unknown snake-case values are humanised without underscores, and direct rendering of stored enum values remains prohibited.
 
 ## WP-070 — Trust and safety operations
 

@@ -9,6 +9,8 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Added WP-069C after owner field review exposed `serious_relationship` in visible profile copy.
 - Added one shared Dutch/English presentation mapper for relationship-intent and life-stage values.
 - `serious_relationship` now renders as `Serieuze relatie` in Dutch and `Serious relationship` in English.
+- Completed seeded relationship-intent coverage: `marriage_oriented` now renders as `Kennismaking met huwelijk als doel` in Dutch and `Getting to know someone with marriage in mind` in English.
+- Added a regression that derives the complete relationship-intent vocabulary from `synthetic-seed/profiles.json`, so a new seed value cannot bypass explicit Dutch/English copy.
 - Added explicit labels for `student`, `recent_graduate`, `employed` and `self_employed`.
 - Preserved genuine custom text and humanised unknown snake-case values without underscores.
 - Applied the display boundary to both profile preview and discovery.
