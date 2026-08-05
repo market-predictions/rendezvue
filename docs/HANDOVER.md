@@ -1,7 +1,7 @@
 # Project handover
 
 **Updated:** 2026-08-05  
-**Milestone:** WP-071 profile-form hierarchy implemented; canonical owner verification pending
+**Milestone:** WP-072 contact-entitlement activation repaired; canonical owner verification pending
 
 ## GitHub state
 
@@ -17,9 +17,14 @@
 - Integrated product shell: issue #74 / PR #75 / verifier repair PR #76 / `docs/WP-067-INTEGRATED-PRODUCT-SHELL.md`.
 - Profile display-label correction: issue #94 / WP-069C.
 - Profile-form visual hierarchy: issue #98 / WP-071 / `docs/WP-071-PROFILE-FORM-UX.md`.
+- Synthetic contact-entitlement activation: issue #100 / WP-072 / `docs/WP-072-CONTACT-ENTITLEMENT-ACTIVATION.md`.
 - Detailed WP-057 completion record: `docs/WP-057-COMPLETION.md`.
 - Supabase project: `RendezvueProject`, Healthy, West EU (Ireland), Nano.
 - Real-user admission is not authorized.
+
+## Current WP-072 contact-entitlement repair
+
+Canonical owner testing exposed `conversation open: no contact entitlement available` despite an active match. The current product stored `synthetic-product-2026-08`, while the private entitlement helper accepted only `synthetic-proof-2026-07`; the browser also ignored the first RPC error because it did not unwrap the Supabase response. WP-072 allowlists both controlled synthetic versions, keeps unknown terms fail-closed, validates entitlement activation before conversation opening and maps failures to bilingual product copy. Issue #100 remains open until the existing Proof Noor conversation opens successfully after canonical deployment and hard refresh. Real-user admission remains unauthorized.
 
 ## Current WP-071 profile-form UX correction
 

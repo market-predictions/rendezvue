@@ -1,6 +1,6 @@
 begin;
 
-select plan(33);
+select plan(35);
 
 select ok(to_regprocedure('public.claim_private_proof_entitlement()') is not null, 'private proof entitlement RPC exists');
 select ok(to_regprocedure('public.end_match_contact(uuid)') is not null, 'end contact RPC exists');
@@ -29,7 +29,7 @@ insert into public.eligibility (
   user_id, current_relationship_state, adult_confirmed, serious_intent_confirmed,
   community_fit_confirmed, terms_version, confirmed_at
 ) values
-  ('00000000-0000-0000-0000-00000000a101', 'single', true, true, true, 'synthetic-proof-2026-07', now()),
+  ('00000000-0000-0000-0000-00000000a101', 'single', true, true, true, 'synthetic-product-2026-08', now()),
   ('00000000-0000-0000-0000-00000000b202', 'single', true, true, true, 'synthetic-proof-2026-07', now()),
   ('00000000-0000-0000-0000-00000000c303', 'single', true, true, true, 'ordinary-terms', now());
 
@@ -59,6 +59,12 @@ select is((select count(*) from public.contact_entitlements), 1::bigint, 'one en
 select is((select status::text from public.contact_entitlements limit 1), 'available', 'claimed entitlement is available');
 select is(public.claim_private_proof_entitlement(), (select id from public.contact_entitlements limit 1), 'repeated claim returns same entitlement');
 select is((select count(*) from public.contact_entitlements), 1::bigint, 'repeated claim does not create another entitlement');
+reset role;
+
+set local "request.jwt.claims" = '{"sub":"00000000-0000-0000-0000-00000000b202","role":"authenticated"}';
+set local role authenticated;
+select ok(public.claim_private_proof_entitlement() is not null, 'legacy proof terms can still claim entitlement');
+select is((select status::text from public.contact_entitlements limit 1), 'available', 'legacy entitlement is available to its owner');
 reset role;
 
 set local "request.jwt.claims" = '{"sub":"00000000-0000-0000-0000-00000000c303","role":"authenticated"}';

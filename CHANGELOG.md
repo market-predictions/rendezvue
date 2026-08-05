@@ -4,6 +4,16 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
+### Synthetic contact-entitlement activation
+
+- Added WP-072 after canonical owner testing exposed `conversation open: no contact entitlement available` for a valid active synthetic match.
+- Aligned the private proof entitlement allowlist with the current `synthetic-product-2026-08` onboarding contract while retaining `synthetic-proof-2026-07` compatibility.
+- Kept ordinary and unknown terms fail-closed and preserved the immutable one-time entitlement audit invariant.
+- Made the product shell unwrap entitlement activation before opening a conversation instead of silently ignoring Supabase RPC errors.
+- Replaced raw database errors with bilingual participant-facing contact messages.
+- Added application, pgTAP, generated-artifact and commit-matched canonical regression controls.
+- Real-user admission remains unauthorized.
+
 ### Profile-form visual hierarchy and premium UX
 
 - Added WP-071 after owner field review showed that field labels and entered values had almost equal visual weight.

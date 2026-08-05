@@ -12,6 +12,7 @@ import {
   projectDiscoveryProfile,
   resolveProductTab
 } from './product-model.js';
+import { contactOpenErrorMessage } from './contact-entitlement-model.js';
 
 const STYLE_ID = 'rendezvue-product-shell-style';
 if (!document.querySelector(`#${STYLE_ID}`)) {
@@ -877,12 +878,10 @@ async function openConversation(button) {
   if (!state.activeMatch) return;
   button.disabled = true;
   try {
-    try {
-      await supabase.rpc('claim_private_proof_entitlement');
-    } catch {
-      // A right may already exist or have been consumed; the authoritative
-      // conversation-opening function decides whether the action is allowed.
-    }
+    unwrap(
+      await supabase.rpc('claim_private_proof_entitlement'),
+      'contact entitlement activation'
+    );
     unwrap(await supabase.rpc('open_match_conversation', {
       p_match_id: state.activeMatch.id,
       p_idempotency_key: `product-shell-${state.activeMatch.id}`
@@ -891,7 +890,7 @@ async function openConversation(button) {
     renderMatch();
     setStatus(matchStatus, t('matches.open'), 'success');
   } catch (error) {
-    setStatus(matchStatus, errorMessage(error), 'error');
+    setStatus(matchStatus, contactOpenErrorMessage(error, state.language), 'error');
   } finally {
     button.disabled = false;
   }

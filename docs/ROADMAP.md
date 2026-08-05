@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 2.13  
+**Version:** 2.14  
 **Updated:** 2026-08-05
 
 ## Operating doctrine
@@ -333,6 +333,12 @@ Profile preview and discovery translate stable backend relationship-intent and l
 **Status:** WP-071 implementation in review; canonical owner verification pending.
 
 The profile form now separates section grouping, supporting field labels and primary entered values through an explicit typography and spacing contract. Labels are smaller and quieter, values are larger and easier to scan, focus states are stronger, and the relationship-intent column receives more desktop width. Mobile remains single-column with full-size touch targets. The regression suite and canonical verifier guard these visual hierarchy invariants. Detailed evidence: `docs/WP-071-PROFILE-FORM-UX.md`.
+
+### 2P. Synthetic contact-entitlement activation
+
+**Status:** WP-072 implementation in review; canonical owner verification pending.
+
+The current product onboarding terms and the private synthetic entitlement helper are now aligned. Entitlement activation is validated before conversation opening, older controlled proof fixtures remain supported, unknown terms remain rejected, and raw backend errors are translated into bilingual product copy. Database and browser regressions guard the one-time entitlement and canonical delivery boundaries. Detailed evidence: `docs/WP-072-CONTACT-ENTITLEMENT-ACTIVATION.md`.
 
 ## Phase 3 — Closed city-based PWA pilot
 
