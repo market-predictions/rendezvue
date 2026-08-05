@@ -13,6 +13,7 @@ import {
   resolveProductTab
 } from './product-model.js';
 import { contactOpenErrorMessage } from './contact-entitlement-model.js';
+import { createConversationInboxController } from './conversation-inbox-controller.js';
 
 const STYLE_ID = 'rendezvue-product-shell-style';
 if (!document.querySelector(`#${STYLE_ID}`)) {
@@ -37,13 +38,7 @@ const state = {
   currentTab: 'home',
   localPortraitUrl: null,
   ownPortraitUrl: null,
-  discovery: [],
-  activeMatch: null,
-  activeConversation: null,
-  otherUserId: null,
-  otherProfile: null,
-  matchedPortraitUrl: null,
-  realtimeChannel: null
+  discovery: []
 };
 
 function productTemplate() {
@@ -185,23 +180,45 @@ function productTemplate() {
       </section>
 
       <section class="rv-view" data-rv-view="matches">
-        <article class="rv-card">
-          <div class="rv-section-heading"><div><h2 data-rv-i18n="matches.title">Matches en gesprek</h2><p data-rv-i18n="matches.intro">Een gesprek ontstaat pas na wederzijdse interesse.</p></div><button id="rv-refresh-match" class="secondary" type="button" data-rv-i18n="matches.refresh">Status vernieuwen</button></div>
-          <div id="rv-match-status" class="rv-status" role="status" hidden></div>
-          <div id="rv-match-content" class="rv-empty" data-rv-i18n="matches.none">Nog geen actieve match.</div>
+        <article class="rv-card rv-inbox-card">
+          <div class="rv-section-heading">
+            <div>
+              <h2 data-rv-i18n="matches.title">Matches en gesprekken</h2>
+              <p data-rv-i18n="matches.intro">Bekijk nieuwe matches en ga verder waar je gebleven bent.</p>
+            </div>
+            <button id="rv-refresh-match" class="secondary" type="button" data-rv-i18n="matches.refresh">Vernieuwen</button>
+          </div>
+          <div id="rv-match-status" class="rv-status" role="status" aria-live="polite" hidden></div>
+
+          <div id="rv-messaging-shell" class="rv-messaging-shell">
+            <aside class="rv-thread-panel" aria-label="Matches en gesprekken">
+              <section id="rv-conversation-section" class="rv-thread-section">
+                <h3 data-rv-i18n="matches.conversations">Gesprekken</h3>
+                <div id="rv-conversation-list" class="rv-thread-list"></div>
+              </section>
+              <section id="rv-new-match-section" class="rv-thread-section">
+                <h3 data-rv-i18n="matches.newMatches">Nieuwe matches</h3>
+                <div id="rv-new-match-list" class="rv-thread-list"></div>
+              </section>
+              <section id="rv-ended-match-section" class="rv-thread-section">
+                <h3 data-rv-i18n="matches.endedContacts">Eerdere contacten</h3>
+                <div id="rv-ended-match-list" class="rv-thread-list"></div>
+              </section>
+            </aside>
+
+            <section id="rv-conversation-panel" class="rv-conversation-panel" aria-label="Geselecteerd gesprek">
+              <header id="rv-conversation-header" class="rv-conversation-header"></header>
+              <div id="rv-chat-list" class="rv-chat"><div class="rv-chat-empty" data-rv-i18n="matches.selectConversationHint">Kies links een gesprek of nieuwe match.</div></div>
+              <form id="rv-chat-form" class="rv-chat-form" hidden>
+                <label class="rv-visually-hidden" for="rv-message-body" data-rv-i18n="chat.title">Gesprek</label>
+                <input id="rv-message-body" maxlength="4000" required data-rv-i18n-placeholder="chat.placeholder" placeholder="Schrijf een bericht…">
+                <button type="submit" data-rv-i18n="chat.send">Versturen</button>
+              </form>
+            </section>
+          </div>
         </article>
 
-        <article class="rv-card">
-          <h2 data-rv-i18n="chat.title">Gesprek</h2>
-          <div id="rv-chat-list" class="rv-chat"><div class="rv-chat-empty" data-rv-i18n="chat.empty">Nog geen berichten.</div></div>
-          <form id="rv-chat-form" class="rv-chat-form">
-            <label class="rv-visually-hidden" for="rv-message-body" data-rv-i18n="chat.title">Gesprek</label>
-            <input id="rv-message-body" maxlength="4000" required data-rv-i18n-placeholder="chat.placeholder" placeholder="Schrijf een bericht…">
-            <button type="submit" data-rv-i18n="chat.send">Versturen</button>
-          </form>
-        </article>
-
-        <article class="rv-card">
+        <article id="rv-safety-card" class="rv-card" hidden>
           <h2 data-rv-i18n="safety.title">Contact en veiligheid</h2>
           <div class="rv-safety-grid">
             <button id="rv-end-contact" class="secondary" type="button" data-rv-i18n="safety.end">Contact beëindigen</button>
@@ -240,10 +257,6 @@ const publishStatus = document.querySelector('#rv-publish-status');
 const discoveryStatus = document.querySelector('#rv-discovery-status');
 const discoveryList = document.querySelector('#rv-discovery-list');
 const matchStatus = document.querySelector('#rv-match-status');
-const matchContent = document.querySelector('#rv-match-content');
-const chatList = document.querySelector('#rv-chat-list');
-const chatForm = document.querySelector('#rv-chat-form');
-const safetyStatus = document.querySelector('#rv-safety-status');
 
 function t(key, replacements) {
   return productCopy(state.language, key, replacements);
@@ -264,6 +277,15 @@ function unwrap(result, operation) {
   if (result?.error) throw new Error(`${operation}: ${result.error.message ?? 'unknown error'}`);
   return result?.data ?? null;
 }
+
+const conversationInbox = createConversationInboxController({
+  supabase,
+  getLanguage: () => state.language,
+  translate: (key, replacements) => t(key, replacements),
+  setStatus,
+  errorMessage,
+  contactOpenErrorMessage
+});
 
 function value(id) {
   return document.querySelector(`#${id}`)?.value ?? '';
@@ -333,8 +355,7 @@ function applyLanguage() {
   renderProgress();
   renderPreview();
   renderDiscovery();
-  renderMatch();
-  renderMessages();
+  conversationInbox.applyLanguage();
 }
 
 function switchTab(tabValue, updateHash = true) {
@@ -351,7 +372,7 @@ function switchTab(tabValue, updateHash = true) {
   if (updateHash) history.replaceState(null, '', `${location.pathname}${location.search}#${tab}`);
   globalThis.scrollTo({ top: Math.max(0, app?.offsetTop - 14), behavior: 'smooth' });
   if (tab === 'discover') loadDiscovery().catch((error) => setStatus(discoveryStatus, errorMessage(error), 'error'));
-  if (tab === 'matches') loadMatch().catch((error) => setStatus(matchStatus, errorMessage(error), 'error'));
+  if (tab === 'matches') conversationInbox.load(state.user).catch((error) => setStatus(matchStatus, errorMessage(error), 'error'));
 }
 
 function renderProgress() {
@@ -538,7 +559,7 @@ async function loadProductState() {
     // A missing portrait is an ordinary incomplete-profile state.
   }
   setStatus(document.querySelector('#rv-global-status'), '', 'info');
-  await Promise.allSettled([loadDiscovery(), loadMatch()]);
+  await Promise.allSettled([loadDiscovery(), conversationInbox.load(state.user)]);
 }
 
 async function saveProfile(event) {
@@ -752,280 +773,9 @@ async function recordSignal(profile, signalType, openingMessage, button) {
     setStatus(discoveryStatus, t(openingMessage ? 'discover.sentContext' : signalType === 'pass' ? 'discover.sentPass' : 'discover.sentLike'), 'success');
     state.discovery = state.discovery.filter((item) => item.key !== profile.key);
     renderDiscovery();
-    if (signalType === 'like') await loadMatch();
+    if (signalType === 'like') await conversationInbox.load(state.user);
   } catch (error) {
     setStatus(discoveryStatus, errorMessage(error), 'error');
-  } finally {
-    button.disabled = false;
-  }
-}
-
-function otherParticipant(match) {
-  if (!match || !state.user) return null;
-  return match.user_a_id === state.user.id ? match.user_b_id : match.user_a_id;
-}
-
-async function loadMatchedPortrait() {
-  state.matchedPortraitUrl = null;
-  if (!state.otherUserId || !state.activeMatch || state.activeMatch.status !== 'active') return null;
-  try {
-    const objectPath = unwrap(await supabase.rpc('get_matched_portrait_path', {
-      p_other_user_id: state.otherUserId
-    }), 'matched portrait access');
-    if (!objectPath) return null;
-    const signed = unwrap(await supabase.storage.from('privacy-portraits').createSignedUrl(objectPath, 300), 'matched portrait URL');
-    state.matchedPortraitUrl = signed.signedUrl;
-    return signed.signedUrl;
-  } catch {
-    return null;
-  }
-}
-
-async function loadOtherProfile() {
-  state.otherProfile = null;
-  if (!state.otherUserId) return null;
-  const row = unwrap(await supabase
-    .from('discovery_profiles')
-    .select('user_id,nickname,sex,city_region,relationship_intent,bio,primary_status,published_at')
-    .eq('user_id', state.otherUserId)
-    .maybeSingle(), 'matched profile load');
-  if (row) state.otherProfile = projectDiscoveryProfile(row);
-  return state.otherProfile;
-}
-
-async function loadConversation() {
-  state.activeConversation = null;
-  if (!state.activeMatch) return null;
-  state.activeConversation = unwrap(await supabase
-    .from('conversations')
-    .select('id,match_id,status,opened_at,ended_at')
-    .eq('match_id', state.activeMatch.id)
-    .maybeSingle(), 'conversation load');
-  await subscribeMessages();
-  await loadMessages();
-  return state.activeConversation;
-}
-
-async function loadMatch() {
-  if (!state.user) return null;
-  setStatus(matchStatus, t('status.loading'), 'info');
-  const rows = unwrap(await supabase
-    .from('matches')
-    .select('id,user_a_id,user_b_id,status,matched_at,ended_at')
-    .order('matched_at', { ascending: false }), 'match load') ?? [];
-  state.activeMatch = rows.find((row) => row.status === 'active') ?? rows[0] ?? null;
-  state.otherUserId = otherParticipant(state.activeMatch);
-  await Promise.all([loadOtherProfile(), loadMatchedPortrait()]);
-  await loadConversation();
-  renderMatch();
-  setStatus(matchStatus, '', 'info');
-  return state.activeMatch;
-}
-
-function renderMatch() {
-  if (!matchContent) return;
-  matchContent.replaceChildren();
-  if (!state.activeMatch) {
-    matchContent.className = 'rv-empty';
-    matchContent.textContent = t('matches.none');
-    chatForm?.querySelector('button')?.setAttribute('disabled', '');
-    return;
-  }
-
-  matchContent.className = '';
-  const profile = state.otherProfile?.display ?? { nickname: t('chat.other'), city: '', lifeStage: '', portraitAsset: null };
-  const card = document.createElement('div');
-  card.className = 'rv-match-card';
-  const avatar = document.createElement('div');
-  avatar.className = 'rv-match-avatar';
-  const portrait = state.matchedPortraitUrl || profile.portraitAsset;
-  if (portrait) {
-    const image = document.createElement('img');
-    image.src = portrait;
-    image.alt = '';
-    avatar.append(image);
-  } else avatar.textContent = initials(profile.nickname);
-  const copy = document.createElement('div');
-  copy.className = 'rv-match-copy';
-  const heading = document.createElement('h3');
-  heading.textContent = profile.nickname;
-  const status = document.createElement('p');
-  status.textContent = state.activeMatch.status === 'active' ? t('matches.active') : t('safety.ended');
-  const meta = document.createElement('p');
-  meta.textContent = [profile.city, profile.lifeStage].filter(Boolean).join(' · ');
-  copy.append(heading, status, meta);
-  card.append(avatar, copy);
-  matchContent.append(card);
-
-  if (state.activeMatch.status === 'active' && !state.activeConversation) {
-    const actions = document.createElement('div');
-    actions.className = 'rv-match-actions';
-    const open = document.createElement('button');
-    open.type = 'button';
-    open.textContent = t('matches.contact');
-    open.addEventListener('click', () => openConversation(open));
-    const note = document.createElement('p');
-    note.className = 'rv-contact-note';
-    note.textContent = t('matches.contactNote');
-    actions.append(open, note);
-    matchContent.append(actions);
-  }
-  const sendButton = chatForm?.querySelector('button');
-  if (sendButton) sendButton.disabled = state.activeConversation?.status !== 'open';
-}
-
-async function openConversation(button) {
-  if (!state.activeMatch) return;
-  button.disabled = true;
-  try {
-    unwrap(
-      await supabase.rpc('claim_private_proof_entitlement'),
-      'contact entitlement activation'
-    );
-    unwrap(await supabase.rpc('open_match_conversation', {
-      p_match_id: state.activeMatch.id,
-      p_idempotency_key: `product-shell-${state.activeMatch.id}`
-    }), 'conversation open');
-    await loadConversation();
-    renderMatch();
-    setStatus(matchStatus, t('matches.open'), 'success');
-  } catch (error) {
-    setStatus(matchStatus, contactOpenErrorMessage(error, state.language), 'error');
-  } finally {
-    button.disabled = false;
-  }
-}
-
-async function loadMessages() {
-  if (!state.activeConversation) {
-    renderMessages();
-    return [];
-  }
-  const rows = unwrap(await supabase
-    .from('messages')
-    .select('id,conversation_id,sender_user_id,body,created_at')
-    .eq('conversation_id', state.activeConversation.id)
-    .order('created_at', { ascending: true }), 'message load') ?? [];
-  state.messages = rows;
-  renderMessages();
-  return rows;
-}
-
-function renderMessages() {
-  if (!chatList) return;
-  chatList.replaceChildren();
-  const rows = state.messages ?? [];
-  if (!rows.length) {
-    const empty = document.createElement('div');
-    empty.className = 'rv-chat-empty';
-    empty.textContent = t('chat.empty');
-    chatList.append(empty);
-    return;
-  }
-  for (const row of rows) {
-    const bubble = document.createElement('article');
-    const mine = row.sender_user_id === state.user?.id;
-    bubble.className = `rv-bubble${mine ? ' mine' : ''}`;
-    const body = document.createElement('p');
-    body.textContent = row.body;
-    const meta = document.createElement('small');
-    meta.textContent = `${mine ? t('chat.you') : t('chat.other')} · ${new Date(row.created_at).toLocaleTimeString(state.language === 'nl' ? 'nl-NL' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}`;
-    bubble.append(body, meta);
-    chatList.append(bubble);
-  }
-  chatList.scrollTop = chatList.scrollHeight;
-}
-
-async function subscribeMessages() {
-  if (state.realtimeChannel) {
-    await supabase.removeChannel(state.realtimeChannel);
-    state.realtimeChannel = null;
-  }
-  if (!state.activeConversation) return;
-  state.realtimeChannel = supabase
-    .channel(`product-conversation-${state.activeConversation.id}`)
-    .on('postgres_changes', {
-      event: 'INSERT',
-      schema: 'public',
-      table: 'messages',
-      filter: `conversation_id=eq.${state.activeConversation.id}`
-    }, () => loadMessages())
-    .subscribe();
-}
-
-async function sendMessage(event) {
-  event.preventDefault();
-  const button = event.submitter;
-  button.disabled = true;
-  try {
-    if (!state.activeConversation || state.activeConversation.status !== 'open') throw new Error(t('safety.ended'));
-    const input = document.querySelector('#rv-message-body');
-    const body = input.value.trim();
-    if (!body) return;
-    unwrap(await supabase
-      .from('messages')
-      .insert({ conversation_id: state.activeConversation.id, sender_user_id: state.user.id, body })
-      .select('id')
-      .single(), 'message send');
-    input.value = '';
-    await loadMessages();
-  } catch (error) {
-    setStatus(matchStatus, errorMessage(error), 'error');
-  } finally {
-    button.disabled = state.activeConversation?.status !== 'open';
-  }
-}
-
-async function endContact() {
-  if (!state.activeMatch) return;
-  const button = document.querySelector('#rv-end-contact');
-  button.disabled = true;
-  try {
-    unwrap(await supabase.rpc('end_match_contact', { p_match_id: state.activeMatch.id }), 'contact end');
-    await loadMatch();
-    setStatus(safetyStatus, t('safety.ended'), 'success');
-  } catch (error) {
-    setStatus(safetyStatus, errorMessage(error), 'error');
-  } finally {
-    button.disabled = false;
-  }
-}
-
-async function blockUser() {
-  if (!state.otherUserId) return;
-  const button = document.querySelector('#rv-block-user');
-  button.disabled = true;
-  try {
-    unwrap(await supabase.rpc('block_user', {
-      p_blocked_user_id: state.otherUserId,
-      p_reason_code: 'synthetic_product_shell'
-    }), 'user block');
-    await loadMatch();
-    setStatus(safetyStatus, t('safety.blocked'), 'success');
-  } catch (error) {
-    setStatus(safetyStatus, errorMessage(error), 'error');
-  } finally {
-    button.disabled = false;
-  }
-}
-
-async function submitReport(event) {
-  event.preventDefault();
-  const button = event.submitter;
-  button.disabled = true;
-  try {
-    if (!state.activeMatch || !state.otherUserId) throw new Error(t('matches.none'));
-    unwrap(await supabase.rpc('create_safety_report', {
-      p_subject_user_id: state.otherUserId,
-      p_match_id: state.activeMatch.id,
-      p_category: value('rv-report-category'),
-      p_description: value('rv-report-description').trim() || null
-    }), 'safety report');
-    setStatus(safetyStatus, t('safety.reported'), 'success');
-    document.querySelector('#rv-report-form').classList.remove('open');
-    document.querySelector('#rv-report-description').value = '';
-  } catch (error) {
-    setStatus(safetyStatus, errorMessage(error), 'error');
   } finally {
     button.disabled = false;
   }
@@ -1042,12 +792,6 @@ function bindEvents() {
   portraitForm?.addEventListener('submit', uploadPortrait);
   document.querySelector('#rv-publish-profile')?.addEventListener('click', publishProfile);
   document.querySelector('#rv-refresh-discovery')?.addEventListener('click', () => loadDiscovery().catch((error) => setStatus(discoveryStatus, errorMessage(error), 'error')));
-  document.querySelector('#rv-refresh-match')?.addEventListener('click', () => loadMatch().catch((error) => setStatus(matchStatus, errorMessage(error), 'error')));
-  chatForm?.addEventListener('submit', sendMessage);
-  document.querySelector('#rv-end-contact')?.addEventListener('click', endContact);
-  document.querySelector('#rv-block-user')?.addEventListener('click', blockUser);
-  document.querySelector('#rv-toggle-report')?.addEventListener('click', () => document.querySelector('#rv-report-form').classList.toggle('open'));
-  document.querySelector('#rv-report-form')?.addEventListener('submit', submitReport);
   document.querySelector('#rv-sex')?.addEventListener('change', () => { renderDerivedPartner(); renderPreview(); });
   document.querySelector('#rv-life-stage')?.addEventListener('change', () => { renderLifeStage(); renderPreview(); });
   profileForm?.addEventListener('input', renderPreview);
@@ -1059,17 +803,12 @@ function bindEvents() {
 
 async function setUser(user) {
   state.user = user ?? null;
+  await conversationInbox.setUser(state.user);
   if (!state.user) {
     app?.setAttribute('hidden', '');
     state.snapshot = null;
     state.completedStages.clear();
     state.discovery = [];
-    state.activeMatch = null;
-    state.activeConversation = null;
-    state.otherUserId = null;
-    state.messages = [];
-    if (state.realtimeChannel) await supabase.removeChannel(state.realtimeChannel);
-    state.realtimeChannel = null;
     return;
   }
   app?.removeAttribute('hidden');
@@ -1089,7 +828,7 @@ if (app) {
   });
   globalThis.addEventListener('pagehide', () => {
     authSubscription.subscription?.unsubscribe?.();
-    if (state.realtimeChannel) supabase.removeChannel(state.realtimeChannel);
+    conversationInbox.destroy();
     if (state.localPortraitUrl) URL.revokeObjectURL(state.localPortraitUrl);
   }, { once: true });
 }

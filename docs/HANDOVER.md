@@ -1,7 +1,7 @@
 # Project handover
 
 **Updated:** 2026-08-05  
-**Milestone:** WP-072 contact-entitlement activation repaired; canonical owner verification pending
+**Milestone:** WP-073 scalable conversation inbox implemented; canonical owner verification pending
 
 ## GitHub state
 
@@ -18,9 +18,14 @@
 - Profile display-label correction: issue #94 / WP-069C.
 - Profile-form visual hierarchy: issue #98 / WP-071 / `docs/WP-071-PROFILE-FORM-UX.md`.
 - Synthetic contact-entitlement activation: issue #100 / WP-072 / `docs/WP-072-CONTACT-ENTITLEMENT-ACTIVATION.md`.
+- Scalable conversation inbox: issue #104 / WP-073 / `docs/WP-073-CONVERSATION-INBOX.md`.
 - Detailed WP-057 completion record: `docs/WP-057-COMPLETION.md`.
 - Supabase project: `RendezvueProject`, Healthy, West EU (Ireland), Nano.
 - Real-user admission is not authorized.
+
+## Current WP-073 conversation-inbox milestone
+
+Owner review established that the original single-match layout would not remain understandable once several matches and conversations existed. WP-073 now separates ongoing conversations, new matches and previous contacts; each conversation row shows participant identity, latest-message context, activity time and unread state. The selected conversation has a persistent participant header, and all message, Realtime and safety operations resolve from that selected match. Desktop uses a list/detail layout; mobile provides a clear list-to-conversation transition and back control. Browser storage contains read timestamps only. Issue #104 remains open until representative multiple-conversation behaviour is visually accepted on canonical desktop and mobile staging. Real-user admission remains unauthorized.
 
 ## Current WP-072 contact-entitlement repair
 

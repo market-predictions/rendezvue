@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/verify-wp072-contact-entitlement.yml'
       - 'apps/private-preview/contact-entitlement-model.js'
+      - 'apps/private-preview/conversation-inbox-controller.js'
       - 'apps/private-preview/product-shell.js'
       - 'apps/private-preview/product-model.js'
       - 'apps/web/tests/contact-entitlement-flow.test.mjs'
@@ -53,9 +54,16 @@ jobs:
           npm run build:cloudflare
 
           for file in apps/private-preview/product-shell.js dist-private-preview/product-shell.js; do
-            grep --fixed-strings --quiet "claim_private_proof_entitlement" "$file"
-            grep --fixed-strings --quiet "contact entitlement activation" "$file"
-            grep --fixed-strings --quiet 'contactOpenErrorMessage(error, state.language)' "$file"
+            grep --fixed-strings --quiet 'createConversationInboxController' "$file"
+            grep --fixed-strings --quiet 'conversation-inbox-controller.js' "$file"
+            grep --fixed-strings --quiet 'contact-entitlement-model.js' "$file"
+          done
+
+          for file in apps/private-preview/conversation-inbox-controller.js dist-private-preview/conversation-inbox-controller.js; do
+            grep --fixed-strings --quiet 'claim_private_proof_entitlement' "$file"
+            grep --fixed-strings --quiet 'contact entitlement activation' "$file"
+            grep --fixed-strings --quiet 'open_match_conversation' "$file"
+            grep --fixed-strings --quiet 'contactOpenErrorMessage(error, getLanguage())' "$file"
           done
 
           for file in apps/private-preview/contact-entitlement-model.js dist-private-preview/contact-entitlement-model.js; do
@@ -115,6 +123,7 @@ jobs:
         run: |
           set -euo pipefail
           shell_file="$RUNNER_TEMP/product-shell.js"
+          controller_file="$RUNNER_TEMP/conversation-inbox-controller.js"
           model_file="$RUNNER_TEMP/contact-entitlement-model.js"
           verified=false
 
@@ -128,12 +137,16 @@ jobs:
             fi
           }
 
-          for attempt in {1..12}; do
+          for attempt in {1..24}; do
             cache_key="commit=${EXPECTED_SHA}&run=${GITHUB_RUN_ID}&attempt=${attempt}"
             shell_status="$(curl --silent --show-error --location \
               --output "$shell_file" --write-out '%{http_code}' \
               --header 'cache-control: no-cache' \
               "${STAGING_URL}product-shell.js?${cache_key}" || true)"
+            controller_status="$(curl --silent --show-error --location \
+              --output "$controller_file" --write-out '%{http_code}' \
+              --header 'cache-control: no-cache' \
+              "${STAGING_URL}conversation-inbox-controller.js?${cache_key}" || true)"
             model_status="$(curl --silent --show-error --location \
               --output "$model_file" --write-out '%{http_code}' \
               --header 'cache-control: no-cache' \
@@ -144,16 +157,23 @@ jobs:
               echo "product-shell.js returned HTTP ${shell_status}."
               failed=true
             }
+            [[ "$controller_status" == "200" ]] || {
+              echo "conversation-inbox-controller.js returned HTTP ${controller_status}."
+              failed=true
+            }
             [[ "$model_status" == "200" ]] || {
               echo "contact-entitlement-model.js returned HTTP ${model_status}."
               failed=true
             }
 
             if [[ "$failed" == "false" ]]; then
-              check_marker "$shell_file" "claim_private_proof_entitlement" 'entitlement RPC marker' || failed=true
-              check_marker "$shell_file" "contact entitlement activation" 'entitlement unwrap marker' || failed=true
-              check_marker "$shell_file" 'contactOpenErrorMessage(error, state.language)' 'product error mapping marker' || failed=true
+              check_marker "$shell_file" 'createConversationInboxController' 'inbox-controller delegation marker' || failed=true
+              check_marker "$shell_file" 'conversation-inbox-controller.js' 'inbox-controller import marker' || failed=true
               check_marker "$shell_file" 'contact-entitlement-model.js' 'error-model import marker' || failed=true
+              check_marker "$controller_file" 'claim_private_proof_entitlement' 'entitlement RPC marker' || failed=true
+              check_marker "$controller_file" 'contact entitlement activation' 'entitlement unwrap marker' || failed=true
+              check_marker "$controller_file" 'open_match_conversation' 'conversation opening marker' || failed=true
+              check_marker "$controller_file" 'contactOpenErrorMessage(error, getLanguage())' 'product error mapping marker' || failed=true
               check_marker "$model_file" 'Het eenmalige test-contactrecht is al gebruikt of niet meer geldig.' 'Dutch participant copy' || failed=true
               check_marker "$model_file" 'The one-time test contact right has already been used or is no longer valid.' 'English participant copy' || failed=true
             fi
@@ -164,7 +184,7 @@ jobs:
               break
             fi
 
-            echo "Canonical assets have not converged yet (attempt ${attempt}/12); retrying."
+            echo "Canonical assets have not converged yet (attempt ${attempt}/24); retrying."
             sleep 5
           done
 
@@ -172,6 +192,8 @@ jobs:
             echo '::error title=Canonical entitlement client incomplete::The commit-matched deployment did not serve all required WP-072 client markers within the bounded retry window.'
             echo '--- product-shell.js head ---'
             sed -n '1,25p' "$shell_file" || true
+            echo '--- conversation-inbox-controller.js head ---'
+            sed -n '1,60p' "$controller_file" || true
             echo '--- contact-entitlement-model.js head ---'
             sed -n '1,40p' "$model_file" || true
             exit 1

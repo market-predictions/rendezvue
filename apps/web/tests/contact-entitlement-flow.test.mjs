@@ -10,6 +10,10 @@ const shell = readFileSync(
   new URL('../../private-preview/product-shell.js', import.meta.url),
   'utf8'
 );
+const inboxController = readFileSync(
+  new URL('../../private-preview/conversation-inbox-controller.js', import.meta.url),
+  'utf8'
+);
 const productModel = readFileSync(
   new URL('../../private-preview/product-model.js', import.meta.url),
   'utf8'
@@ -27,13 +31,23 @@ test('current and legacy synthetic terms are explicitly aligned', () => {
   assert.match(migration, /raise exception 'published synthetic proof profile required'/);
 });
 
-test('the client validates entitlement activation before opening a conversation', () => {
+test('the inbox validates entitlement activation before opening a conversation', () => {
+  assert.match(shell, /createConversationInboxController/);
   assert.match(
-    shell,
+    inboxController,
     /unwrap\(\s*await supabase\.rpc\('claim_private_proof_entitlement'\),\s*'contact entitlement activation'\s*\)/
   );
-  assert.match(shell, /contactOpenErrorMessage\(error, state\.language\)/);
-  assert.doesNotMatch(shell, /A right may already exist or have been consumed/);
+  assert.match(
+    inboxController,
+    /unwrap\(\s*await supabase\.rpc\('open_match_conversation',[\s\S]*?'conversation open'\s*\)/
+  );
+  assert.ok(
+    inboxController.indexOf("supabase.rpc('claim_private_proof_entitlement')")
+      < inboxController.indexOf("supabase.rpc('open_match_conversation'"),
+    'The one-time entitlement must be claimed before conversation opening'
+  );
+  assert.match(inboxController, /contactOpenErrorMessage\(error, getLanguage\(\)\)/);
+  assert.doesNotMatch(inboxController, /A right may already exist or have been consumed/);
 });
 
 test('contact errors map to stable product codes', () => {
