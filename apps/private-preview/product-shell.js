@@ -7,6 +7,7 @@ import {
   normaliseProductLanguage,
   onboardingProgress,
   productCopy,
+  profileDisplayValue,
   profilePreview,
   projectDiscoveryProfile,
   resolveProductTab
@@ -409,9 +410,9 @@ function renderPreview() {
   const heading = document.createElement('h3');
   heading.textContent = preview.nickname;
   const meta = document.createElement('p');
-  meta.textContent = [preview.city, preview.lifeStage].filter(Boolean).join(' · ');
+  meta.textContent = [preview.city, profileDisplayValue(state.language, 'lifeStage', preview.lifeStage)].filter(Boolean).join(' · ');
   const intent = document.createElement('strong');
-  intent.textContent = preview.relationshipIntent;
+  intent.textContent = profileDisplayValue(state.language, 'relationshipIntent', preview.relationshipIntent);
   const bio = document.createElement('p');
   bio.textContent = preview.bio;
   const chips = document.createElement('ul');
@@ -676,9 +677,9 @@ function renderDiscovery() {
     heading.textContent = profile.display.nickname;
     const meta = document.createElement('p');
     meta.className = 'rv-discovery-meta';
-    meta.textContent = [profile.display.city, profile.display.lifeStage].filter(Boolean).join(' · ');
+    meta.textContent = [profile.display.city, profileDisplayValue(state.language, 'lifeStage', profile.display.lifeStage)].filter(Boolean).join(' · ');
     const intent = document.createElement('strong');
-    intent.textContent = profile.display.relationshipIntent;
+    intent.textContent = profileDisplayValue(state.language, 'relationshipIntent', profile.display.relationshipIntent);
     const bio = document.createElement('p');
     bio.textContent = profile.display.bio;
     copy.append(heading, meta, intent, bio);
