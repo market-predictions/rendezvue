@@ -87,6 +87,11 @@ select is(
   'card derivative dimensions are canonical 4:5'
 );
 select is(
+  (select crop_aspect from public.privacy_portraits where asset_role = 'card'),
+  '4:5',
+  'selected card records the canonical crop aspect'
+);
+select is(
   (select output_width::text || 'x' || output_height::text from public.privacy_portraits where asset_role = 'avatar'),
   '384x384',
   'avatar derivative dimensions are canonical square'
