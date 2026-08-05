@@ -17,8 +17,8 @@ test('framing values are normalized into the supported range', () => {
     zoom: PROFILE_IMAGE_CONTRACT.maximumZoom
   });
   assert.deepEqual(normaliseFraming({}), {
-    focalX: 0,
-    focalY: 0,
+    focalX: PROFILE_IMAGE_CONTRACT.defaultFocalX,
+    focalY: PROFILE_IMAGE_CONTRACT.defaultFocalY,
     zoom: 1
   });
 });
