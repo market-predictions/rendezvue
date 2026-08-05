@@ -219,7 +219,7 @@ await mkdir(target, { recursive: true });
 await cp(source, target, { recursive: true });
 await mkdir(resolve(target, 'src'), { recursive: true });
 
-for (const file of ['auth-session.js', 'backend-contract.js', 'onboarding-repository.js', 'account-experience.js']) {
+for (const file of ['auth-session.js', 'backend-contract.js', 'onboarding-repository.js', 'account-experience.js', 'profile-image-preparation.js']) {
   await cp(resolve(root, 'apps/web/src', file), resolve(target, 'src', file));
 }
 

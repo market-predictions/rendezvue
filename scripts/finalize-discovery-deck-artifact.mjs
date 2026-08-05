@@ -19,7 +19,7 @@ if (!/^[a-f0-9]{7,40}$|^local$/.test(buildCommit)) {
   throw new Error('Discovery deck finalization requires a valid build commit marker');
 }
 
-for (const file of ['discovery-deck.js', 'discovery-deck.css', 'discovery-portrait-fallback.js']) {
+for (const file of ['discovery-deck.js', 'discovery-deck.css', 'discovery-portrait-fallback.js', 'profile-image-preparation.js', 'profile-image-preparation.css', 'src/profile-image-preparation.js']) {
   const info = await stat(resolve(dist, file));
   if (!info.isFile() || info.size < 100) {
     throw new Error(`Discovery artifact is missing or unexpectedly small: ${file}`);
@@ -52,7 +52,10 @@ const cacheRoutes = [
   '/product-shell.css',
   '/discovery-deck.js',
   '/discovery-deck.css',
-  '/discovery-portrait-fallback.js'
+  '/discovery-portrait-fallback.js',
+  '/profile-image-preparation.js',
+  '/profile-image-preparation.css',
+  '/src/profile-image-preparation.js'
 ];
 let generatedHeaders = headersSource.trimEnd();
 for (const route of cacheRoutes) {

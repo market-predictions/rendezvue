@@ -74,6 +74,22 @@ alter table public.privacy_portraits
     quality_flags <@ array['low-resolution', 'landscape-source', 'very-tall-source']::text[]
   );
 
+with ranked_selected as (
+  select id,
+         row_number() over (
+           partition by user_id
+           order by updated_at desc, created_at desc, id desc
+         ) as selected_rank
+  from public.privacy_portraits
+  where is_public_profile_portrait
+)
+update public.privacy_portraits portrait
+set is_public_profile_portrait = false,
+    updated_at = timezone('utc', now())
+from ranked_selected ranked
+where portrait.id = ranked.id
+  and ranked.selected_rank > 1;
+
 create unique index if not exists privacy_portraits_preparation_role_unique
   on public.privacy_portraits (user_id, preparation_id, asset_role);
 
@@ -109,21 +125,25 @@ declare
 begin
   if v_user_id is null then raise exception 'authentication required'; end if;
   if p_preparation_id is null then raise exception 'preparation id required'; end if;
-  if p_source_width not between 1 and 20000 or p_source_height not between 1 and 20000 then
+  if coalesce(p_source_width, 0) not between 1 and 20000
+     or coalesce(p_source_height, 0) not between 1 and 20000 then
     raise exception 'invalid source dimensions';
   end if;
-  if p_focal_x not between 0 and 1 or p_focal_y not between 0 and 1 then
+  if coalesce(p_focal_x, -1) not between 0 and 1
+     or coalesce(p_focal_y, -1) not between 0 and 1 then
     raise exception 'invalid focal point';
   end if;
-  if p_zoom not between 1 and 3 then raise exception 'invalid zoom'; end if;
+  if coalesce(p_zoom, 0) not between 1 and 3 then raise exception 'invalid zoom'; end if;
   if not (v_flags <@ array['low-resolution', 'landscape-source', 'very-tall-source']::text[]) then
     raise exception 'invalid quality flags';
   end if;
 
+  perform pg_advisory_xact_lock(hashtextextended(v_user_id::text, 0));
+
   v_prefix := v_user_id::text || '/prepared/' || p_preparation_id::text || '/';
-  if p_source_object_path <> v_prefix || 'source.webp'
-     or p_card_object_path <> v_prefix || 'card-4x5.webp'
-     or p_avatar_object_path <> v_prefix || 'avatar-square.webp' then
+  if p_source_object_path is distinct from (v_prefix || 'source.webp')
+     or p_card_object_path is distinct from (v_prefix || 'card-4x5.webp')
+     or p_avatar_object_path is distinct from (v_prefix || 'avatar-square.webp') then
     raise exception 'prepared portrait paths do not match the authenticated account';
   end if;
 
