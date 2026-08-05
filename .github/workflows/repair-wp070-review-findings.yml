@@ -95,9 +95,9 @@ jobs:
               if old_stat not in source:
                   raise SystemExit('artifact stat marker not found')
               source = source.replace(old_stat, new_stat, 1)
-          old_routes = "    '/discovery-portrait-fallback.js'\n"
-          new_routes = "    '/discovery-portrait-fallback.js',\n    '/profile-image-preparation.js',\n    '/profile-image-preparation.css',\n    '/src/profile-image-preparation.js'\n"
-          if "'/profile-image-preparation.js'" not in source:
+          old_routes = "  '/discovery-portrait-fallback.js'\n"
+          new_routes = "  '/discovery-portrait-fallback.js',\n  '/profile-image-preparation.js',\n  '/profile-image-preparation.css',\n  '/src/profile-image-preparation.js'\n"
+          if "  '/profile-image-preparation.js'" not in source:
               if old_routes not in source:
                   raise SystemExit('cache route marker not found')
               source = source.replace(old_routes, new_routes, 1)
