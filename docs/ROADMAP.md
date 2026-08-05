@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 2.12  
+**Version:** 2.13  
 **Updated:** 2026-08-05
 
 ## Operating doctrine
@@ -327,6 +327,12 @@ Detailed evidence: `docs/WP-067-INTEGRATED-PRODUCT-SHELL.md`.
 **Status:** WP-069C implementation corrected after owner field review; canonical owner verification pending.
 
 Profile preview and discovery translate stable backend relationship-intent and life-stage values at the presentation boundary. The complete synthetic-seed relationship-intent vocabulary (`serious_relationship` and `marriage_oriented`) now has explicit Dutch and English copy, and the regression suite derives that vocabulary directly from the canonical seed. Custom prose remains untouched and unknown snake-case values are humanised rather than exposed with underscores.
+
+### 2O. Profile-form visual hierarchy and premium UX
+
+**Status:** WP-071 implementation in review; canonical owner verification pending.
+
+The profile form now separates section grouping, supporting field labels and primary entered values through an explicit typography and spacing contract. Labels are smaller and quieter, values are larger and easier to scan, focus states are stronger, and the relationship-intent column receives more desktop width. Mobile remains single-column with full-size touch targets. The regression suite and canonical verifier guard these visual hierarchy invariants. Detailed evidence: `docs/WP-071-PROFILE-FORM-UX.md`.
 
 ## Phase 3 — Closed city-based PWA pilot
 

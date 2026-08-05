@@ -1,7 +1,7 @@
 # Project handover
 
 **Updated:** 2026-08-05  
-**Milestone:** WP-069C seeded relationship-intent vocabulary corrected; canonical owner verification pending
+**Milestone:** WP-071 profile-form hierarchy implemented; canonical owner verification pending
 
 ## GitHub state
 
@@ -16,9 +16,14 @@
 - Product-facing account/recovery UX: issue #71 / PR #72 / `docs/WP-066-ACCOUNT-RECOVERY-UX.md`.
 - Integrated product shell: issue #74 / PR #75 / verifier repair PR #76 / `docs/WP-067-INTEGRATED-PRODUCT-SHELL.md`.
 - Profile display-label correction: issue #94 / WP-069C.
+- Profile-form visual hierarchy: issue #98 / WP-071 / `docs/WP-071-PROFILE-FORM-UX.md`.
 - Detailed WP-057 completion record: `docs/WP-057-COMPLETION.md`.
 - Supabase project: `RendezvueProject`, Healthy, West EU (Ireland), Nano.
 - Real-user admission is not authorized.
+
+## Current WP-071 profile-form UX correction
+
+Owner field review showed that the profile form gave labels and values almost equal visual weight, making the surface dense and prototype-like. WP-071 now uses compact supporting labels, larger primary values, calmer section grouping, consistent spacing and stronger focus treatment. The relationship-intent column receives more desktop width, while the mobile form remains one column with full-size controls. The technical contract is covered by `apps/web/tests/profile-form-ux.test.mjs` and a source/generated/canonical stylesheet verifier. Issue #98 remains open until canonical desktop and mobile visual acceptance is recorded. Real-user admission remains unauthorized.
 
 ## Current WP-069C display-label correction
 

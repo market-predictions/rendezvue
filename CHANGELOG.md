@@ -4,6 +4,16 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
+### Profile-form visual hierarchy and premium UX
+
+- Added WP-071 after owner field review showed that field labels and entered values had almost equal visual weight.
+- Established an explicit hierarchy: compact supporting labels, larger primary values and quiet section grouping.
+- Increased input/select scanability while retaining minimum touch-target height and permanently visible labels.
+- Added calmer fieldset surfaces, consistent spacing, hover/focus states and focus-linked label feedback.
+- Allocated more desktop width to the relationship-intent column and preserved one-column mobile behaviour.
+- Added source, generated-artifact and commit-matched canonical CSS verification plus a dedicated regression suite.
+- No profile data contracts, Auth, RLS, Storage or real-user authorization were changed.
+
 ### Human-readable customer-facing profile labels
 
 - Added WP-069C after owner field review exposed `serious_relationship` in visible profile copy.

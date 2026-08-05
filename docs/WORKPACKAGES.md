@@ -152,6 +152,11 @@ Stored backend values such as `serious_relationship`, `marriage_oriented`, `rece
 **Status:** planned  
 Operational queue, child safety, hidden relationship review, enforcement, support coverage and appeals.
 
+## WP-071 — Profile-form visual hierarchy and premium UX
+
+**Status:** implementation in review; canonical owner verification pending; issue #98  
+The long profile form now gives section grouping, field labels and entered values deliberately different visual roles. Direct labels are compact supporting copy, values are the primary scan target, controls retain accessible touch targets and focus treatment, the relationship-intent column receives more desktop width, and all sections collapse to one column below 680 px. A dedicated regression and canonical stylesheet verifier prevent the hierarchy from silently collapsing again. Detailed evidence: `docs/WP-071-PROFILE-FORM-UX.md`.
+
 ## WP-080 — Closed city pilot readiness
 
 **Status:** planned  

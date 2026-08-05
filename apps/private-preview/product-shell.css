@@ -8,6 +8,9 @@
   --rv-gold: #ad6b2f;
   --rv-ink: #211b18;
   --rv-muted: #70655d;
+  --rv-field-label: #625850;
+  --rv-field-border: #d9d0c6;
+  --rv-field-focus: rgba(33, 95, 80, 0.16);
   margin: 1.25rem 0;
 }
 
@@ -133,22 +136,111 @@
 .rv-section-heading h2 { margin-bottom: 0.3rem; }
 .rv-section-heading p { margin: 0; color: var(--rv-muted); line-height: 1.5; }
 
-.rv-form { display: grid; gap: 1.15rem; }
+/* WP-071: make the value the primary scan target and the label supporting copy. */
+.rv-form { display: grid; gap: 1.45rem; }
 .rv-fieldset {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.85rem;
+  gap: 1.05rem 1.15rem;
   margin: 0;
-  padding: 1rem;
-  border: 1px solid #e2d9cf;
-  border-radius: 1rem;
-  background: #fdfbf8;
+  padding: 1.2rem;
+  border: 1px solid #e5ddd4;
+  border-radius: 1.2rem;
+  background: linear-gradient(180deg, #fffefc 0%, #fbf8f4 100%);
+  box-shadow: 0 8px 24px rgba(69, 49, 35, 0.035);
 }
-.rv-fieldset legend { padding: 0 0.45rem; font-weight: 850; color: var(--rv-green-dark); }
+
+#rv-profile-form > .rv-fieldset:nth-of-type(2) {
+  grid-template-columns: minmax(12rem, 0.72fr) minmax(20rem, 1.28fr);
+}
+
+.rv-fieldset legend {
+  margin-left: -0.1rem;
+  padding: 0.4rem 0.72rem;
+  border: 1px solid #d4e7df;
+  border-radius: 999px;
+  background: #edf6f2;
+  color: var(--rv-green-dark);
+  font-size: 0.82rem;
+  line-height: 1;
+  font-weight: 820;
+  letter-spacing: -0.005em;
+}
+
 .rv-fieldset .wide { grid-column: 1 / -1; }
-.rv-fieldset label { display: block; }
-.rv-fieldset input, .rv-fieldset select, .rv-fieldset textarea { background: #fff; }
-.rv-fieldset textarea { min-height: 6.5rem; }
+.rv-fieldset > label {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.42rem;
+}
+
+.rv-fieldset > label > span {
+  display: block;
+  color: var(--rv-field-label);
+  font-size: 0.78rem;
+  line-height: 1.25;
+  font-weight: 720;
+  letter-spacing: 0.01em;
+}
+
+.rv-fieldset input,
+.rv-fieldset select,
+.rv-fieldset textarea {
+  min-width: 0;
+  margin-top: 0;
+  border-color: var(--rv-field-border);
+  border-radius: 0.95rem;
+  padding: 0.86rem 0.95rem;
+  background: rgba(255, 255, 255, 0.98);
+  color: var(--rv-ink);
+  caret-color: var(--rv-green);
+  font-size: 1.03rem;
+  line-height: 1.35;
+  font-weight: 640;
+  letter-spacing: -0.012em;
+  box-shadow: 0 1px 0 rgba(69, 49, 35, 0.025), inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}
+
+.rv-fieldset input,
+.rv-fieldset select {
+  min-height: 3.35rem;
+}
+
+.rv-fieldset textarea {
+  min-height: 7.5rem;
+  resize: vertical;
+  font-size: 1rem;
+  line-height: 1.55;
+  font-weight: 520;
+  letter-spacing: -0.006em;
+}
+
+.rv-fieldset input:hover,
+.rv-fieldset select:hover,
+.rv-fieldset textarea:hover {
+  border-color: #c2b6aa;
+}
+
+.rv-fieldset input:focus,
+.rv-fieldset select:focus,
+.rv-fieldset textarea:focus {
+  border-color: #4e8b78;
+  background: #fff;
+  box-shadow: 0 0 0 4px var(--rv-field-focus), 0 6px 18px rgba(33, 95, 80, 0.07);
+}
+
+.rv-fieldset > label:focus-within > span {
+  color: var(--rv-green-dark);
+}
+
+.rv-fieldset input::placeholder,
+.rv-fieldset textarea::placeholder {
+  color: #998d84;
+  font-weight: 500;
+}
+
 .rv-checks { display: grid; gap: 0.55rem; grid-column: 1 / -1; }
 .rv-check {
   display: grid !important;
@@ -172,7 +264,7 @@
   font-size: 0.86rem;
   line-height: 1.45;
 }
-.rv-form-actions { display: flex; gap: 0.65rem; justify-content: flex-end; }
+.rv-form-actions { display: flex; gap: 0.65rem; justify-content: flex-end; margin-top: 0.1rem; }
 
 .rv-portrait-grid { display: grid; grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr); gap: 1rem; align-items: center; }
 .rv-portrait-preview {
@@ -285,8 +377,14 @@
   .rv-stage-pill { white-space: normal; text-align: right; }
   .rv-nav { bottom: 0.45rem; top: auto; position: sticky; order: 99; }
   .rv-nav button { font-size: 0.68rem; padding-inline: 0.2rem; }
-  .rv-fieldset, .rv-portrait-grid, .rv-profile-preview { grid-template-columns: 1fr; }
+  .rv-fieldset,
+  #rv-profile-form > .rv-fieldset:nth-of-type(2),
+  .rv-portrait-grid,
+  .rv-profile-preview { grid-template-columns: 1fr; }
+  .rv-fieldset { gap: 0.95rem; padding: 1rem; }
   .rv-fieldset .wide { grid-column: auto; }
+  .rv-fieldset > label > span { font-size: 0.76rem; }
+  .rv-fieldset input, .rv-fieldset select { min-height: 3.25rem; }
   .rv-portrait-preview { width: min(18rem, 100%); justify-self: center; }
   .rv-profile-preview-media { min-height: 20rem; }
   .rv-discovery-media { min-height: 20rem; aspect-ratio: 4 / 5; }
