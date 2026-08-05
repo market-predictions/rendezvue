@@ -1,0 +1,157 @@
+name: Verify WP073 conversation inbox
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-wp073-conversation-inbox.yml'
+      - 'apps/private-preview/conversation-inbox-controller.js'
+      - 'apps/private-preview/conversation-inbox-model.js'
+      - 'apps/private-preview/contact-entitlement-model.js'
+      - 'apps/private-preview/product-model.js'
+      - 'apps/private-preview/product-shell.js'
+      - 'apps/private-preview/product-shell.css'
+      - 'apps/web/tests/contact-entitlement-flow.test.mjs'
+      - 'apps/web/tests/conversation-inbox-model.test.mjs'
+      - 'apps/web/tests/conversation-inbox-integration.test.mjs'
+      - 'scripts/build-private-preview.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_run:
+    workflows: ['Configure Cloudflare staging backend']
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rendezvue-wp073-conversation-inbox-${{ github.event.pull_request.number || github.event.workflow_run.head_sha || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    name: Validate conversation inbox contract
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: https://example.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_only_placeholder_00000000000000000000
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Test inbox model, integration and contact-right boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          node --check apps/private-preview/conversation-inbox-model.js
+          node --check apps/private-preview/conversation-inbox-controller.js
+          node --check apps/private-preview/product-shell.js
+          node --test \
+            apps/web/tests/conversation-inbox-model.test.mjs \
+            apps/web/tests/conversation-inbox-integration.test.mjs \
+            apps/web/tests/contact-entitlement-flow.test.mjs
+          npm run build:cloudflare
+
+          for file in \
+            dist-private-preview/product-shell.js \
+            dist-private-preview/conversation-inbox-controller.js \
+            dist-private-preview/conversation-inbox-model.js \
+            dist-private-preview/product-shell.css; do
+            test -s "$file"
+          done
+          grep --fixed-strings --quiet 'createConversationInboxController' dist-private-preview/product-shell.js
+          grep --fixed-strings --quiet "from('conversations')" dist-private-preview/conversation-inbox-controller.js
+          grep --fixed-strings --quiet 'latestMessagePreview' dist-private-preview/conversation-inbox-model.js
+          grep --fixed-strings --quiet 'WP-073: scalable match and conversation inbox' dist-private-preview/product-shell.css
+          grep --fixed-strings --quiet '.rv-thread-row.selected' dist-private-preview/product-shell.css
+          grep --fixed-strings --quiet '.rv-thread-row.unread' dist-private-preview/product-shell.css
+
+  canonical:
+    name: Verify canonical conversation inbox
+    if: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') }}
+    runs-on: ubuntu-latest
+    env:
+      STAGING_URL: https://rendezvue-private-preview.pages.dev/
+      EXPECTED_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - name: Wait for commit-matched canonical deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SHA" =~ ^[a-f0-9]{40}$ ]] || {
+            echo '::error title=Invalid commit::EXPECTED_SHA is not a full Git commit.'
+            exit 1
+          }
+
+          metadata="$RUNNER_TEMP/deployment.json"
+          matched=false
+          for attempt in {1..72}; do
+            status="$(curl --silent --show-error --location \
+              --output "$metadata" --write-out '%{http_code}' \
+              --header 'cache-control: no-cache' \
+              "${STAGING_URL}deployment.json?commit=${EXPECTED_SHA}&attempt=${attempt}" || true)"
+            if [[ "$status" == '200' ]] && node --input-type=module --eval "
+              import { readFileSync } from 'node:fs';
+              const document = JSON.parse(readFileSync(process.argv[1], 'utf8'));
+              if (document.buildCommit !== process.argv[2]) process.exit(1);
+              if (document.hostingPlatform !== 'cloudflare-pages') process.exit(1);
+              if (document.remoteBackendConfigured !== true) process.exit(1);
+              if (document.realUserAdmissionAuthorized !== false) process.exit(1);
+            " "$metadata" "$EXPECTED_SHA"; then
+              matched=true
+              break
+            fi
+            echo "Canonical deployment is not commit-matched yet (attempt $attempt, HTTP $status)."
+            sleep 10
+          done
+          [[ "$matched" == 'true' ]] || {
+            echo '::error title=Deployment did not converge::Canonical deployment was not commit-matched within the bounded verification window.'
+            exit 1
+          }
+
+      - name: Verify delivered inbox modules and styling
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          fetch_asset() {
+            local path="$1"
+            local target="$2"
+            local marker="$3"
+            for attempt in {1..24}; do
+              status="$(curl --silent --show-error --location \
+                --output "$target" --write-out '%{http_code}' \
+                --header 'cache-control: no-cache' \
+                "${STAGING_URL}${path}?commit=${EXPECTED_SHA}&attempt=${attempt}" || true)"
+              if [[ "$status" == '200' ]] && grep --fixed-strings --quiet "$marker" "$target"; then
+                return 0
+              fi
+              echo "$path is not converged yet (attempt $attempt, HTTP $status)."
+              sleep 5
+            done
+            echo "::error title=Canonical asset mismatch::$path did not expose marker: $marker"
+            return 1
+          }
+
+          fetch_asset product-shell.js "$RUNNER_TEMP/product-shell.js" 'createConversationInboxController'
+          fetch_asset conversation-inbox-controller.js "$RUNNER_TEMP/controller.js" "from('conversations')"
+          fetch_asset conversation-inbox-model.js "$RUNNER_TEMP/model.js" 'latestMessagePreview'
+          fetch_asset product-shell.css "$RUNNER_TEMP/product-shell.css" 'WP-073: scalable match and conversation inbox'
+
+          grep --fixed-strings --quiet 'rv-conversation-list' "$RUNNER_TEMP/product-shell.js"
+          grep --fixed-strings --quiet 'rv-new-match-list' "$RUNNER_TEMP/product-shell.js"
+          grep --fixed-strings --quiet 'rv-conversation-header' "$RUNNER_TEMP/product-shell.js"
+          grep --fixed-strings --quiet 'markConversationRead' "$RUNNER_TEMP/controller.js"
+          grep --fixed-strings --quiet 'conversation-open' "$RUNNER_TEMP/controller.js"
+          grep --fixed-strings --quiet '.rv-thread-row.selected' "$RUNNER_TEMP/product-shell.css"
+          grep --fixed-strings --quiet '.rv-thread-row.unread' "$RUNNER_TEMP/product-shell.css"
+          grep --fixed-strings --quiet '@media (max-width: 760px)' "$RUNNER_TEMP/product-shell.css"
