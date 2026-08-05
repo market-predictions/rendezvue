@@ -30,7 +30,7 @@ test('current and legacy synthetic terms are explicitly aligned', () => {
 test('the client validates entitlement activation before opening a conversation', () => {
   assert.match(
     shell,
-    /unwrap\(await supabase\.rpc\('claim_private_proof_entitlement'\),\s*'contact entitlement activation'\)/
+    /unwrap\(\s*await supabase\.rpc\('claim_private_proof_entitlement'\),\s*'contact entitlement activation'\s*\)/
   );
   assert.match(shell, /contactOpenErrorMessage\(error, state\.language\)/);
   assert.doesNotMatch(shell, /A right may already exist or have been consumed/);
