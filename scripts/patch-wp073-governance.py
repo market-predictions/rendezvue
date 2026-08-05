@@ -1,0 +1,67 @@
+from pathlib import Path
+
+
+def replace_once(path, before, after):
+    file = Path(path)
+    source = file.read_text(encoding='utf-8')
+    if source.count(before) != 1:
+        raise RuntimeError(f'{path}: expected exactly one marker')
+    file.write_text(source.replace(before, after, 1), encoding='utf-8')
+
+
+changelog = '''### Scalable conversation inbox
+
+- Added WP-073 after owner review established that the one-match layout would become ambiguous with multiple matches and conversations.
+- Separated ongoing conversations, new matches and previous contacts into distinct inbox sections.
+- Added portrait, participant name, latest-message preview, activity time and unread state to conversation rows.
+- Added a persistent selected-conversation header so the active participant remains explicit after scrolling or switching threads.
+- Scoped messages, Realtime, contact termination, blocking and reporting to the selected match and conversation.
+- Added a two-column desktop inbox and a list-to-conversation mobile transition with a clear back control.
+- Stored only local conversation read timestamps; no message bodies or profile content are written to browser storage.
+- Added model, integration, entitlement, artifact and commit-matched canonical regression controls.
+- No database permissions or real-user authorization were expanded.
+
+'''
+replace_once('CHANGELOG.md', '## [Unreleased]\n\n', '## [Unreleased]\n\n' + changelog)
+
+replace_once('docs/ROADMAP.md', '**Version:** 2.14', '**Version:** 2.15')
+roadmap = '''### 2Q. Scalable conversation inbox
+
+**Status:** WP-073 implementation in review; canonical owner verification pending.
+
+Matches now scale into an inbox with separate ongoing conversations, new matches and previous contacts. Conversation rows expose participant identity, latest-message context, activity time and unread state; the selected thread has a persistent identity header. Desktop uses a list/detail layout and mobile uses an explicit list-to-conversation transition. Message, Realtime and safety actions remain scoped to the selected match. Detailed evidence: `docs/WP-073-CONVERSATION-INBOX.md`.
+
+'''
+replace_once('docs/ROADMAP.md', '## Phase 3 — Closed city-based PWA pilot', roadmap + '## Phase 3 — Closed city-based PWA pilot')
+
+workpackage = '''## WP-073 — Scalable conversation inbox
+
+**Status:** implementation in review; canonical owner verification pending; issue #104  
+The former single-match surface is replaced by a scalable inbox that separates conversations, new matches and previous contacts. Rows show portrait, name, latest message, activity time and unread state; a persistent header identifies the selected participant. Switching threads reloads the correct messages, portrait, Realtime subscription and safety target. Desktop uses two columns, while mobile moves clearly between list and conversation. Detailed evidence: `docs/WP-073-CONVERSATION-INBOX.md`.
+
+'''
+replace_once('docs/WORKPACKAGES.md', '## WP-080 — Closed city pilot readiness', workpackage + '## WP-080 — Closed city pilot readiness')
+
+claim = '| WC-073 | Multiple matches and conversations are presented as a selectable inbox with participant identity, latest-message context, unread state and selected-thread-scoped messaging and safety actions. | Implemented in source and regression-tested | issue #104, `conversation-inbox-model.test.mjs`, `conversation-inbox-integration.test.mjs`, WP-073 artifact and canonical verifier | Unread state is device-local rather than server-synchronised; canonical owner acceptance with representative multiple conversations remains pending; real users are unauthorized. |'
+replace_once(
+    'docs/WORK-CLAIMS.md',
+    '| WC-072 | A published current synthetic product profile can activate exactly one controlled contact entitlement and open an active matched conversation without exposing backend errors. | Implemented in source, migration and regression tests | issue #100, WP-072 migration, `contact-entitlement-flow.test.mjs`, private-proof pgTAP and canonical verifier | Canonical owner confirmation with the existing Proof Noor match remains pending; no production payment entitlement or real-user authorization is claimed. |',
+    '| WC-072 | A published current synthetic product profile can activate exactly one controlled contact entitlement and open an active matched conversation without exposing backend errors. | Implemented in source, migration and regression tests | issue #100, WP-072 migration, `contact-entitlement-flow.test.mjs`, private-proof pgTAP and canonical verifier | Canonical owner confirmation with the existing Proof Noor match remains pending; no production payment entitlement or real-user authorization is claimed. |\n' + claim
+)
+
+replace_once(
+    'docs/HANDOVER.md',
+    '**Milestone:** WP-072 contact-entitlement activation repaired; canonical owner verification pending',
+    '**Milestone:** WP-073 scalable conversation inbox implemented; canonical owner verification pending'
+)
+replace_once(
+    'docs/HANDOVER.md',
+    '- Synthetic contact-entitlement activation: issue #100 / WP-072 / `docs/WP-072-CONTACT-ENTITLEMENT-ACTIVATION.md`.\n',
+    '- Synthetic contact-entitlement activation: issue #100 / WP-072 / `docs/WP-072-CONTACT-ENTITLEMENT-ACTIVATION.md`.\n- Scalable conversation inbox: issue #104 / WP-073 / `docs/WP-073-CONVERSATION-INBOX.md`.\n'
+)
+handover = '''## Current WP-073 conversation-inbox milestone
+
+Owner review established that the original single-match layout would not remain understandable once several matches and conversations existed. WP-073 now separates ongoing conversations, new matches and previous contacts; each conversation row shows participant identity, latest-message context, activity time and unread state. The selected conversation has a persistent participant header, and all message, Realtime and safety operations resolve from that selected match. Desktop uses a list/detail layout; mobile provides a clear list-to-conversation transition and back control. Browser storage contains read timestamps only. Issue #104 remains open until representative multiple-conversation behaviour is visually accepted on canonical desktop and mobile staging. Real-user admission remains unauthorized.
+
+'''
+replace_once('docs/HANDOVER.md', '## Current WP-072 contact-entitlement repair', handover + '## Current WP-072 contact-entitlement repair')
