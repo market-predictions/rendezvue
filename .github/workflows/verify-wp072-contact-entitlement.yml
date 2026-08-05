@@ -1,0 +1,117 @@
+name: Verify WP072 contact entitlement flow
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-wp072-contact-entitlement.yml'
+      - 'apps/private-preview/contact-entitlement-model.js'
+      - 'apps/private-preview/product-shell.js'
+      - 'apps/private-preview/product-model.js'
+      - 'apps/web/tests/contact-entitlement-flow.test.mjs'
+      - 'supabase/migrations/20260805194500_private_proof_entitlement_terms_alignment.sql'
+      - 'supabase/tests/database/006_private_proof_interaction.test.sql'
+      - 'scripts/build-private-preview.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_run:
+    workflows: ['Configure Cloudflare staging backend']
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rendezvue-wp072-contact-${{ github.event.pull_request.number || github.event.workflow_run.head_sha || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    name: Validate entitlement activation contract
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: https://example.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_only_placeholder_00000000000000000000
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Test client contract and generated artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          node --test apps/web/tests/contact-entitlement-flow.test.mjs
+          npm run build:cloudflare
+
+          for file in apps/private-preview/product-shell.js dist-private-preview/product-shell.js; do
+            grep --fixed-strings --quiet "claim_private_proof_entitlement" "$file"
+            grep --fixed-strings --quiet "contact entitlement activation" "$file"
+            grep --fixed-strings --quiet 'contactOpenErrorMessage(error, state.language)' "$file"
+          done
+
+          for file in apps/private-preview/contact-entitlement-model.js dist-private-preview/contact-entitlement-model.js; do
+            grep --fixed-strings --quiet 'Het eenmalige test-contactrecht is al gebruikt of niet meer geldig.' "$file"
+            grep --fixed-strings --quiet 'The one-time test contact right has already been used or is no longer valid.' "$file"
+          done
+
+          grep --fixed-strings --quiet "'synthetic-product-2026-08'" supabase/migrations/20260805194500_private_proof_entitlement_terms_alignment.sql
+          grep --fixed-strings --quiet "'synthetic-proof-2026-07'" supabase/migrations/20260805194500_private_proof_entitlement_terms_alignment.sql
+
+  canonical:
+    name: Verify canonical entitlement client
+    if: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') }}
+    runs-on: ubuntu-latest
+    env:
+      STAGING_URL: https://rendezvue-private-preview.pages.dev/
+      EXPECTED_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - name: Wait for commit-matched canonical deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SHA" =~ ^[a-f0-9]{40}$ ]] || exit 1
+          metadata="$RUNNER_TEMP/deployment.json"
+          matched=false
+          for attempt in {1..72}; do
+            status="$(curl --silent --show-error --location \
+              --output "$metadata" --write-out '%{http_code}' \
+              --header 'cache-control: no-cache' \
+              "${STAGING_URL}deployment.json?commit=${EXPECTED_SHA}&attempt=${attempt}" || true)"
+            if [[ "$status" == "200" ]] && node --input-type=module --eval "
+              import { readFileSync } from 'node:fs';
+              const document = JSON.parse(readFileSync(process.argv[1], 'utf8'));
+              if (document.buildCommit !== process.argv[2]) process.exit(1);
+              if (document.hostingPlatform !== 'cloudflare-pages') process.exit(1);
+              if (document.remoteBackendConfigured !== true) process.exit(1);
+              if (document.realUserAdmissionAuthorized !== false) process.exit(1);
+            " "$metadata" "$EXPECTED_SHA"; then
+              matched=true
+              break
+            fi
+            sleep 10
+          done
+          [[ "$matched" == "true" ]]
+
+      - name: Verify delivered entitlement flow
+        shell: bash
+        run: |
+          set -euo pipefail
+          shell_file="$RUNNER_TEMP/product-shell.js"
+          model_file="$RUNNER_TEMP/contact-entitlement-model.js"
+          curl --fail --silent --show-error --location --header 'cache-control: no-cache' \
+            "${STAGING_URL}product-shell.js?commit=${EXPECTED_SHA}" --output "$shell_file"
+          curl --fail --silent --show-error --location --header 'cache-control: no-cache' \
+            "${STAGING_URL}contact-entitlement-model.js?commit=${EXPECTED_SHA}" --output "$model_file"
+          grep --fixed-strings --quiet "claim_private_proof_entitlement" "$shell_file"
+          grep --fixed-strings --quiet "contact entitlement activation" "$shell_file"
+          grep --fixed-strings --quiet 'contactOpenErrorMessage(error, state.language)' "$shell_file"
+          grep --fixed-strings --quiet 'Het eenmalige test-contactrecht is al gebruikt of niet meer geldig.' "$model_file"
