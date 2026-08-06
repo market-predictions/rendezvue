@@ -1,0 +1,54 @@
+name: Build WP074 privacy portrait candidate
+
+on:
+  push:
+    branches:
+      - agent/wp074-privacy-portrait-filters
+    paths:
+      - '.github/workflows/patch-wp074-candidate.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  implement:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Apply implementation patch
+        run: python scripts/patch-wp074.py
+
+      - name: Validate application and generated artifact
+        env:
+          SUPABASE_URL: https://example.supabase.co
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_only_placeholder_00000000000000000000
+        run: |
+          set -euo pipefail
+          npm ci
+          npm test
+          npm run validate:synthetic-seed
+          npm run build:cloudflare
+          node scripts/validate-wp069b-profile-image-preparation.mjs
+          node scripts/validate-wp074-privacy-portrait-filters.mjs
+          node --check apps/private-preview/profile-image-preparation.js
+          node --check apps/web/src/privacy-portrait-filters.js
+
+      - name: Commit candidate
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A -- . ':(exclude).github/**' ':(exclude)scripts/patch-wp074.py'
+          git diff --cached --quiet && { echo 'No candidate changes produced'; exit 1; }
+          git commit -m 'Implement mandatory privacy portrait filters'
+          git push origin "HEAD:${GITHUB_REF_NAME}"
