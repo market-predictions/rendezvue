@@ -3,7 +3,7 @@ name: WP074 protected acceptance
 on:
   workflow_dispatch:
   schedule:
-    - cron: '45 * * * *'
+    - cron: '*/5 * * * *'
 
 permissions:
   contents: read
@@ -14,8 +14,31 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  gate:
+    name: Check whether acceptance is still required
+    runs-on: ubuntu-latest
+    outputs:
+      run_needed: ${{ steps.check.outputs.run_needed }}
+    steps:
+      - id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          comments="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/106/comments" --jq '.[].body')"
+          if grep --fixed-strings --quiet '## WP-074 protected acceptance passed' <<<"$comments"; then
+            echo 'run_needed=false' >> "$GITHUB_OUTPUT"
+            echo 'WP-074 already has protected PASS evidence; heavy acceptance is skipped.'
+          else
+            echo 'run_needed=true' >> "$GITHUB_OUTPUT"
+            echo 'WP-074 has no protected PASS evidence; full acceptance is required.'
+          fi
+
   accept:
     name: Full repository, protected migration and canonical proof
+    needs: gate
+    if: ${{ needs.gate.outputs.run_needed == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment: rendezvue-private-preview
