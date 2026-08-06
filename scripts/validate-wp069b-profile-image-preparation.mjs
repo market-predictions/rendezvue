@@ -137,7 +137,9 @@ forbidPattern(migration.match(/jsonb_build_object\([\s\S]*?\n\s*\)\n\s*\);/i)?.[
 requireMarker(snapshotMigration, "- 'source_object_path'", 'onboarding snapshot must redact normalized source path');
 requireMarker(snapshotMigration, "- 'object_path'", 'onboarding snapshot must redact selected card path');
 
-requireMarker(databaseTest, 'select plan(37);', 'database proof must have the complete WP-069B plan');
+requireMarker(databaseTest, 'select plan(38);', 'database proof must have the complete WP-069B plus mandatory-filter transition plan');
+requireMarker(databaseTest, 'authenticated callers cannot bypass mandatory filtering through the legacy signature', 'database proof must deny the legacy unfiltered authenticated bypass');
+requireMarker(databaseTest, 'authenticated callers can register a prepared portrait through the filter-aware signature', 'database proof must retain authenticated registration through the safe signature');
 requireMarker(databaseTest, 'another authenticated account cannot read prepared portrait metadata', 'database proof must cover cross-account isolation');
 requireMarker(databaseTest, 'retry is idempotent for the same preparation ID', 'database proof must cover idempotency');
 requireMarker(databaseTest, 'new preparation atomically supersedes the former selected card', 'database proof must cover replacement semantics');
@@ -150,4 +152,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('WP-069B profile image preparation validated (user framing, private normalized source, 4:5 and square derivatives, focal metadata, resilient rendering and persistence isolation).');
+console.log('WP-069B profile image preparation validated (user framing, private normalized source, 4:5 and square derivatives, focal metadata, resilient rendering, filter-aware registration and persistence isolation).');
