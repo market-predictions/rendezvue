@@ -1,0 +1,115 @@
+name: Verify WP074 privacy portrait filters
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-wp074-privacy-portrait-filters.yml'
+      - 'apps/private-preview/privacy-portrait-controller.js'
+      - 'apps/private-preview/privacy-portrait-filters.js'
+      - 'apps/private-preview/privacy-portrait-filters.css'
+      - 'apps/web/tests/privacy-portrait-filters.test.mjs'
+      - 'scripts/finalize-discovery-deck-artifact.mjs'
+      - 'scripts/validate-wp074-privacy-portrait-filters.mjs'
+      - 'supabase/migrations/20260806225500_privacy_portrait_filter_selection.sql'
+      - 'supabase/tests/database/015_privacy_portrait_filter_selection.test.sql'
+      - 'package-lock.json'
+  workflow_run:
+    workflows: ['Configure Cloudflare staging backend']
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rendezvue-wp074-privacy-portrait-${{ github.event.pull_request.number || github.event.workflow_run.head_sha || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    name: Validate mandatory privacy portrait contract
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: https://example.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_only_placeholder_00000000000000000000
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Test source, database contract and generated artifact
+        run: |
+          set -euo pipefail
+          npm ci
+          npm test
+          npm run build:cloudflare
+          node scripts/validate-wp074-privacy-portrait-filters.mjs
+
+  canonical:
+    name: Verify canonical privacy portrait delivery
+    if: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') }}
+    runs-on: ubuntu-latest
+    env:
+      STAGING_URL: https://rendezvue-private-preview.pages.dev/
+      EXPECTED_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - name: Wait for commit-matched canonical deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo '::error title=Invalid commit::Expected a full Git SHA.'; exit 1; }
+          metadata="$RUNNER_TEMP/deployment.json"
+          matched=false
+          for attempt in {1..72}; do
+            status="$(curl --silent --show-error --location --output "$metadata" --write-out '%{http_code}' --header 'cache-control: no-cache' "${STAGING_URL}deployment.json?commit=${EXPECTED_SHA}&attempt=${attempt}" || true)"
+            if [[ "$status" == "200" ]] && node --input-type=module --eval "
+              import { readFileSync } from 'node:fs';
+              const document = JSON.parse(readFileSync(process.argv[1], 'utf8'));
+              if (document.buildCommit !== process.argv[2]) process.exit(1);
+              if (document.hostingPlatform !== 'cloudflare-pages') process.exit(1);
+              if (document.remoteBackendConfigured !== true) process.exit(1);
+              if (document.realUserAdmissionAuthorized !== false) process.exit(1);
+            " "$metadata" "$EXPECTED_SHA"; then
+              matched=true
+              break
+            fi
+            sleep 10
+          done
+          [[ "$matched" == "true" ]] || { echo '::error title=Deployment did not converge::Canonical deployment was not commit-matched.'; exit 1; }
+
+      - name: Verify delivered privacy filter boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          controller="$RUNNER_TEMP/privacy-portrait-controller.js"
+          css="$RUNNER_TEMP/privacy-portrait-filters.css"
+          filters="$RUNNER_TEMP/privacy-portrait-filters.js"
+          for spec in \
+            "privacy-portrait-controller.js:$controller" \
+            "privacy-portrait-filters.css:$css" \
+            "privacy-portrait-filters.js:$filters"; do
+            route="${spec%%:*}"
+            target="${spec#*:}"
+            status="$(curl --silent --show-error --location --output "$target" --write-out '%{http_code}' --header 'cache-control: no-cache' "${STAGING_URL}${route}?commit=${EXPECTED_SHA}" || true)"
+            [[ "$status" == "200" ]] || { echo "::error title=Canonical asset missing::$route returned HTTP $status"; exit 1; }
+          done
+
+          grep --fixed-strings --quiet "BOUNDARY = 'wp074-privacy-portrait-filters'" "$controller"
+          grep --fixed-strings --quiet 'mandatoryFilterSelection: true' "$controller"
+          grep --fixed-strings --quiet 'publicRawPortraitAllowed: false' "$controller"
+          grep --fixed-strings --quiet 'selectedFilterId = null' "$controller"
+          grep --fixed-strings --quiet 'p_privacy_filter_id: output.filterId' "$controller"
+          ! grep --extended-regexp --quiet "selectedFilterId[[:space:]]*=[[:space:]]*['\"](softFocus|warmVeil|monoMist|privacyMax)" "$controller"
+          for id in softFocus warmVeil monoMist privacyMax; do
+            grep --fixed-strings --quiet "id: '$id'" "$filters"
+          done
+          ! grep --extended-regexp --quiet "id:[[:space:]]*['\"](raw|none|original)" "$filters"
+          grep --fixed-strings --quiet '.rv-privacy-filter-option.selected' "$css"
+          grep --fixed-strings --quiet '.rv-privacy-filter-recommended' "$css"
