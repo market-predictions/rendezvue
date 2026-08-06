@@ -24,7 +24,7 @@ select ok(
   'authenticated callers cannot bypass mandatory filtering through the legacy signature'
 );
 select ok(
-  has_function_privilege('authenticated', 'public.register_prepared_portrait(uuid,text,text,text,numeric,numeric,numeric,integer,integer,text[],text)', 'EXECUTE'),
+  has_function_privilege('authenticated', 'public.register_prepared_portrait(uuid,text,text,text,numeric,numeric,numeric,integer,integer,text,text[])', 'EXECUTE'),
   'authenticated callers can register a prepared portrait through the filter-aware signature'
 );
 select ok(
@@ -69,8 +69,8 @@ select 'first', public.register_prepared_portrait(
   '10000000-0000-4000-8000-000000000001/prepared/20000000-0000-4000-8000-000000000001/card-4x5.webp',
   '10000000-0000-4000-8000-000000000001/prepared/20000000-0000-4000-8000-000000000001/avatar-square.webp',
   0.52, 0.41, 1.18, 1800, 2400,
-  array['low-resolution'],
-  'warmVeil'
+  'warmVeil',
+  array['low-resolution']
 );
 
 select ok((select portrait_id is not null from prepared_result where label = 'first'), 'registration returns selected card portrait ID');
@@ -131,8 +131,8 @@ select 'retry', public.register_prepared_portrait(
   '10000000-0000-4000-8000-000000000001/prepared/20000000-0000-4000-8000-000000000001/card-4x5.webp',
   '10000000-0000-4000-8000-000000000001/prepared/20000000-0000-4000-8000-000000000001/avatar-square.webp',
   0.52, 0.41, 1.18, 1800, 2400,
-  array['low-resolution'],
-  'warmVeil'
+  'warmVeil',
+  array['low-resolution']
 );
 select is(
   (select portrait_id from prepared_result where label = 'retry'),
@@ -147,7 +147,7 @@ select throws_ok(
     '10000000-0000-4000-8000-000000000002/prepared/20000000-0000-4000-8000-000000000003/source.webp',
     '10000000-0000-4000-8000-000000000002/prepared/20000000-0000-4000-8000-000000000003/card-4x5.webp',
     '10000000-0000-4000-8000-000000000002/prepared/20000000-0000-4000-8000-000000000003/avatar-square.webp',
-    0.5, 0.5, 1, 1200, 1600, '{}'::text[], 'warmVeil'
+    0.5, 0.5, 1, 1200, 1600, 'warmVeil', '{}'::text[]
   ) $$,
   'prepared portrait paths do not match the authenticated account',
   'caller cannot register paths under another account prefix'
@@ -159,7 +159,7 @@ select throws_ok(
     '10000000-0000-4000-8000-000000000001/prepared/20000000-0000-4000-8000-000000000003/source.webp',
     '10000000-0000-4000-8000-000000000001/prepared/20000000-0000-4000-8000-000000000003/card-4x5.webp',
     '10000000-0000-4000-8000-000000000001/prepared/20000000-0000-4000-8000-000000000003/avatar-square.webp',
-    0.5, 0.5, 1, 1200, 1600, '{}'::text[], 'warmVeil'
+    0.5, 0.5, 1, 1200, 1600, 'warmVeil', '{}'::text[]
   ) $$,
   'all prepared portrait objects must exist before registration',
   'database rejects incomplete derivative sets'
@@ -171,7 +171,7 @@ select throws_ok(
     '10000000-0000-4000-8000-000000000001/prepared/20000000-0000-4000-8000-000000000001/source.webp',
     '10000000-0000-4000-8000-000000000001/prepared/20000000-0000-4000-8000-000000000001/card-4x5.webp',
     '10000000-0000-4000-8000-000000000001/prepared/20000000-0000-4000-8000-000000000001/avatar-square.webp',
-    0.5, 0.5, 9, 1200, 1600, '{}'::text[], 'warmVeil'
+    0.5, 0.5, 9, 1200, 1600, 'warmVeil', '{}'::text[]
   ) $$,
   'invalid zoom',
   'database rejects framing zoom outside the supported range'
@@ -184,8 +184,8 @@ select 'second', public.register_prepared_portrait(
   '10000000-0000-4000-8000-000000000001/prepared/20000000-0000-4000-8000-000000000002/card-4x5.webp',
   '10000000-0000-4000-8000-000000000001/prepared/20000000-0000-4000-8000-000000000002/avatar-square.webp',
   0.48, 0.44, 1.05, 1400, 2100,
-  array['very-tall-source'],
-  'privacyMax'
+  'privacyMax',
+  array['very-tall-source']
 );
 select is(
   (select preparation_id from public.privacy_portraits where is_public_profile_portrait),
