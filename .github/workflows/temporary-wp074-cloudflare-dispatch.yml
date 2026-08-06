@@ -1,0 +1,19 @@
+name: Temporary WP074 Cloudflare dispatch
+
+on:
+  check_run:
+    types: [completed]
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    if: ${{ github.event.check_run.name == 'Cloudflare Pages' && github.event.check_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch protected acceptance
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run temporary-wp074-acceptance.yml --repo "$GITHUB_REPOSITORY" --ref main
