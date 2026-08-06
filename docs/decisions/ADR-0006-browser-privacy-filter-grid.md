@@ -1,6 +1,6 @@
 # ADR-0006 — Browser-local privacy filter grid
 
-**Status:** accepted for pilot implementation  
+**Status:** implemented and protected-acceptance verified for synthetic staging  
 **Date:** 2026-07-28
 
 ## Context
@@ -40,6 +40,10 @@ No raw or lightly edited selfie is offered. All preview generation remains in br
 - output quality varies with lighting, framing and browser implementation;
 - this remains an interim pilot solution, not the production avatar architecture;
 - production requires target-user testing, fairness review and explicit retention evidence.
+
+## Implementation evidence
+
+WP-074 implements this decision in the normal signed-in portrait flow. The browser presents exactly four variants, requires an explicit choice, filters both card and avatar before upload and exposes no raw/original/none path. The database persists a constrained filter identifier, denies the legacy authenticated unfiltered registration signature and returns earlier participant-prepared unfiltered cards to draft. Protected run `31132414431` passed application, artifact, empty-database migration, pgTAP, race, deterministic seed, lint, Docker, protected staging migration and canonical-delivery verification. Owner visual acceptance remains pending. Browser filtering remains a recognisability reduction, not anonymity.
 
 ## Consequences
 

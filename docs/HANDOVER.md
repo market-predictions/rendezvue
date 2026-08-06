@@ -1,7 +1,7 @@
 # Project handover
 
-**Updated:** 2026-08-05  
-**Milestone:** WP-073 scalable conversation inbox implemented; canonical owner verification pending
+**Updated:** 2026-08-06  
+**Milestone:** WP-074 privacy portrait filters protected-acceptance verified; canonical owner visual acceptance pending
 
 ## GitHub state
 
@@ -19,9 +19,16 @@
 - Profile-form visual hierarchy: issue #98 / WP-071 / `docs/WP-071-PROFILE-FORM-UX.md`.
 - Synthetic contact-entitlement activation: issue #100 / WP-072 / `docs/WP-072-CONTACT-ENTITLEMENT-ACTIVATION.md`.
 - Scalable conversation inbox: issue #104 / WP-073 / `docs/WP-073-CONVERSATION-INBOX.md`.
+- Mandatory privacy portrait filters: issue #106 / PR #107 / WP-074 / `docs/WP-074-PRIVACY-PORTRAIT-FILTERS.md`.
 - Detailed WP-057 completion record: `docs/WP-057-COMPLETION.md`.
 - Supabase project: `RendezvueProject`, Healthy, West EU (Ireland), Nano.
 - Real-user admission is not authorized.
+
+## Current WP-074 privacy-portrait milestone
+
+Owner review found that the integrated upload/crop surface still produced recognisable card and avatar derivatives without exposing the four privacy choices accepted in ADR-0006. WP-074 now waits for the signed-in profile form, detaches the former unfiltered input listener, requires an explicit choice among `softFocus`, `warmVeil`, `monoMist` and `privacyMax`, and bakes the selected treatment into both public derivatives before upload. No raw/original/none option exists and no level is preselected. The normalized source remains private. The staging database now persists and constrains the filter ID, denies the authenticated legacy unfiltered signature and returns prior participant-prepared cards without filter metadata to draft.
+
+Protected run `31132414431` passed 89 application tests, the generated Cloudflare contract, empty-database replay, all WP-069B/WP-074 pgTAP assertions, parallel races, deterministic ten-profile seed, schema lint, retained Docker build, protected staging migration and canonical module verification. Issue #106 remains open only for owner visual confirmation across representative desktop/mobile portraits and discovery, match and conversation surfaces. Browser filtering reduces recognisability but is not anonymity. Real-user admission remains unauthorized.
 
 ## Current WP-073 conversation-inbox milestone
 

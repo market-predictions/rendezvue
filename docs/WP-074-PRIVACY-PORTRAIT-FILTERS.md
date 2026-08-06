@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-06  
 **Issue:** #106  
-**Status:** implementation candidate; independent assurance and canonical owner acceptance pending
+**Status:** technically complete and protected-acceptance verified; canonical owner visual acceptance pending
 
 ## Owner finding
 
@@ -31,7 +31,7 @@ WP-074 is a separate controller layered over the already verified WP-069B framin
 
 ## Evidence contract
 
-The candidate must pass:
+Protected acceptance run `31132414431` passed:
 
 - all application tests, including the exact four-option and raw-value rejection tests;
 - generated Cloudflare artifact validation;
@@ -40,6 +40,8 @@ The candidate must pass:
 - existing match and entitlement concurrency races;
 - deterministic synthetic seed and schema lint;
 - protected staging migration and commit-matched canonical delivery checks.
+
+The run accepted commit `bf9eeec90dd0c72f1f5a1417a531240a7a4c1c36`, with product implementation ancestor `82b07bb7f69d14071706deb61a9cdb8a69fc9eab`, and applied the WP-074 migration to protected staging. All 89 application tests and all WP-069B/WP-074 database assertions passed.
 
 Owner review must compare all four variants on representative desktop and mobile widths and confirm that discovery, matches and conversation views use only the selected filtered portrait.
 

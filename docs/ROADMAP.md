@@ -1,7 +1,7 @@
 # Rendezvue roadmap
 
-**Version:** 2.15  
-**Updated:** 2026-08-05
+**Version:** 2.16  
+**Updated:** 2026-08-06
 
 ## Operating doctrine
 
@@ -345,6 +345,12 @@ The current product onboarding terms and the private synthetic entitlement helpe
 **Status:** WP-073 implementation in review; canonical owner verification pending.
 
 Matches now scale into an inbox with separate ongoing conversations, new matches and previous contacts. Conversation rows expose participant identity, latest-message context, activity time and unread state; the selected thread has a persistent identity header. Desktop uses a list/detail layout and mobile uses an explicit list-to-conversation transition. Message, Realtime and safety actions remain scoped to the selected match. Detailed evidence: `docs/WP-073-CONVERSATION-INBOX.md`.
+
+### 2R. Mandatory privacy portrait filters
+
+**Status:** WP-074 technically complete and protected-acceptance verified; canonical owner visual acceptance pending.
+
+The normal participant portrait flow now requires an explicit choice among four bounded browser-local privacy variants after framing. No raw/original/none option exists and no level is preselected. The chosen treatment is baked into both public derivatives before upload, while the normalized source remains private. The server persists and constrains the filter ID, denies the legacy authenticated unfiltered registration path and fail-closes earlier participant cards that lack filter metadata. Protected run `31132414431` passed the complete application, database, race, seed, Docker, staging-migration and canonical-delivery chain. Detailed evidence: `docs/WP-074-PRIVACY-PORTRAIT-FILTERS.md`.
 
 ## Phase 3 — Closed city-based PWA pilot
 

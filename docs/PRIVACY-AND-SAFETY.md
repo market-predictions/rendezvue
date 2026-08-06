@@ -44,6 +44,10 @@ Each class requires a separate purpose, access policy, retention rule and deleti
 
 - request camera access only in context;
 - never publish raw capture;
+- require one explicit bounded privacy treatment before participant card/avatar registration;
+- provide no raw, original or none option and do not preselect a level;
+- bake the selected treatment into both public derivatives before upload;
+- keep the normalized source private and redact all Storage paths from browser snapshots and audit payloads;
 - process locally where feasible;
 - use short-lived encrypted source storage only when necessary;
 - delete source media automatically and retain deletion evidence;

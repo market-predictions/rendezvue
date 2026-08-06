@@ -167,6 +167,11 @@ The active synthetic match flow now aligns current product terms with the one-ti
 **Status:** implementation in review; canonical owner verification pending; issue #104  
 The former single-match surface is replaced by a scalable inbox that separates conversations, new matches and previous contacts. Rows show portrait, name, latest message, activity time and unread state; a persistent header identifies the selected participant. Switching threads reloads the correct messages, portrait, Realtime subscription and safety target. Desktop uses two columns, while mobile moves clearly between list and conversation. Detailed evidence: `docs/WP-073-CONVERSATION-INBOX.md`.
 
+## WP-074 — Mandatory privacy portrait filters
+
+**Status:** technically complete and protected-acceptance verified; canonical owner visual acceptance pending; issue #106  
+The participant upload flow now requires one of four bounded privacy treatments after framing. Raw card/avatar crops remain in browser memory only; the selected recipe is baked into both public derivatives before upload, while the normalized source stays private. The database constrains and persists the filter ID, denies the authenticated legacy unfiltered signature and deselects earlier participant-prepared cards without filter metadata. Protected run `31132414431` passed application, artifact, empty-database migration, all pgTAP, race, seed, lint, Docker, staging migration and canonical delivery checks. Detailed evidence: `docs/WP-074-PRIVACY-PORTRAIT-FILTERS.md`.
+
 ## WP-080 — Closed city pilot readiness
 
 **Status:** planned  

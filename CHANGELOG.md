@@ -4,6 +4,16 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
+### Mandatory privacy portrait filters restored and protected-acceptance verified
+
+- Restored the four fixed browser-local privacy choices from ADR-0006: `softFocus`, `warmVeil`, `monoMist` and `privacyMax`.
+- No raw, original or none option exists and no privacy level is selected implicitly.
+- The selected recipe is baked into both the public 4:5 card and square avatar before upload; the normalized source remains private.
+- Persisted and constrained the selected filter identifier across each preparation, revoked the authenticated legacy unfiltered registration signature and returned earlier unfiltered participant cards to draft.
+- Added lifecycle-safe controller loading, direct card/avatar previews, bilingual copy, unit tests, pgTAP, source/artifact validation and a commit-matched canonical verifier.
+- Protected acceptance run `31132414431` passed application and Cloudflare checks, empty-database migration replay, all pgTAP contracts, parallel races, deterministic seed, schema lint, Docker build, protected staging migration and canonical module delivery.
+- Browser filtering reduces recognisability but is not anonymity. Real-user admission remains unauthorized.
+
 ### Scalable conversation inbox
 
 - Added WP-073 after owner review established that the one-match layout would become ambiguous with multiple matches and conversations.
