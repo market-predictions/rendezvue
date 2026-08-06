@@ -19,50 +19,41 @@ if (!/^[a-f0-9]{7,40}$|^local$/.test(buildCommit)) {
   throw new Error('Discovery deck finalization requires a valid build commit marker');
 }
 
-for (const file of ['discovery-deck.js', 'discovery-deck.css', 'discovery-portrait-fallback.js', 'profile-image-preparation.js', 'profile-image-preparation.css', 'src/profile-image-preparation.js']) {
+for (const file of [
+  'discovery-deck.js', 'discovery-deck.css', 'discovery-portrait-fallback.js',
+  'profile-image-preparation.js', 'profile-image-preparation.css', 'src/profile-image-preparation.js',
+  'privacy-portrait-controller.js', 'privacy-portrait-filters.js', 'privacy-portrait-filters.css'
+]) {
   const info = await stat(resolve(dist, file));
-  if (!info.isFile() || info.size < 100) {
-    throw new Error(`Discovery artifact is missing or unexpectedly small: ${file}`);
-  }
+  if (!info.isFile() || info.size < 100) throw new Error(`Discovery artifact is missing or unexpectedly small: ${file}`);
 }
 
 const moduleEntries = [
   `./discovery-deck.js?commit=${encodeURIComponent(buildCommit)}`,
-  `./discovery-portrait-fallback.js?commit=${encodeURIComponent(buildCommit)}`
+  `./discovery-portrait-fallback.js?commit=${encodeURIComponent(buildCommit)}`,
+  `./privacy-portrait-controller.js?commit=${encodeURIComponent(buildCommit)}`
 ];
-const directModulePattern = /\s*<script\s+type="module"\s+src="\.\/(?:discovery-deck|discovery-portrait-fallback)\.js(?:\?[^\"]*)?"\s*><\/script>\s*/g;
+const directModulePattern = /\s*<script\s+type="module"\s+src="\.\/(?:discovery-deck|discovery-portrait-fallback|privacy-portrait-controller)\.js(?:\?[^\"]*)?"\s*><\/script>\s*/g;
 let generatedIndex = indexSource.replace(directModulePattern, '\n');
 generatedIndex = generatedIndex.replace(
   '</body>',
   `${moduleEntries.map((source) => `  <script type="module" src="${source}"></script>`).join('\n')}\n</body>`
 );
-
 for (const moduleEntry of moduleEntries) {
-  if (!generatedIndex.includes(moduleEntry)) {
-    throw new Error(`Commit-versioned discovery module was not added to the generated index: ${moduleEntry}`);
-  }
+  if (!generatedIndex.includes(moduleEntry)) throw new Error(`Commit-versioned module was not added: ${moduleEntry}`);
 }
 
 const cacheControl = 'Cache-Control: no-cache, max-age=0, must-revalidate';
 const cacheRoutes = [
-  '/',
-  '/index.html',
-  '/account-shell.js',
-  '/product-shell.js',
-  '/product-shell.css',
-  '/discovery-deck.js',
-  '/discovery-deck.css',
-  '/discovery-portrait-fallback.js',
-  '/profile-image-preparation.js',
-  '/profile-image-preparation.css',
-  '/src/profile-image-preparation.js'
+  '/', '/index.html', '/account-shell.js', '/product-shell.js', '/product-shell.css',
+  '/discovery-deck.js', '/discovery-deck.css', '/discovery-portrait-fallback.js',
+  '/profile-image-preparation.js', '/profile-image-preparation.css', '/src/profile-image-preparation.js',
+  '/privacy-portrait-controller.js', '/privacy-portrait-filters.js', '/privacy-portrait-filters.css'
 ];
 let generatedHeaders = headersSource.trimEnd();
 for (const route of cacheRoutes) {
   const contract = `${route}\n  ${cacheControl}`;
-  if (!generatedHeaders.includes(contract)) {
-    generatedHeaders += `\n\n${contract}`;
-  }
+  if (!generatedHeaders.includes(contract)) generatedHeaders += `\n\n${contract}`;
 }
 generatedHeaders += '\n';
 
@@ -70,5 +61,4 @@ await Promise.all([
   writeFile(indexPath, generatedIndex, 'utf8'),
   writeFile(headersPath, generatedHeaders, 'utf8')
 ]);
-
-console.log(`Discovery modules finalized with commit token ${buildCommit}.`);
+console.log(`Discovery and privacy portrait modules finalized with commit token ${buildCommit}.`);
