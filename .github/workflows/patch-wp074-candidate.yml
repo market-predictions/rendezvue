@@ -1,17 +1,18 @@
 name: Build WP074 privacy portrait candidate
 
 on:
-  push:
-    branches:
-      - agent/wp074-privacy-portrait-filters
+  pull_request:
+    branches: [main]
     paths:
       - '.github/workflows/patch-wp074-candidate.yml'
+      - 'scripts/patch-wp074.py'
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: rendezvue-wp074-candidate
+  group: rendezvue-wp074-candidate-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -21,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
 
       - uses: actions/setup-node@v6
@@ -48,6 +49,7 @@ jobs:
           node --check apps/web/src/privacy-portrait-filters.js
 
       - name: Commit candidate
+        if: ${{ github.event_name == 'pull_request' }}
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
@@ -55,4 +57,4 @@ jobs:
           git add -A -- . ':(exclude).github/**' ':(exclude)scripts/patch-wp074.py'
           git diff --cached --quiet && { echo 'No candidate changes produced'; exit 1; }
           git commit -m 'Implement mandatory privacy portrait filters'
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
