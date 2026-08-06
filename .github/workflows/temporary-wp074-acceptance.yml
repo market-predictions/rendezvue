@@ -3,7 +3,7 @@ name: WP074 protected acceptance
 on:
   workflow_dispatch:
   schedule:
-    - cron: '35 22 6 8 *'
+    - cron: '45 * * * *'
 
 permissions:
   contents: read
