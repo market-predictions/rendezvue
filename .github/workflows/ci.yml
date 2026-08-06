@@ -4,12 +4,16 @@ on:
   pull_request:
   push:
     branches: [main]
+  schedule:
+    - cron: '*/5 * * * *'
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   validate:
+    if: ${{ github.event_name != 'schedule' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -36,3 +40,8 @@ jobs:
           tail -n 80 check.log
           exit 1
       - run: docker build -t rendezvue-pilot:${{ github.sha }} .
+
+  wp074_acceptance:
+    if: ${{ github.event_name == 'schedule' }}
+    uses: ./.github/workflows/temporary-wp074-acceptance.yml
+    secrets: inherit
