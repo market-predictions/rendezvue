@@ -1,8 +1,6 @@
-name: Temporary WP074 protected acceptance
+name: WP074 protected acceptance
 
 on:
-  schedule:
-    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -10,7 +8,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: rendezvue-temporary-wp074-acceptance
+  group: rendezvue-wp074-protected-acceptance
   cancel-in-progress: false
 
 jobs:
@@ -149,6 +147,7 @@ jobs:
             [[ "$status" == 200 ]] || { echo "::error title=Canonical asset missing::$route returned HTTP $status"; exit 1; }
           done
           grep --fixed-strings --quiet "document.querySelector('#rv-portrait-form')" "$RUNNER_TEMP/privacy-portrait-loader.js"
+          grep --fixed-strings --quiet 'cloneNode(true)' "$RUNNER_TEMP/privacy-portrait-loader.js"
           grep --fixed-strings --quiet "BOUNDARY = 'wp074-privacy-portrait-filters'" "$RUNNER_TEMP/privacy-portrait-controller.js"
           grep --fixed-strings --quiet 'mandatoryFilterSelection: true' "$RUNNER_TEMP/privacy-portrait-controller.js"
           grep --fixed-strings --quiet 'publicRawPortraitAllowed: false' "$RUNNER_TEMP/privacy-portrait-controller.js"
