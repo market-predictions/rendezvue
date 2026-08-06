@@ -4,8 +4,6 @@ on:
   pull_request:
   push:
     branches: [main]
-  schedule:
-    - cron: '*/5 * * * *'
 
 permissions:
   contents: read
@@ -13,7 +11,6 @@ permissions:
 
 jobs:
   validate:
-    if: ${{ github.event_name != 'schedule' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -42,6 +39,6 @@ jobs:
       - run: docker build -t rendezvue-pilot:${{ github.sha }} .
 
   wp074_acceptance:
-    if: ${{ github.event_name == 'schedule' }}
+    if: ${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'ops: trigger WP-074 protected acceptance') }}
     uses: ./.github/workflows/temporary-wp074-acceptance.yml
     secrets: inherit
