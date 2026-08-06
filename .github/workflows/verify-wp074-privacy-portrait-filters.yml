@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/verify-wp074-privacy-portrait-filters.yml'
+      - 'apps/private-preview/privacy-portrait-loader.js'
       - 'apps/private-preview/privacy-portrait-controller.js'
       - 'apps/private-preview/privacy-portrait-filters.js'
       - 'apps/private-preview/privacy-portrait-filters.css'
@@ -88,10 +89,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          loader="$RUNNER_TEMP/privacy-portrait-loader.js"
           controller="$RUNNER_TEMP/privacy-portrait-controller.js"
           css="$RUNNER_TEMP/privacy-portrait-filters.css"
           filters="$RUNNER_TEMP/privacy-portrait-filters.js"
           for spec in \
+            "privacy-portrait-loader.js:$loader" \
             "privacy-portrait-controller.js:$controller" \
             "privacy-portrait-filters.css:$css" \
             "privacy-portrait-filters.js:$filters"; do
@@ -101,6 +104,8 @@ jobs:
             [[ "$status" == "200" ]] || { echo "::error title=Canonical asset missing::$route returned HTTP $status"; exit 1; }
           done
 
+          grep --fixed-strings --quiet "document.querySelector('#rv-portrait-form')" "$loader"
+          grep --fixed-strings --quiet 'import(MODULE)' "$loader"
           grep --fixed-strings --quiet "BOUNDARY = 'wp074-privacy-portrait-filters'" "$controller"
           grep --fixed-strings --quiet 'mandatoryFilterSelection: true' "$controller"
           grep --fixed-strings --quiet 'publicRawPortraitAllowed: false' "$controller"
