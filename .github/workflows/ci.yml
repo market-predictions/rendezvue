@@ -39,6 +39,182 @@ jobs:
       - run: docker build -t rendezvue-pilot:${{ github.sha }} .
 
   wp074_acceptance:
-    if: ${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'ops: trigger WP-074 protected acceptance') }}
-    uses: ./.github/workflows/temporary-wp074-acceptance.yml
-    secrets: inherit
+    name: WP074 protected acceptance
+    if: ${{ github.event_name == 'push' && github.event.head_commit.message == 'ops: trigger WP-074 protected acceptance v2' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: rendezvue-private-preview
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+      STAGING_URL: https://rendezvue-private-preview.pages.dev/
+      PRODUCT_COMMIT: 82b07bb7f69d14071706deb61a9cdb8a69fc9eab
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - uses: supabase/setup-cli@v2
+        with:
+          version: latest
+          github-token: ${{ github.token }}
+
+      - name: Validate protected configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in SUPABASE_ACCESS_TOKEN SUPABASE_PROJECT_REF SUPABASE_DB_PASSWORD SUPABASE_URL SUPABASE_PUBLISHABLE_KEY; do
+            [[ -n "${!name:-}" ]] || { echo "::error title=Missing protected configuration::$name is missing"; exit 1; }
+          done
+          [[ "$SUPABASE_PUBLISHABLE_KEY" == sb_publishable_* ]] || { echo '::error title=Unsafe browser key::Expected an sb_publishable_ key'; exit 1; }
+
+      - run: npm ci
+
+      - name: Application, seed and Cloudflare artifact checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install 'Pillow==11.3.0'
+          python scripts/generate-synthetic-portraits.py
+          npm run check
+          npm run check:cloudflare
+          node scripts/validate-wp074-privacy-portrait-filters.mjs
+          deno check --node-modules-dir=auto supabase/functions/delete-private-proof-account/index.ts
+
+      - name: Start clean local Supabase stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase stop --no-backup || true
+          supabase start
+          supabase db reset
+
+      - name: Run pgTAP, race, deterministic seed and schema checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase test db
+          bash supabase/tests/concurrency/run.sh
+          db_container="$(docker ps --filter 'name=supabase_db_' --format '{{.Names}}' | head -n 1)"
+          [[ -n "$db_container" ]] || { echo 'No local Supabase database container found'; exit 1; }
+          docker exec "$db_container" rm -rf /tmp/synthetic-seed
+          docker cp synthetic-seed "$db_container:/tmp/synthetic-seed"
+          docker exec -w /tmp "$db_container" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f synthetic-seed/seed.sql
+          counts="$(docker exec "$db_container" psql -U postgres -d postgres -Atc "select concat_ws('|',(select count(*) from public.profiles where is_synthetic),(select count(*) from public.profiles where is_synthetic and publication_status='published'),(select count(*) from public.profile_interests pi join public.profiles p on p.user_id=pi.user_id where p.is_synthetic),(select count(*) from public.profile_prompts pp join public.profiles p on p.user_id=pp.user_id where p.is_synthetic),(select count(*) from public.privacy_portraits pp join public.profiles p on p.user_id=pp.user_id where p.is_synthetic and pp.is_public_profile_portrait));")"
+          [[ "$counts" == '10|10|50|20|10' ]] || { echo "Unexpected synthetic seed counts: $counts"; exit 1; }
+          supabase db lint --local --level warning
+
+      - name: Retained Docker build
+        run: docker build --tag rendezvue-wp074-acceptance .
+
+      - name: Apply protected staging migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase link --project-ref "$SUPABASE_PROJECT_REF"
+          supabase migration list --linked
+          supabase db push
+          supabase migration list --linked
+
+      - name: Build protected Cloudflare artifact
+        env:
+          GITHUB_SHA: ${{ env.PRODUCT_COMMIT }}
+        run: npm run check:cloudflare
+
+      - name: Verify canonical privacy filter delivery
+        shell: bash
+        run: |
+          set -euo pipefail
+          metadata="$RUNNER_TEMP/deployment.json"
+          matched=false
+          expected_head="$(git rev-parse HEAD)"
+          for attempt in {1..90}; do
+            status="$(curl --silent --show-error --location --output "$metadata" --write-out '%{http_code}' --header 'cache-control: no-cache' "${STAGING_URL}deployment.json?wp074=${attempt}" || true)"
+            if [[ "$status" == '200' ]] && node --input-type=module --eval "
+              import { readFileSync } from 'node:fs';
+              const document = JSON.parse(readFileSync(process.argv[1], 'utf8'));
+              const allowed = new Set([process.argv[2], process.argv[3]]);
+              if (!allowed.has(document.buildCommit)) process.exit(1);
+              if (document.hostingPlatform !== 'cloudflare-pages') process.exit(1);
+              if (document.remoteBackendConfigured !== true) process.exit(1);
+              if (document.realUserAdmissionAuthorized !== false) process.exit(1);
+            " "$metadata" "$PRODUCT_COMMIT" "$expected_head"; then
+              matched=true
+              break
+            fi
+            echo "Waiting for WP-074 Cloudflare delivery (attempt $attempt, HTTP $status)."
+            sleep 10
+          done
+          [[ "$matched" == true ]] || { echo '::error title=Canonical delivery did not converge::No accepted WP-074 deployment was observed'; exit 1; }
+
+          for route in privacy-portrait-loader.js privacy-portrait-controller.js privacy-portrait-filters.js privacy-portrait-filters.css; do
+            target="$RUNNER_TEMP/$route"
+            status="$(curl --silent --show-error --location --output "$target" --write-out '%{http_code}' --header 'cache-control: no-cache' "${STAGING_URL}${route}?wp074=${GITHUB_RUN_ID}" || true)"
+            [[ "$status" == 200 ]] || { echo "::error title=Canonical asset missing::$route returned HTTP $status"; exit 1; }
+          done
+          grep --fixed-strings --quiet "document.querySelector('#rv-portrait-form')" "$RUNNER_TEMP/privacy-portrait-loader.js"
+          grep --fixed-strings --quiet 'cloneNode(true)' "$RUNNER_TEMP/privacy-portrait-loader.js"
+          grep --fixed-strings --quiet "BOUNDARY = 'wp074-privacy-portrait-filters'" "$RUNNER_TEMP/privacy-portrait-controller.js"
+          grep --fixed-strings --quiet 'mandatoryFilterSelection: true' "$RUNNER_TEMP/privacy-portrait-controller.js"
+          grep --fixed-strings --quiet 'publicRawPortraitAllowed: false' "$RUNNER_TEMP/privacy-portrait-controller.js"
+          grep --fixed-strings --quiet 'selectedFilterId = null' "$RUNNER_TEMP/privacy-portrait-controller.js"
+          grep --fixed-strings --quiet 'p_privacy_filter_id: output.filterId' "$RUNNER_TEMP/privacy-portrait-controller.js"
+          ! grep --extended-regexp --quiet "selectedFilterId[[:space:]]*=[[:space:]]*['\"](softFocus|warmVeil|monoMist|privacyMax)" "$RUNNER_TEMP/privacy-portrait-controller.js"
+          for id in softFocus warmVeil monoMist privacyMax; do
+            grep --fixed-strings --quiet "id: '$id'" "$RUNNER_TEMP/privacy-portrait-filters.js"
+          done
+          ! grep --extended-regexp --quiet "id:[[:space:]]*['\"](raw|none|original)" "$RUNNER_TEMP/privacy-portrait-filters.js"
+          grep --fixed-strings --quiet '.rv-privacy-filter-option.selected' "$RUNNER_TEMP/privacy-portrait-filters.css"
+          grep --fixed-strings --quiet '.rv-privacy-filter-recommended' "$RUNNER_TEMP/privacy-portrait-filters.css"
+
+      - name: Record acceptance
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment 106 --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
+          ## WP-074 protected acceptance passed
+
+          - product commit: \`$PRODUCT_COMMIT\`
+          - acceptance workflow: $RUN_URL
+          - application, Cloudflare artifact and WP-074 contract: passed
+          - empty-database migration replay and pgTAP: passed
+          - parallel match and entitlement races: passed
+          - deterministic ten-profile seed and schema lint: passed
+          - retained Docker build: passed
+          - protected staging migration: applied
+          - canonical loader, controller, four bounded filters and CSS selection states: delivered and verified
+          - raw/original/none public option: absent
+          - real-user admission: not authorized
+          EOF
+
+      - name: Record failure
+        if: failure()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment 106 --repo "$GITHUB_REPOSITORY" --body "WP-074 protected acceptance failed: $RUN_URL. No live-completion claim is authorized."
+
+      - name: Stop local Supabase stack
+        if: always()
+        run: supabase stop --no-backup || true
