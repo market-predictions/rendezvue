@@ -40,7 +40,7 @@ jobs:
 
   wp074_acceptance:
     name: WP074 protected acceptance
-    if: ${{ github.event_name == 'push' && github.event.head_commit.message == 'trigger WP-074 protected acceptance v4' }}
+    if: ${{ github.event_name == 'push' && github.event.head_commit.message == 'trigger WP-074 protected acceptance v5' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment: rendezvue-private-preview
