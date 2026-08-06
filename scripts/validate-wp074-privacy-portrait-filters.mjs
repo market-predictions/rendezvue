@@ -7,9 +7,10 @@ const failures = [];
 const requireMarker = (source, marker, message) => { if (!source.includes(marker)) failures.push(message); };
 const forbid = (source, pattern, message) => { if (pattern.test(source)) failures.push(message); };
 
-const [controller, css, filterModel, filterTest, migration, databaseTest, finalizer,
-  builtController, builtCss, builtFilterModel, builtIndex, headers] = await Promise.all([
+const [controller, loader, css, filterModel, filterTest, migration, databaseTest, finalizer,
+  builtController, builtLoader, builtCss, builtFilterModel, builtIndex, headers] = await Promise.all([
   readFile(resolve(root, 'apps/private-preview/privacy-portrait-controller.js'), 'utf8'),
+  readFile(resolve(root, 'apps/private-preview/privacy-portrait-loader.js'), 'utf8'),
   readFile(resolve(root, 'apps/private-preview/privacy-portrait-filters.css'), 'utf8'),
   readFile(resolve(root, 'apps/private-preview/privacy-portrait-filters.js'), 'utf8'),
   readFile(resolve(root, 'apps/web/tests/privacy-portrait-filters.test.mjs'), 'utf8'),
@@ -17,6 +18,7 @@ const [controller, css, filterModel, filterTest, migration, databaseTest, finali
   readFile(resolve(root, 'supabase/tests/database/015_privacy_portrait_filter_selection.test.sql'), 'utf8'),
   readFile(resolve(root, 'scripts/finalize-discovery-deck-artifact.mjs'), 'utf8'),
   readFile(resolve(dist, 'privacy-portrait-controller.js'), 'utf8'),
+  readFile(resolve(dist, 'privacy-portrait-loader.js'), 'utf8'),
   readFile(resolve(dist, 'privacy-portrait-filters.css'), 'utf8'),
   readFile(resolve(dist, 'privacy-portrait-filters.js'), 'utf8'),
   readFile(resolve(dist, 'index.html'), 'utf8'),
@@ -67,9 +69,13 @@ requireMarker(databaseTest, 'selected filter is persisted on all preparation ass
 requireMarker(databaseTest, 'snapshot exposes only the non-sensitive filter ID', 'database proof must cover refresh metadata');
 requireMarker(databaseTest, 'filter audit contains no Storage paths', 'database proof must cover audit redaction');
 
-requireMarker(finalizer, '`./privacy-portrait-controller.js?commit=${encodeURIComponent(buildCommit)}`', 'finalizer must add a commit-versioned controller');
-requireMarker(builtIndex, './privacy-portrait-controller.js?commit=', 'built index must load the controller');
-for (const route of ['/privacy-portrait-controller.js', '/privacy-portrait-filters.js', '/privacy-portrait-filters.css']) {
+for (const [source, label] of [[loader, 'source loader'], [builtLoader, 'built loader']]) {
+  requireMarker(source, "document.querySelector('#rv-portrait-form')", `${label} must wait for the signed-in form`);
+  requireMarker(source, 'import(MODULE)', `${label} must activate the controller only when ready`);
+}
+requireMarker(finalizer, '`./privacy-portrait-loader.js?commit=${encodeURIComponent(buildCommit)}`', 'finalizer must add a commit-versioned loader');
+requireMarker(builtIndex, './privacy-portrait-loader.js?commit=', 'built index must load the lifecycle-aware loader');
+for (const route of ['/privacy-portrait-loader.js', '/privacy-portrait-controller.js', '/privacy-portrait-filters.js', '/privacy-portrait-filters.css']) {
   requireMarker(headers, `${route}\n  Cache-Control: no-cache, max-age=0, must-revalidate`, `headers must revalidate ${route}`);
 }
 
