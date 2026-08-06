@@ -1,0 +1,21 @@
+/* WP-074: mandatory browser-local privacy portrait selection. */
+.rv-privacy-filter-picker { display: grid; gap: .75rem; padding-top: .2rem; }
+.rv-privacy-filter-heading h4 { margin: 0; color: #211b18; font-size: .95rem; }
+.rv-privacy-filter-heading p { margin: .28rem 0 0; color: #6d625a; font-size: .78rem; line-height: 1.45; }
+.rv-privacy-filter-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; }
+.rv-privacy-filter-option { position: relative; display: grid; gap: .42rem; min-width: 0; padding: .7rem; border: 1px solid #d8cec4; border-radius: 1rem; background: #fff; color: #3e352f; text-align: left; box-shadow: 0 6px 18px rgba(57,42,32,.05); }
+.rv-privacy-filter-option:hover { transform: none; border-color: #9dbdaf; background: #f8fcfa; }
+.rv-privacy-filter-option:focus-visible { outline: 3px solid rgba(33,95,80,.28); outline-offset: 2px; }
+.rv-privacy-filter-option.selected { border-color: #215f50; background: #edf6f2; box-shadow: 0 0 0 2px rgba(33,95,80,.16), 0 8px 22px rgba(33,95,80,.08); }
+.rv-privacy-filter-option strong { color: #211b18; font-size: .86rem; }
+.rv-privacy-filter-option > span:last-child { color: #6d625a; font-size: .72rem; line-height: 1.4; }
+.rv-privacy-filter-previews { position: relative; display: block; overflow: hidden; aspect-ratio: 4/3; border-radius: .72rem; background: #e2dad3; }
+.rv-privacy-filter-previews [data-filter-card] { display: block; width: 72%; height: 100%; }
+.rv-privacy-filter-previews [data-filter-avatar] { position: absolute; right: .4rem; bottom: .4rem; width: 34%; height: auto; aspect-ratio: 1; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 4px 12px rgba(33,27,24,.18); }
+.rv-privacy-filter-recommended { position: absolute; z-index: 2; top: .45rem; right: .45rem; padding: .24rem .42rem; border-radius: 999px; background: #215f50; color: #fff !important; font-size: .61rem !important; font-weight: 850; letter-spacing: .02em; }
+@media (max-width: 36rem) {
+  .rv-privacy-filter-grid { grid-template-columns: minmax(0, 1fr); }
+  .rv-privacy-filter-option { grid-template-columns: minmax(7rem,.7fr) minmax(0,1fr); align-items: center; }
+  .rv-privacy-filter-option strong, .rv-privacy-filter-option > span:last-child { grid-column: 2; }
+  .rv-privacy-filter-previews { grid-row: 1 / span 2; }
+}
