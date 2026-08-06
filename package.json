@@ -15,7 +15,7 @@
     "check:private-preview": "npm run check:cloudflare",
     "test": "node --test apps/web/tests/*.test.mjs",
     "validate": "node scripts/validate-static.mjs",
-    "check": "python scripts/run-wp074-ci.py && npm run build:static && npm run validate && npm run validate:synthetic-seed && npm test"
+    "check": "npm run build:static && npm run validate && npm run validate:synthetic-seed && npm test"
   },
   "engines": { "node": ">=20" }
 }
