@@ -10,6 +10,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: rendezvue-wp074-candidate
+  cancel-in-progress: false
+
 jobs:
   implement:
     runs-on: ubuntu-latest
