@@ -1,0 +1,19 @@
+name: Temporary WP074 comment dispatch
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    if: ${{ github.event.issue.number == 106 && github.event.comment.body == '/accept-wp074' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch protected acceptance
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run temporary-wp074-acceptance.yml --repo "$GITHUB_REPOSITORY" --ref main
