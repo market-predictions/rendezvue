@@ -125,10 +125,14 @@ jobs:
             throw new Error('Supabase pooler configuration is empty');
           }
           const primary = configs.filter((entry) => String(entry?.database_type ?? '').toUpperCase() === 'PRIMARY');
-          const candidates = primary.length ? primary : configs;
-          const selected = candidates.find((entry) => Number(entry?.db_port) === 5432)
-            ?? candidates.find((entry) => String(entry?.pool_mode ?? '').toLowerCase() === 'session')
-            ?? candidates[0];
+          if (!primary.length) {
+            throw new Error('No PRIMARY database pooler configuration was returned');
+          }
+          const selected = primary.find((entry) => Number(entry?.db_port) === 5432)
+            ?? primary.find((entry) => String(entry?.pool_mode ?? '').toLowerCase() === 'session');
+          if (!selected) {
+            throw new Error('No PRIMARY session-capable pooler configuration was returned');
+          }
           const required = ['db_user', 'db_host', 'db_port', 'db_name'];
           for (const key of required) {
             if (!selected?.[key]) throw new Error(`Supabase pooler configuration is missing ${key}`);
