@@ -1,0 +1,41 @@
+name: Apply WP074A technical closeout
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/patch-wp074a-technical-closeout.yml'
+      - 'scripts/patch-wp074a-technical-closeout.py'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Apply technical closeout records
+        id: patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep --fixed-strings --quiet 'WP-074A technically complete and canonically verified' docs/WP-074-PRIVACY-PORTRAIT-FILTERS.md; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+          else
+            python scripts/patch-wp074a-technical-closeout.py
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Commit closeout records
+        if: steps.patch.outputs.changed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add CHANGELOG.md docs/ROADMAP.md docs/WORKPACKAGES.md docs/WORK-CLAIMS.md docs/HANDOVER.md docs/WP-074-PRIVACY-PORTRAIT-FILTERS.md
+          git commit -m 'Close out WP-074A technical acceptance'
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
