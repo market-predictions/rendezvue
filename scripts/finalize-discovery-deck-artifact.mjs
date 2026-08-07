@@ -20,9 +20,10 @@ if (!/^[a-f0-9]{7,40}$|^local$/.test(buildCommit)) {
 }
 
 for (const file of [
-  'discovery-deck.js', 'discovery-deck.css', 'discovery-portrait-fallback.js',
+  'discovery-deck.js', 'discovery-deck.css', 'discovery-portrait-fallback.js', 'discovery-selected-portrait.js',
   'profile-image-preparation.js', 'profile-image-preparation.css', 'src/profile-image-preparation.js',
-  'privacy-portrait-loader.js', 'privacy-portrait-controller.js', 'privacy-portrait-filters.js', 'privacy-portrait-filters.css'
+  'privacy-portrait-loader.js', 'privacy-portrait-controller.js', 'privacy-portrait-ladder-ui.js',
+  'privacy-portrait-filters.js', 'privacy-portrait-filters.css'
 ]) {
   const info = await stat(resolve(dist, file));
   if (!info.isFile() || info.size < 100) throw new Error(`Discovery artifact is missing or unexpectedly small: ${file}`);
@@ -31,9 +32,10 @@ for (const file of [
 const moduleEntries = [
   `./discovery-deck.js?commit=${encodeURIComponent(buildCommit)}`,
   `./discovery-portrait-fallback.js?commit=${encodeURIComponent(buildCommit)}`,
+  `./discovery-selected-portrait.js?commit=${encodeURIComponent(buildCommit)}`,
   `./privacy-portrait-loader.js?commit=${encodeURIComponent(buildCommit)}`
 ];
-const directModulePattern = /\s*<script\s+type="module"\s+src="\.\/(?:discovery-deck|discovery-portrait-fallback|privacy-portrait-loader)\.js(?:\?[^\"]*)?"\s*><\/script>\s*/g;
+const directModulePattern = /\s*<script\s+type="module"\s+src="\.\/(?:discovery-deck|discovery-portrait-fallback|discovery-selected-portrait|privacy-portrait-loader)\.js(?:\?[^\"]*)?"\s*><\/script>\s*/g;
 let generatedIndex = indexSource.replace(directModulePattern, '\n');
 generatedIndex = generatedIndex.replace(
   '</body>',
@@ -46,9 +48,10 @@ for (const moduleEntry of moduleEntries) {
 const cacheControl = 'Cache-Control: no-cache, max-age=0, must-revalidate';
 const cacheRoutes = [
   '/', '/index.html', '/account-shell.js', '/product-shell.js', '/product-shell.css',
-  '/discovery-deck.js', '/discovery-deck.css', '/discovery-portrait-fallback.js',
+  '/discovery-deck.js', '/discovery-deck.css', '/discovery-portrait-fallback.js', '/discovery-selected-portrait.js',
   '/profile-image-preparation.js', '/profile-image-preparation.css', '/src/profile-image-preparation.js',
-  '/privacy-portrait-loader.js', '/privacy-portrait-controller.js', '/privacy-portrait-filters.js', '/privacy-portrait-filters.css'
+  '/privacy-portrait-loader.js', '/privacy-portrait-controller.js', '/privacy-portrait-ladder-ui.js',
+  '/privacy-portrait-filters.js', '/privacy-portrait-filters.css'
 ];
 let generatedHeaders = headersSource.trimEnd();
 for (const route of cacheRoutes) {
