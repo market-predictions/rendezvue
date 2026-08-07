@@ -24,6 +24,9 @@ jobs:
   contract:
     name: Validate privacy preview geometry contract
     runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: https://example.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_only_placeholder_00000000000000000000
     steps:
       - uses: actions/checkout@v6
         with:
