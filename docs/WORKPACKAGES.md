@@ -169,8 +169,8 @@ The former single-match surface is replaced by a scalable inbox that separates c
 
 ## WP-074A — Privacy portrait recognisability recalibration
 
-**Status:** implementation candidate; independent assurance and canonical owner verification pending; issue #109  
-Owner field review superseded the original WP-074 visual ladder because levels 3 and 4 were excessively blurred. The active choices become Unfiltered, Natural, Soft private and Balanced with no default selection and Soft private recommended. Unfiltered is a prepared metadata-free derivative, never the original upload. Historical heavy IDs remain database-compatible but are excluded from the active client and rejected for new registrations. Fresh application, database, artifact, migration, race, seed, Docker, staging and canonical assurance is required before the recalibration is technically complete. Detailed evidence: `docs/WP-074-PRIVACY-PORTRAIT-FILTERS.md`.
+**Status:** technically complete and canonically verified; owner visual acceptance pending; issue #109  
+Owner field review superseded the original WP-074 visual ladder because levels 3 and 4 were excessively blurred. The active choices are Unfiltered, Natural, Soft private and Balanced with no default selection and Soft private recommended. Unfiltered is a prepared metadata-free derivative, never the original upload. Historical heavy IDs remain database-compatible but are excluded from the active client and rejected for new registrations. PR #110 merged the product; run `31194940950` passed full repository assurance; protected staging run `31197276822` applied the migration through the hardened Supavisor session transport; canonical run `31197343371` verified delivered assets. Detailed evidence: `docs/WP-074-PRIVACY-PORTRAIT-FILTERS.md`.
 
 ## WP-080 — Closed city pilot readiness
 

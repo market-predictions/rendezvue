@@ -1,7 +1,7 @@
 # Project handover
 
 **Updated:** 2026-08-07  
-**Milestone:** WP-074A privacy portrait recognisability recalibration in independent review
+**Milestone:** WP-074A privacy portrait recognisability recalibration technically complete; owner visual acceptance pending
 
 ## GitHub state
 
@@ -26,7 +26,7 @@
 
 ## Current WP-074A privacy portrait recalibration
 
-Owner field review after WP-074 protected acceptance found the former Private and Extra private options too blurred to improve the experience. Issue #109 therefore supersedes the original visual ladder. The active candidate is now **Zonder filter / Unfiltered → Natural → Soft private → Balanced** with no default selection and Soft private recommended. Unfiltered means a newly rendered metadata-free 4:5 card and square avatar derivative without obscuring blur; the uploaded/normalized source remains private and cannot become the selected profile portrait. Natural is a new light treatment; Soft private and Balanced preserve the former useful Soft and Balanced recipes. Historical `monoMist` and `privacyMax` records remain readable but new writes reject them. Historical protected run `31132414431` remains foundation evidence only; WP-074A requires a fresh independent assurance and commit-matched staging proof. Issue #109 stays open for final owner visual acceptance. Real-user admission remains unauthorized.
+Owner field review after WP-074 protected acceptance found the former Private and Extra private options too blurred to improve the experience. Issue #109 therefore supersedes the original visual ladder. The active canonical ladder is now **Zonder filter / Unfiltered → Natural → Soft private → Balanced** with no default selection and Soft private recommended. Unfiltered means a newly rendered metadata-free 4:5 card and square avatar derivative without obscuring blur; the uploaded/normalized source remains private and cannot become the selected profile portrait. Natural is a new light treatment; Soft private and Balanced preserve the former useful Soft and Balanced recipes. Historical `monoMist` and `privacyMax` records remain readable but new writes reject them. PR #110 merged as `461b71d5f992f33936e87bc07a8b3336ae597c50`; full assurance run `31194940950`, protected staging run `31197276822` and canonical WP-074A run `31197343371` passed. The staging migration transport was hardened in PRs #112/#113 after external Supabase CLI metadata drift; issue #111 is closed. Issue #109 stays open only for final owner visual acceptance. Real-user admission remains unauthorized.
 
 ## Current WP-073 conversation-inbox milestone
 

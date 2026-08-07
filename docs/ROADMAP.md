@@ -348,7 +348,7 @@ Matches now scale into an inbox with separate ongoing conversations, new matches
 
 ### 2R. Privacy portrait recognisability recalibration
 
-**Status:** WP-074A implementation candidate; independent assurance and canonical owner verification pending; issue #109.
+**Status:** WP-074A technically complete and canonically verified; owner visual acceptance pending; issue #109.
 
 Owner field review found the former Private and Extra private levels excessively blurred. WP-074A changes the active ladder to **Unfiltered → Natural → Soft private → Balanced**. Unfiltered is a normalized, framed, metadata-free card/avatar derivative without an obscuring filter; the original source remains private and cannot become the selected profile portrait. Natural is a new very light treatment, while Soft private and Balanced preserve the former useful WP-074 level-1 and level-2 recipes. Historical `monoMist` and `privacyMax` records remain readable but those treatments are hidden from the active UI and rejected for new registrations. Detailed evidence: `docs/WP-074-PRIVACY-PORTRAIT-FILTERS.md`.
 
@@ -386,7 +386,7 @@ Add thin iOS/Android shells only where app-store distribution, push reliability,
 
 ## Immediate next work
 
-1. Complete independent assurance and canonical deployment of WP-074A, then owner-review the recalibrated Unfiltered → Natural → Soft private → Balanced portrait gradient.
+1. Owner-review the canonically delivered WP-074A **Unfiltered → Natural → Soft private → Balanced** portrait gradient and record visual acceptance in issue #109.
 2. Owner-led desktop and mobile review of the complete account-to-conversation journey.
 3. Controlled disposable-account execution of WP-067 and the separate WP-065F mailbox-replacement proof when suitable mailboxes are available.
 4. Product refinements from field review: portrait attractiveness, profile density, navigation clarity and representative Dutch/English terminology.

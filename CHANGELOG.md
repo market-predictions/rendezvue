@@ -15,6 +15,8 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Removed `monoMist` and `privacyMax` from the active client and rejected them for new registrations while retaining historical database compatibility.
 - Added a new migration and pgTAP proof distinguishing unfiltered prepared derivatives from prohibited raw-source publication.
 - Extended normal Cloudflare validation and canonical verification to lock the new ladder and source-media privacy boundary.
+- PR #110 merged the recalibrated product; full repository run `31194940950`, protected staging run `31197276822` and canonical run `31197343371` passed.
+- Hardened protected migrations in PRs #112/#113 after an external Supabase CLI `link` metadata regression; migrations now use a masked PRIMARY Supavisor session endpoint and `--db-url`; issue #111 is closed.
 - Closed superseded PR #108 because its old closeout claim prohibited any unfiltered public derivative.
 - Real-user admission remains unauthorized.
 

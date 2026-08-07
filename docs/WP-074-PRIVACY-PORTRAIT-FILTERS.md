@@ -3,7 +3,7 @@
 **Original date:** 2026-08-06  
 **Recalibration date:** 2026-08-07  
 **Issues:** #106, #109  
-**Status:** WP-074 foundation accepted; WP-074A recalibration candidate pending independent assurance and canonical owner acceptance
+**Status:** WP-074A technically complete and canonically verified; owner visual acceptance pending
 
 ## Owner findings
 
@@ -70,11 +70,22 @@ WP-074A remains layered over the verified WP-069B framing model. The privacy por
 
 The database migration `20260807153500_privacy_portrait_gradient_recalibration.sql` separates historical compatibility from the active new-write allowlist.
 
-## Evidence contract
+## Evidence and acceptance
 
-The WP-074A candidate must receive fresh independent assurance. Historical run `31132414431` is foundation evidence only and cannot certify the new product decision.
+Historical run `31132414431` remains foundation evidence only. Fresh WP-074A assurance is complete.
 
-Fresh assurance must prove:
+Accepted implementation and delivery evidence:
+
+- PR #110 merged the recalibrated product as `461b71d5f992f33936e87bc07a8b3336ae597c50`;
+- exact final candidate head `7764c6368aa81c76ef503929354e52f55564ad34` passed CI and full `Validate Rendezvue` run `31194940950`;
+- that run covered application/artifact checks, retained Docker, clean and empty-database migration replay, all pgTAP contracts, parallel match/entitlement races, deterministic seed and schema lint;
+- post-merge staging exposed an external Supabase `link` metadata regression; issue #111 tracked the deployment blocker;
+- PRs #112 and #113 replaced `supabase link` with a masked PRIMARY Supavisor session endpoint on port 5432 and documented `--db-url` migration transport;
+- PR #113 merged as `50ac252087b75ee930aff2cb36275995a55f093d`;
+- protected staging run `31197276822` passed database connection resolution, migration state before/after, pending migration application, cleanup deployment, Auth configuration, remote health, unauthenticated cleanup rejection and Cloudflare artifact validation;
+- canonical WP-074A run `31197343371` passed both the recalibrated contract and commit-matched delivered-asset verification.
+
+The accepted technical contract proves:
 
 - the exact UI order `Unfiltered → Natural → Soft private → Balanced` in Dutch/English presentation copy;
 - no implicit/default selection;
@@ -93,6 +104,6 @@ Fresh assurance must prove:
 - protected staging migration;
 - commit-matched canonical delivery of the recalibrated controller/model.
 
-Owner review remains separate from technical assurance. The owner must visually compare the four variants on canonical staging and confirm the new recognisability gradient before issue #109 is closed.
+Issue #111 is closed as completed. Issue #109 remains open because owner review remains separate from technical assurance. The owner must visually compare the four variants on canonical staging and confirm the new recognisability gradient before issue #109 is closed.
 
 Real-user admission remains unauthorized.
