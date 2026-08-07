@@ -4,6 +4,20 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
+### Privacy portrait recognisability recalibration
+
+- Added WP-074A after owner field review found the former Private and Extra private levels excessively blurred.
+- Replaced the active ladder with **Zonder filter / Unfiltered**, **Natural**, **Soft private** and **Balanced**.
+- Defined Unfiltered as a freshly rendered metadata-free prepared card/avatar derivative without obscuring blur; the original upload and normalized source remain private.
+- Added a new very-light Natural treatment (`blur: 3`).
+- Moved the former Soft recipe to Soft private at level 3 and made it Recommended without preselection.
+- Moved the former Balanced recipe to level 4.
+- Removed `monoMist` and `privacyMax` from the active client and rejected them for new registrations while retaining historical database compatibility.
+- Added a new migration and pgTAP proof distinguishing unfiltered prepared derivatives from prohibited raw-source publication.
+- Extended normal Cloudflare validation and canonical verification to lock the new ladder and source-media privacy boundary.
+- Closed superseded PR #108 because its old closeout claim prohibited any unfiltered public derivative.
+- Real-user admission remains unauthorized.
+
 ### Scalable conversation inbox
 
 - Added WP-073 after owner review established that the one-match layout would become ambiguous with multiple matches and conversations.
