@@ -104,7 +104,7 @@ jobs:
 
       - run: npm ci
 
-      - name: Resolve protected database connection without Supabase link
+      - name: Resolve protected Supavisor session connection without Supabase link
         shell: bash
         run: |
           set -euo pipefail
@@ -124,16 +124,16 @@ jobs:
           if (!Array.isArray(configs) || configs.length === 0) {
             throw new Error('Supabase pooler configuration is empty');
           }
-          const primary = configs.filter((entry) => String(entry?.database_type ?? '').toUpperCase() === 'PRIMARY');
-          if (!primary.length) {
-            throw new Error('No PRIMARY database pooler configuration was returned');
+          const primarySupavisor = configs.filter((entry) =>
+            String(entry?.database_type ?? '').toUpperCase() === 'PRIMARY'
+            && String(entry?.db_host ?? '').endsWith('.pooler.supabase.com')
+          );
+          if (!primarySupavisor.length) {
+            throw new Error('No PRIMARY Supavisor pooler configuration was returned');
           }
-          const selected = primary.find((entry) => Number(entry?.db_port) === 5432)
-            ?? primary.find((entry) => String(entry?.pool_mode ?? '').toLowerCase() === 'session');
-          if (!selected) {
-            throw new Error('No PRIMARY session-capable pooler configuration was returned');
-          }
-          const required = ['db_user', 'db_host', 'db_port', 'db_name'];
+          const selected = primarySupavisor.find((entry) => String(entry?.pool_mode ?? '').toLowerCase() === 'transaction')
+            ?? primarySupavisor[0];
+          const required = ['db_user', 'db_host', 'db_name'];
           for (const key of required) {
             if (!selected?.[key]) throw new Error(`Supabase pooler configuration is missing ${key}`);
           }
@@ -141,7 +141,10 @@ jobs:
           url.username = String(selected.db_user);
           url.password = process.env.SUPABASE_DB_PASSWORD;
           url.hostname = String(selected.db_host);
-          url.port = String(selected.db_port);
+          // Supabase Shared Pooler uses the same Supavisor host on port 5432 for session mode.
+          // The Management API may report the transaction-mode config (typically 6543), so
+          // migrations deliberately derive the documented session endpoint instead of trusting db_port.
+          url.port = '5432';
           url.pathname = `/${String(selected.db_name).replace(/^\/+/, '')}`;
           url.searchParams.set('sslmode', 'require');
           writeFileSync(process.argv[3], url.toString(), { mode: 0o600 });
@@ -262,7 +265,7 @@ jobs:
           ## Rendezvue Cloudflare staging backend
 
           - Canonical URL: $RENDEZVUE_STAGING_URL
-          - Migration transport: protected Supavisor database URL (no supabase link dependency)
+          - Migration transport: protected Supavisor session URL on port 5432 (no supabase link dependency)
           - Pending migrations applied: ${{ github.event_name == 'push' || inputs.apply_migrations }}
           - Remote Auth and Data API: passed
           - Supabase Site URL and allow-list: Cloudflare Pages only
@@ -285,7 +288,7 @@ jobs:
 
           - commit: \`${GITHUB_SHA}\`
           - workflow: $RUN_URL
-          - migration transport: protected Supavisor database URL; no \`supabase link\` dependency
+          - migration transport: protected Supavisor session URL on port 5432; no \`supabase link\` dependency
           - Supabase Site URL and allow-list: \`$RENDEZVUE_STAGING_URL\`
           - passwordless flow: default-provider PKCE magic link
           - migrations, remote health, cleanup deployment and anonymous rejection: passed
