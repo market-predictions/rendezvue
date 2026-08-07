@@ -1,0 +1,32 @@
+name: Apply WP074A roadmap doctrine correction
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/patch-wp074a-roadmap-doctrine.yml'
+      - 'scripts/patch-wp074a-roadmap-doctrine.py'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Patch roadmap doctrine
+        shell: bash
+        run: python scripts/patch-wp074a-roadmap-doctrine.py
+      - name: Commit correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/ROADMAP.md
+          git commit -m 'Align roadmap with WP-074A portrait presentations'
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
