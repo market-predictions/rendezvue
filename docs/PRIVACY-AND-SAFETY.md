@@ -13,7 +13,7 @@ Rendezvue provides serious dating discovery without requiring users to publish t
 5. family context;
 6. religious-belief data;
 7. highly sensitive source media;
-8. derived public privacy portrait;
+8. derived public profile portrait presentation;
 9. attraction signals, matches and private communications;
 10. feedback, reports, moderation and audit evidence;
 11. subscriptions, contact entitlements and payment events.
@@ -43,12 +43,16 @@ Each class requires a separate purpose, access policy, retention rule and deleti
 ## Source-media and portrait principles
 
 - request camera access only in context;
-- never publish raw capture;
+- never publish the original/raw capture or the normalized private source asset;
 - process locally where feasible;
+- public portrait assets are freshly rendered, metadata-free prepared card/avatar derivatives rather than the uploaded source file;
+- an explicit `Unfiltered` presentation may omit obscuring blur on those prepared derivatives, but it does not relax the source-media privacy boundary;
+- only a card derivative can become the selected public profile portrait; the source role can never be promoted;
 - use short-lived encrypted source storage only when necessary;
-- delete source media automatically and retain deletion evidence;
+- delete source media automatically and retain deletion evidence under the approved retention design;
 - do not train models without separate optional consent;
 - do not claim that blur provides anonymity;
+- explain that an unfiltered prepared derivative is intentionally recognisable;
 - keep AI portrait generation optional rather than a prerequisite.
 
 ## Age, relationship and student principles
@@ -74,4 +78,4 @@ Each class requires a separate purpose, access policy, retention rule and deleti
 
 ## Prototype warning
 
-The current repository is a synthetic browser concept pilot. It may save local demo progress but must not process real identity documents, production religious profiles, source-media archives, payments or real dating conversations. Real-user admission requires an external backend and explicit legal, security and moderation approval.
+The current repository is a synthetic browser concept pilot. It may save local demo progress but must not process real identity documents, production religious profiles, source-media archives, payments or real dating conversations. Real-user admission requires explicit project-local legal, privacy, security, moderation and admission approval.

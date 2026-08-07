@@ -57,7 +57,7 @@ select throws_ok(
     '40000000-0000-4000-8000-000000000001/prepared/50000000-0000-4000-8000-000000000001/avatar-square.webp',
     0.5, 0.42, 1, 1600, 2000, 'raw', '{}'::text[]
   ) $$,
-  'supported privacy filter required',
+  'supported privacy presentation required',
   'database rejects raw-like filter values'
 );
 

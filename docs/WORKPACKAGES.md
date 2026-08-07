@@ -167,6 +167,11 @@ The active synthetic match flow now aligns current product terms with the one-ti
 **Status:** implementation in review; canonical owner verification pending; issue #104  
 The former single-match surface is replaced by a scalable inbox that separates conversations, new matches and previous contacts. Rows show portrait, name, latest message, activity time and unread state; a persistent header identifies the selected participant. Switching threads reloads the correct messages, portrait, Realtime subscription and safety target. Desktop uses two columns, while mobile moves clearly between list and conversation. Detailed evidence: `docs/WP-073-CONVERSATION-INBOX.md`.
 
+## WP-074A — Privacy portrait recognisability recalibration
+
+**Status:** implementation candidate; independent assurance and canonical owner verification pending; issue #109  
+Owner field review superseded the original WP-074 visual ladder because levels 3 and 4 were excessively blurred. The active choices become Unfiltered, Natural, Soft private and Balanced with no default selection and Soft private recommended. Unfiltered is a prepared metadata-free derivative, never the original upload. Historical heavy IDs remain database-compatible but are excluded from the active client and rejected for new registrations. Fresh application, database, artifact, migration, race, seed, Docker, staging and canonical assurance is required before the recalibration is technically complete. Detailed evidence: `docs/WP-074-PRIVACY-PORTRAIT-FILTERS.md`.
+
 ## WP-080 — Closed city pilot readiness
 
 **Status:** planned  

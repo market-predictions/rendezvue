@@ -1,8 +1,34 @@
 export const PRIVACY_PORTRAIT_FILTERS = Object.freeze([
   Object.freeze({
-    id: 'softFocus',
+    id: 'unfiltered',
     privacyRank: 1,
     recommended: false,
+    blur: 0,
+    pixelDivisor: 1,
+    grayscale: 0,
+    sepia: 0,
+    saturation: 1,
+    contrast: 1,
+    brightness: 1,
+    veil: 'rgba(0, 0, 0, 0)'
+  }),
+  Object.freeze({
+    id: 'natural',
+    privacyRank: 2,
+    recommended: false,
+    blur: 3,
+    pixelDivisor: 2,
+    grayscale: 0,
+    sepia: 0.02,
+    saturation: 0.98,
+    contrast: 0.99,
+    brightness: 1.01,
+    veil: 'rgba(250, 244, 238, 0.03)'
+  }),
+  Object.freeze({
+    id: 'softFocus',
+    privacyRank: 3,
+    recommended: true,
     blur: 9,
     pixelDivisor: 7,
     grayscale: 0,
@@ -14,8 +40,8 @@ export const PRIVACY_PORTRAIT_FILTERS = Object.freeze([
   }),
   Object.freeze({
     id: 'warmVeil',
-    privacyRank: 2,
-    recommended: true,
+    privacyRank: 4,
+    recommended: false,
     blur: 13,
     pixelDivisor: 9,
     grayscale: 0,
@@ -24,32 +50,6 @@ export const PRIVACY_PORTRAIT_FILTERS = Object.freeze([
     contrast: 0.92,
     brightness: 1.06,
     veil: 'rgba(237, 213, 203, 0.18)'
-  }),
-  Object.freeze({
-    id: 'monoMist',
-    privacyRank: 3,
-    recommended: false,
-    blur: 17,
-    pixelDivisor: 12,
-    grayscale: 0.72,
-    sepia: 0,
-    saturation: 0.42,
-    contrast: 0.88,
-    brightness: 1.08,
-    veil: 'rgba(239, 239, 241, 0.22)'
-  }),
-  Object.freeze({
-    id: 'privacyMax',
-    privacyRank: 4,
-    recommended: false,
-    blur: 24,
-    pixelDivisor: 17,
-    grayscale: 0.38,
-    sepia: 0.08,
-    saturation: 0.58,
-    contrast: 0.82,
-    brightness: 1.10,
-    veil: 'rgba(232, 224, 226, 0.30)'
   })
 ]);
 
@@ -64,7 +64,7 @@ export function normalisePrivacyFilterId(value) {
 
 export function requirePrivacyFilterId(value) {
   const filterId = normalisePrivacyFilterId(value);
-  if (!filterId) throw new TypeError('A supported privacy portrait filter must be selected');
+  if (!filterId) throw new TypeError('A supported privacy portrait presentation must be selected');
   return filterId;
 }
 
@@ -99,7 +99,11 @@ export function applyPrivacyFilterToCanvas(target, source, value) {
   context.fillStyle = '#e8e0d8';
   context.fillRect(0, 0, width, height);
 
-  if (typeof context.filter === 'string') {
+  if (recipe.id === 'unfiltered') {
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+    context.drawImage(source, 0, 0, width, height);
+  } else if (typeof context.filter === 'string') {
     context.filter = [
       `blur(${recipe.blur}px)`,
       `grayscale(${Math.round(recipe.grayscale * 100)}%)`,

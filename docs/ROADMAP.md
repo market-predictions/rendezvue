@@ -1,7 +1,7 @@
 # Rendezvue roadmap
 
-**Version:** 2.15  
-**Updated:** 2026-08-05
+**Version:** 2.16  
+**Updated:** 2026-08-07
 
 ## Operating doctrine
 
@@ -12,7 +12,7 @@
 - Hugging Face is retired as an application host; existing Spaces are historical, non-canonical artifacts.
 - Staging is restricted to controlled synthetic adult accounts. Real-user admission remains unauthorized.
 - Rendezvue is adult-only, currently-single and serious-intent, with a student-first community layer rather than student-only admission.
-- Fuzzy browser-generated privacy portraits are the MVP baseline; AI portraits are optional.
+- Participant-controlled, browser-prepared portrait presentations are the MVP baseline; the original source remains private and AI portraits are optional.
 - Safety, fairness, privacy and legal controls are product features.
 
 ## Phase 0 — Foundation and hosting
@@ -45,11 +45,11 @@ Camera demonstration, profile, discovery, contextual like, deterministic match, 
 
 Dutch/English, MBO/HBO/WO fixtures, descriptive faith fields and private practice visibility.
 
-### 1C. Selectable privacy portraits
+### 1C. Selectable portrait presentations
 
-**Status:** implementation complete; integrated mobile owner review remains.
+**Status:** WP-074 foundation accepted; WP-074A recognisability recalibration in review.
 
-Four browser-local fuzzy variants, no raw-selfie option and downsampling fallback.
+Participants explicitly choose among four prepared portrait presentations. The original/raw source remains private. WP-074A recalibrates the active ladder to Unfiltered, Natural, Soft private and Balanced; Unfiltered is a freshly rendered metadata-free card/avatar derivative without obscuring blur, not the uploaded source file.
 
 ### 1D. Product baseline v1 and onboarding redefinition
 
@@ -346,6 +346,12 @@ The current product onboarding terms and the private synthetic entitlement helpe
 
 Matches now scale into an inbox with separate ongoing conversations, new matches and previous contacts. Conversation rows expose participant identity, latest-message context, activity time and unread state; the selected thread has a persistent identity header. Desktop uses a list/detail layout and mobile uses an explicit list-to-conversation transition. Message, Realtime and safety actions remain scoped to the selected match. Detailed evidence: `docs/WP-073-CONVERSATION-INBOX.md`.
 
+### 2R. Privacy portrait recognisability recalibration
+
+**Status:** WP-074A implementation candidate; independent assurance and canonical owner verification pending; issue #109.
+
+Owner field review found the former Private and Extra private levels excessively blurred. WP-074A changes the active ladder to **Unfiltered → Natural → Soft private → Balanced**. Unfiltered is a normalized, framed, metadata-free card/avatar derivative without an obscuring filter; the original source remains private and cannot become the selected profile portrait. Natural is a new very light treatment, while Soft private and Balanced preserve the former useful WP-074 level-1 and level-2 recipes. Historical `monoMist` and `privacyMax` records remain readable but those treatments are hidden from the active UI and rejected for new registrations. Detailed evidence: `docs/WP-074-PRIVACY-PORTRAIT-FILTERS.md`.
+
 ## Phase 3 — Closed city-based PWA pilot
 
 **Status:** not authorized.
@@ -380,11 +386,12 @@ Add thin iOS/Android shells only where app-store distribution, push reliability,
 
 ## Immediate next work
 
-1. Owner-led desktop and mobile review of the complete account-to-conversation journey.
-2. Controlled disposable-account execution of WP-067 and the separate WP-065F mailbox-replacement proof when suitable mailboxes are available.
-3. Product refinements from field review: portrait attractiveness, profile density, navigation clarity and representative Dutch/English terminology.
-4. Operational support, retention/DPIA, moderation, accessibility, security and legal readiness.
-5. Explicit closed-city pilot decision only after all entry gates pass.
+1. Complete independent assurance and canonical deployment of WP-074A, then owner-review the recalibrated Unfiltered → Natural → Soft private → Balanced portrait gradient.
+2. Owner-led desktop and mobile review of the complete account-to-conversation journey.
+3. Controlled disposable-account execution of WP-067 and the separate WP-065F mailbox-replacement proof when suitable mailboxes are available.
+4. Product refinements from field review: portrait attractiveness, profile density, navigation clarity and representative Dutch/English terminology.
+5. Operational support, retention/DPIA, moderation, accessibility, security and legal readiness.
+6. Explicit closed-city pilot decision only after all entry gates pass.
 
 ## Stop or reconsider criteria
 

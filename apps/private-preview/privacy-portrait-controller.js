@@ -19,41 +19,41 @@ const BOUNDARY = 'wp074-privacy-portrait-filters';
 const STYLE_ID = 'rendezvue-privacy-portrait-filters-style';
 const copy = Object.freeze({
   nl: Object.freeze({
-    outerIntro: 'Gebruik uitsluitend een synthetische afbeelding in deze test. Na het kadreren kies je verplicht een privacyfilter; alleen de gefilterde versie wordt gedeeld.',
+    outerIntro: 'Gebruik uitsluitend een synthetische afbeelding in deze test. Na het kadreren kies je hoe herkenbaar je profielbeeld mag zijn; de originele bron blijft privé.',
     title: 'Bepaal de kadrering',
     intro: 'Sleep de foto en zoom totdat gezicht, kin en schouders prettig in beeld staan.',
     zoom: 'Zoom', reset: 'Kadrering herstellen', card: 'Profielkaart 4:5', avatar: 'Avatar vierkant',
     safe: 'Houd gezicht en kin binnen het veilige gebied.', privacyTitle: 'Kies je privacyniveau',
-    privacyIntro: 'De bron blijft privé. Alleen de gekozen gefilterde profielkaart en avatar worden aan anderen getoond.',
-    recommended: 'Aanbevolen', save: 'Privacyportret opslaan', choose: 'Kies eerst een afbeelding.',
-    chooseFilter: 'Kies eerst een privacyfilter.', preparing: 'Privacyportret wordt veilig voorbereid…',
-    prepared: 'Je gekozen privacyportret is voorbereid en privé opgeslagen.',
+    privacyIntro: 'De originele bron blijft privé. Alleen de gekozen profielkaart en avatar worden gedeeld; Zonder filter betekent geen vervaging van deze afgeleiden.',
+    recommended: 'Aanbevolen', save: 'Profielbeeld opslaan', choose: 'Kies eerst een afbeelding.',
+    chooseFilter: 'Kies eerst een privacyniveau.', preparing: 'Je profielbeeld wordt veilig voorbereid…',
+    prepared: 'Je gekozen profielbeeld is voorbereid en privé opgeslagen.',
     unsupported: 'Gebruik een JPEG-, PNG- of WebP-afbeelding.', tooLarge: 'De afbeelding mag maximaal 10 MB zijn.',
     unreadable: 'Deze afbeelding kon niet worden gelezen.', lowResolution: 'Deze afbeelding heeft een lage resolutie.',
     landscape: 'Dit is een liggende afbeelding. Controleer de 4:5-kadrering extra goed.',
     veryTall: 'Dit is een zeer smalle afbeelding. Controleer of gezicht en schouders zichtbaar blijven.',
-    softFocusTitle: 'Zacht', softFocusDescription: 'Meer herkenbaar, maar altijd zichtbaar verzacht.',
-    warmVeilTitle: 'Gebalanceerd', warmVeilDescription: 'Aanbevolen balans tussen herkenning en privacy.',
-    monoMistTitle: 'Privé', monoMistDescription: 'Minder kleur en minder gezichtsdetail.',
-    privacyMaxTitle: 'Extra privé', privacyMaxDescription: 'Sterkste vervaging en laagste detailniveau.'
+    unfilteredTitle: 'Zonder filter', unfilteredDescription: 'Geen vervaging. Je gekadreerde profielkaart en avatar blijven herkenbaar; de originele upload blijft privé.',
+    naturalTitle: 'Natural', naturalDescription: 'Zeer lichte verzachting, dicht bij een normale foto.',
+    softFocusTitle: 'Soft private', softFocusDescription: 'Lichte privacyfilter; nog goed herkenbaar.',
+    warmVeilTitle: 'Balanced', warmVeilDescription: 'Meer afscherming met behoud van een bruikbaar en herkenbaar profielbeeld.'
   }),
   en: Object.freeze({
-    outerIntro: 'Use a synthetic image only in this test. After framing, you must choose a privacy filter; only the filtered version is shared.',
+    outerIntro: 'Use a synthetic image only in this test. After framing, choose how recognisable your profile image may be; the original source stays private.',
     title: 'Set the framing', intro: 'Drag and zoom until the face, chin and shoulders sit comfortably in frame.',
     zoom: 'Zoom', reset: 'Reset framing', card: '4:5 profile card', avatar: 'Square avatar',
     safe: 'Keep the face and chin inside the safe area.', privacyTitle: 'Choose your privacy level',
-    privacyIntro: 'The source stays private. Only the selected filtered profile card and avatar are shown to others.',
-    recommended: 'Recommended', save: 'Save privacy portrait', choose: 'Choose an image first.',
-    chooseFilter: 'Choose a privacy filter first.', preparing: 'Preparing your privacy portrait safely…',
-    prepared: 'Your selected privacy portrait has been prepared and stored privately.',
+    privacyIntro: 'The original source stays private. Only the selected profile card and avatar are shared; Unfiltered means these derivatives are not blurred.',
+    recommended: 'Recommended', save: 'Save profile image', choose: 'Choose an image first.',
+    chooseFilter: 'Choose a privacy level first.', preparing: 'Preparing your profile image safely…',
+    prepared: 'Your selected profile image has been prepared and stored privately.',
     unsupported: 'Use a JPEG, PNG or WebP image.', tooLarge: 'The image may not exceed 10 MB.',
     unreadable: 'This image could not be read.', lowResolution: 'This image has a low resolution.',
     landscape: 'This is a landscape image. Check the 4:5 framing carefully.',
     veryTall: 'This is a very narrow image. Check that face and shoulders remain visible.',
-    softFocusTitle: 'Soft', softFocusDescription: 'More recognisable, but always visibly softened.',
-    warmVeilTitle: 'Balanced', warmVeilDescription: 'Recommended balance between recognition and privacy.',
-    monoMistTitle: 'Private', monoMistDescription: 'Less colour and less facial detail.',
-    privacyMaxTitle: 'Extra private', privacyMaxDescription: 'Strongest obscuration and lowest detail.'
+    unfilteredTitle: 'Unfiltered', unfilteredDescription: 'No obscuring filter. Your framed profile card and avatar stay recognisable; the original upload stays private.',
+    naturalTitle: 'Natural', naturalDescription: 'Very light softening, close to a regular photo.',
+    softFocusTitle: 'Soft private', softFocusDescription: 'A light privacy filter while remaining clearly recognisable.',
+    warmVeilTitle: 'Balanced', warmVeilDescription: 'More privacy while keeping the profile image usable and recognisable.'
   })
 });
 
@@ -67,9 +67,10 @@ if (!document.querySelector(`#${STYLE_ID}`)) {
 
 globalThis.__RENDEZVUE_PRIVACY_PORTRAIT_FILTERS__ = Object.freeze({
   boundary: BOUNDARY,
-  version: 1,
+  version: 2,
   mandatoryFilterSelection: true,
   publicRawPortraitAllowed: false,
+  publicUnfilteredDerivativeAllowed: true,
   filterIds: Object.freeze(PRIVACY_PORTRAIT_FILTERS.map(({ id }) => id))
 });
 
@@ -384,7 +385,8 @@ function mount() {
   updateCopy();
 }
 
-// Window capture precedes the legacy document-capture handler, preventing an unfiltered upload.
+// Window capture precedes the legacy document-capture handler so every public derivative
+// follows the explicitly selected presentation level, including the deliberate unfiltered option.
 globalThis.addEventListener('submit', (event) => {
   if (event.target?.id !== 'rv-portrait-form') return;
   event.preventDefault();

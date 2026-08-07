@@ -1,7 +1,7 @@
 # Project handover
 
-**Updated:** 2026-08-05  
-**Milestone:** WP-073 scalable conversation inbox implemented; canonical owner verification pending
+**Updated:** 2026-08-07  
+**Milestone:** WP-074A privacy portrait recognisability recalibration in independent review
 
 ## GitHub state
 
@@ -19,9 +19,14 @@
 - Profile-form visual hierarchy: issue #98 / WP-071 / `docs/WP-071-PROFILE-FORM-UX.md`.
 - Synthetic contact-entitlement activation: issue #100 / WP-072 / `docs/WP-072-CONTACT-ENTITLEMENT-ACTIVATION.md`.
 - Scalable conversation inbox: issue #104 / WP-073 / `docs/WP-073-CONVERSATION-INBOX.md`.
+- Privacy portrait recognisability recalibration: issue #109 / WP-074A / `docs/WP-074-PRIVACY-PORTRAIT-FILTERS.md`.
 - Detailed WP-057 completion record: `docs/WP-057-COMPLETION.md`.
 - Supabase project: `RendezvueProject`, Healthy, West EU (Ireland), Nano.
 - Real-user admission is not authorized.
+
+## Current WP-074A privacy portrait recalibration
+
+Owner field review after WP-074 protected acceptance found the former Private and Extra private options too blurred to improve the experience. Issue #109 therefore supersedes the original visual ladder. The active candidate is now **Zonder filter / Unfiltered → Natural → Soft private → Balanced** with no default selection and Soft private recommended. Unfiltered means a newly rendered metadata-free 4:5 card and square avatar derivative without obscuring blur; the uploaded/normalized source remains private and cannot become the selected profile portrait. Natural is a new light treatment; Soft private and Balanced preserve the former useful Soft and Balanced recipes. Historical `monoMist` and `privacyMax` records remain readable but new writes reject them. Historical protected run `31132414431` remains foundation evidence only; WP-074A requires a fresh independent assurance and commit-matched staging proof. Issue #109 stays open for final owner visual acceptance. Real-user admission remains unauthorized.
 
 ## Current WP-073 conversation-inbox milestone
 
