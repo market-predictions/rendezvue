@@ -13,7 +13,11 @@ on:
       - 'scripts/finalize-discovery-deck-artifact.mjs'
       - 'scripts/validate-wp074-privacy-portrait-filters.mjs'
       - 'supabase/migrations/20260806225500_privacy_portrait_filter_selection.sql'
+      - 'supabase/migrations/20260807153500_privacy_portrait_gradient_recalibration.sql'
+      - 'supabase/tests/database/014_profile_image_preparation.test.sql'
       - 'supabase/tests/database/015_privacy_portrait_filter_selection.test.sql'
+      - 'supabase/tests/database/016_privacy_portrait_gradient_recalibration.test.sql'
+      - 'package.json'
       - 'package-lock.json'
   workflow_run:
     workflows: ['Configure Cloudflare staging backend']
@@ -30,7 +34,7 @@ concurrency:
 
 jobs:
   contract:
-    name: Validate mandatory privacy portrait contract
+    name: Validate recalibrated privacy portrait contract
     runs-on: ubuntu-latest
     env:
       SUPABASE_URL: https://example.supabase.co
@@ -85,7 +89,7 @@ jobs:
           done
           [[ "$matched" == "true" ]] || { echo '::error title=Deployment did not converge::Canonical deployment was not commit-matched.'; exit 1; }
 
-      - name: Verify delivered privacy filter boundary
+      - name: Verify delivered privacy presentation boundary
         shell: bash
         run: |
           set -euo pipefail
@@ -107,14 +111,25 @@ jobs:
           grep --fixed-strings --quiet "document.querySelector('#rv-portrait-form')" "$loader"
           grep --fixed-strings --quiet 'import(MODULE)' "$loader"
           grep --fixed-strings --quiet "BOUNDARY = 'wp074-privacy-portrait-filters'" "$controller"
+          grep --fixed-strings --quiet 'version: 2' "$controller"
           grep --fixed-strings --quiet 'mandatoryFilterSelection: true' "$controller"
           grep --fixed-strings --quiet 'publicRawPortraitAllowed: false' "$controller"
+          grep --fixed-strings --quiet 'publicUnfilteredDerivativeAllowed: true' "$controller"
           grep --fixed-strings --quiet 'selectedFilterId = null' "$controller"
           grep --fixed-strings --quiet 'p_privacy_filter_id: output.filterId' "$controller"
-          ! grep --extended-regexp --quiet "selectedFilterId[[:space:]]*=[[:space:]]*['\"](softFocus|warmVeil|monoMist|privacyMax)" "$controller"
-          for id in softFocus warmVeil monoMist privacyMax; do
+          grep --fixed-strings --quiet "unfilteredTitle: 'Zonder filter'" "$controller"
+          grep --fixed-strings --quiet "naturalTitle: 'Natural'" "$controller"
+          grep --fixed-strings --quiet "softFocusTitle: 'Soft private'" "$controller"
+          grep --fixed-strings --quiet "warmVeilTitle: 'Balanced'" "$controller"
+          ! grep --extended-regexp --quiet "selectedFilterId[[:space:]]*=[[:space:]]*['\"](unfiltered|natural|softFocus|warmVeil|monoMist|privacyMax)" "$controller"
+          for id in unfiltered natural softFocus warmVeil; do
             grep --fixed-strings --quiet "id: '$id'" "$filters"
           done
-          ! grep --extended-regexp --quiet "id:[[:space:]]*['\"](raw|none|original)" "$filters"
+          ! grep --extended-regexp --quiet "id:[[:space:]]*['\"](monoMist|privacyMax|raw|none|original)" "$filters"
+          grep --fixed-strings --quiet "recipe.id === 'unfiltered'" "$filters"
+          grep --fixed-strings --quiet 'blur: 0' "$filters"
+          grep --fixed-strings --quiet 'blur: 3' "$filters"
+          grep --fixed-strings --quiet 'blur: 9' "$filters"
+          grep --fixed-strings --quiet 'blur: 13' "$filters"
           grep --fixed-strings --quiet '.rv-privacy-filter-option.selected' "$css"
           grep --fixed-strings --quiet '.rv-privacy-filter-recommended' "$css"
