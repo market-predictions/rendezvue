@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/configure-cloudflare-staging.yml'
       - '.github/workflows/verify-wp072-contact-entitlement.yml'
+      - '.github/workflows/verify-wp074-privacy-portrait-filters.yml'
       - 'apps/private-preview/**'
       - 'apps/web/src/auth-session.js'
       - 'apps/web/src/backend-contract.js'
@@ -18,7 +19,7 @@ on:
   workflow_dispatch:
     inputs:
       apply_migrations:
-        description: Apply pending repository migrations to the linked staging project
+        description: Apply pending repository migrations to the protected staging database
         required: true
         default: true
         type: boolean
@@ -103,18 +104,59 @@ jobs:
 
       - run: npm ci
 
-      - name: Link repository migrations to staging project
-        run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+      - name: Resolve protected database connection without Supabase link
+        shell: bash
+        run: |
+          set -euo pipefail
+          response="$RUNNER_TEMP/supabase-pooler.json"
+          db_url_file="$RUNNER_TEMP/supabase-db-url.txt"
+          status="$(curl --silent --show-error --output "$response" --write-out '%{http_code}' \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/database/pooler")"
+          if [[ "$status" != "200" ]]; then
+            echo "::error title=Database connection discovery failed::Supabase Management API returned HTTP $status"
+            exit 1
+          fi
+
+          node --input-type=module - "$response" "$db_url_file" <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const configs = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+          if (!Array.isArray(configs) || configs.length === 0) {
+            throw new Error('Supabase pooler configuration is empty');
+          }
+          const primary = configs.filter((entry) => String(entry?.database_type ?? '').toUpperCase() === 'PRIMARY');
+          const candidates = primary.length ? primary : configs;
+          const selected = candidates.find((entry) => Number(entry?.db_port) === 5432)
+            ?? candidates.find((entry) => String(entry?.pool_mode ?? '').toLowerCase() === 'session')
+            ?? candidates[0];
+          const required = ['db_user', 'db_host', 'db_port', 'db_name'];
+          for (const key of required) {
+            if (!selected?.[key]) throw new Error(`Supabase pooler configuration is missing ${key}`);
+          }
+          const url = new URL('postgresql://placeholder:placeholder@localhost/postgres');
+          url.username = String(selected.db_user);
+          url.password = process.env.SUPABASE_DB_PASSWORD;
+          url.hostname = String(selected.db_host);
+          url.port = String(selected.db_port);
+          url.pathname = `/${String(selected.db_name).replace(/^\/+/, '')}`;
+          url.searchParams.set('sslmode', 'require');
+          writeFileSync(process.argv[3], url.toString(), { mode: 0o600 });
+          NODE
+
+          db_url="$(cat "$db_url_file")"
+          [[ "$db_url" == postgresql://* ]] || { echo '::error title=Invalid database URL::Resolved database URL has an unexpected scheme'; exit 1; }
+          echo "::add-mask::$db_url"
+          printf 'RENDEZVUE_DB_URL=%s\n' "$db_url" >> "$GITHUB_ENV"
 
       - name: Show migration state before deployment
-        run: supabase migration list --linked
+        run: supabase migration list --db-url "$RENDEZVUE_DB_URL"
 
       - name: Apply pending migrations
         if: ${{ github.event_name == 'push' || inputs.apply_migrations }}
-        run: supabase db push
+        run: supabase db push --db-url "$RENDEZVUE_DB_URL"
 
       - name: Show migration state after deployment
-        run: supabase migration list --linked
+        run: supabase migration list --db-url "$RENDEZVUE_DB_URL"
 
       - name: Deploy authenticated account cleanup function
         run: supabase functions deploy delete-private-proof-account --project-ref "$SUPABASE_PROJECT_REF"
@@ -216,7 +258,7 @@ jobs:
           ## Rendezvue Cloudflare staging backend
 
           - Canonical URL: $RENDEZVUE_STAGING_URL
-          - Project migrations linked: yes
+          - Migration transport: protected Supavisor database URL (no supabase link dependency)
           - Pending migrations applied: ${{ github.event_name == 'push' || inputs.apply_migrations }}
           - Remote Auth and Data API: passed
           - Supabase Site URL and allow-list: Cloudflare Pages only
@@ -239,6 +281,7 @@ jobs:
 
           - commit: \`${GITHUB_SHA}\`
           - workflow: $RUN_URL
+          - migration transport: protected Supavisor database URL; no \`supabase link\` dependency
           - Supabase Site URL and allow-list: \`$RENDEZVUE_STAGING_URL\`
           - passwordless flow: default-provider PKCE magic link
           - migrations, remote health, cleanup deployment and anonymous rejection: passed
@@ -258,7 +301,7 @@ jobs:
 
           - commit: \`${GITHUB_SHA}\`
           - workflow: $RUN_URL
-          - result: migration, Supabase URL configuration, health, cleanup deployment or browser artifact validation did not complete
+          - result: migration transport, Supabase URL configuration, health, cleanup deployment or browser artifact validation did not complete
           - action: inspect the protected run; no backend or Cloudflare staging success is claimed
           - real-user admission: not authorized
           EOF
