@@ -12,7 +12,7 @@
 - Hugging Face is retired as an application host; existing Spaces are historical, non-canonical artifacts.
 - Staging is restricted to controlled synthetic adult accounts. Real-user admission remains unauthorized.
 - Rendezvue is adult-only, currently-single and serious-intent, with a student-first community layer rather than student-only admission.
-- Fuzzy browser-generated privacy portraits are the MVP baseline; AI portraits are optional.
+- Participant-controlled, browser-prepared portrait presentations are the MVP baseline; the original source remains private and AI portraits are optional.
 - Safety, fairness, privacy and legal controls are product features.
 
 ## Phase 0 — Foundation and hosting
