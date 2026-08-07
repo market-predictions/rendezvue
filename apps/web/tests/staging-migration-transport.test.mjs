@@ -12,12 +12,17 @@ test('protected staging migrations bypass the fragile Supabase link metadata cal
   assert.match(workflow, /supabase db push --db-url "\$RENDEZVUE_DB_URL"/);
 });
 
-test('resolved database URL is protected and assembled from validated pooler fields', () => {
+test('resolved database URL is protected and requires a PRIMARY session-capable pooler', () => {
   for (const field of ['db_user', 'db_host', 'db_port', 'db_name']) {
     assert.match(workflow, new RegExp(`['\"]${field}['\"]`));
   }
   assert.match(workflow, /database_type/);
+  assert.match(workflow, /No PRIMARY database pooler configuration was returned/);
+  assert.match(workflow, /No PRIMARY session-capable pooler configuration was returned/);
+  assert.match(workflow, /Number\(entry\?\.db_port\) === 5432/);
   assert.match(workflow, /pool_mode/);
+  assert.doesNotMatch(workflow, /primary\.length \? primary : configs/);
+  assert.doesNotMatch(workflow, /\?\? candidates\[0\]/);
   assert.match(workflow, /url\.password = process\.env\.SUPABASE_DB_PASSWORD/);
   assert.match(workflow, /url\.searchParams\.set\('sslmode', 'require'\)/);
   assert.match(workflow, /echo "::add-mask::\$db_url"/);
