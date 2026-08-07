@@ -61,8 +61,12 @@ const query = `
     (
       select count(*)::int
       from public.privacy_portraits
-      where preparation_id is not null
-        and asset_role in ('source', 'card', 'avatar')
+      where (
+        treatment = 'normalized-source-webp'
+        or treatment in ('prepared-card-4x5-webp', 'prepared-avatar-square-webp')
+        or treatment like 'privacy-%-card-4x5-webp'
+        or treatment like 'privacy-%-avatar-square-webp'
+      )
         and not metadata_stripped
     ) as unstripped_prepared_count,
     pg_get_functiondef('public.load_onboarding_snapshot()'::regprocedure) like '%- ''source_object_path''%' as snapshot_redacts_source_path,
