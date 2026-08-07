@@ -169,8 +169,13 @@ The former single-match surface is replaced by a scalable inbox that separates c
 
 ## WP-074A — Privacy portrait recognisability recalibration
 
-**Status:** technically complete and canonically verified; owner visual acceptance pending; issue #109  
-Owner field review superseded the original WP-074 visual ladder because levels 3 and 4 were excessively blurred. The active choices are Unfiltered, Natural, Soft private and Balanced with no default selection and Soft private recommended. Unfiltered is a prepared metadata-free derivative, never the original upload. Historical heavy IDs remain database-compatible but are excluded from the active client and rejected for new registrations. PR #110 merged the product; run `31194940950` passed full repository assurance; protected staging run `31197276822` applied the migration through the hardened Supavisor session transport; canonical run `31197343371` verified delivered assets. Detailed evidence: `docs/WP-074-PRIVACY-PORTRAIT-FILTERS.md`.
+**Status:** technically complete historical baseline; visual ladder superseded by WP-074B; issue #109  
+WP-074A proved the prepared-derivative privacy architecture and replaced the original over-blurred ladder with Unfiltered, Natural, Soft private and Balanced. That visual ladder is no longer awaiting acceptance: the owner explicitly superseded it with WP-074B. Unfiltered remains a prepared metadata-free derivative, never the original upload. Historical IDs remain database-compatible. PR #110 merged the baseline; run `31194940950`, protected staging run `31197276822` and canonical run `31197343371` passed. Detailed evidence: `docs/WP-074-PRIVACY-PORTRAIT-FILTERS.md`.
+
+## WP-074B — Privacy portrait ladder remap and selected-card delivery
+
+**Status:** implementation in review; technical PR validation green; canonical owner acceptance pending; issue #115  
+Owner direction remaps the active ladder to **Zonder filter / Unfiltered → Natural → Zacht privé / Soft private → Meer privé / More private**. Natural uses the former `softFocus` recipe, Soft private uses the former `warmVeil`/Balanced recipe, and More private adds a bounded stronger recipe that stays lighter than the rejected legacy heavy tiers. Natural is Recommended and no option is preselected. Historical `natural`, `monoMist` and `privacyMax` identifiers remain readable but are rejected for new writes. Card and avatar are generated from and persist the exact selected presentation. Discovery now resolves only the selected prepared card of a published, unblocked profile through a narrow private-Storage policy; source and non-selected derivatives remain private. PR #116; technical evidence includes dedicated run `31204115559` and full validation run `31204115617`. Protected staging migration, commit-matched canonical delivery and owner visual acceptance remain pending. Detailed evidence: `docs/WP-074B-PRIVACY-PORTRAIT-LADDER.md`.
 
 ## WP-080 — Closed city pilot readiness
 
