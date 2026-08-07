@@ -13,21 +13,9 @@ export const PRIVACY_PORTRAIT_FILTERS = Object.freeze([
     veil: 'rgba(0, 0, 0, 0)'
   }),
   Object.freeze({
-    id: 'natural',
-    privacyRank: 2,
-    recommended: false,
-    blur: 3,
-    pixelDivisor: 2,
-    grayscale: 0,
-    sepia: 0.02,
-    saturation: 0.98,
-    contrast: 0.99,
-    brightness: 1.01,
-    veil: 'rgba(250, 244, 238, 0.03)'
-  }),
-  Object.freeze({
+    // Former customer-facing Soft private recipe; now the recommended Natural tier.
     id: 'softFocus',
-    privacyRank: 3,
+    privacyRank: 2,
     recommended: true,
     blur: 9,
     pixelDivisor: 7,
@@ -39,8 +27,9 @@ export const PRIVACY_PORTRAIT_FILTERS = Object.freeze([
     veil: 'rgba(250, 244, 238, 0.10)'
   }),
   Object.freeze({
+    // Former customer-facing Balanced recipe; now Soft private.
     id: 'warmVeil',
-    privacyRank: 4,
+    privacyRank: 3,
     recommended: false,
     blur: 13,
     pixelDivisor: 9,
@@ -50,6 +39,20 @@ export const PRIVACY_PORTRAIT_FILTERS = Object.freeze([
     contrast: 0.92,
     brightness: 1.06,
     veil: 'rgba(237, 213, 203, 0.18)'
+  }),
+  Object.freeze({
+    // Deliberately stronger than former Balanced, but materially lighter than legacy monoMist/privacyMax.
+    id: 'morePrivate',
+    privacyRank: 4,
+    recommended: false,
+    blur: 15,
+    pixelDivisor: 10,
+    grayscale: 0.08,
+    sepia: 0.12,
+    saturation: 0.76,
+    contrast: 0.90,
+    brightness: 1.06,
+    veil: 'rgba(236, 220, 216, 0.21)'
   })
 ]);
 

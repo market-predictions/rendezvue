@@ -1,4 +1,5 @@
 const MODULE = './privacy-portrait-controller.js';
+const LADDER_UI = './privacy-portrait-ladder-ui.js';
 let loading = false;
 let observer = null;
 
@@ -16,6 +17,7 @@ async function activateWhenReady() {
   observer?.disconnect();
   detachLegacyFileListener();
   await import(MODULE);
+  await import(LADDER_UI);
 }
 
 observer = new MutationObserver(() => {

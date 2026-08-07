@@ -7,16 +7,23 @@ on:
       - '.github/workflows/verify-wp074-privacy-portrait-filters.yml'
       - 'apps/private-preview/privacy-portrait-loader.js'
       - 'apps/private-preview/privacy-portrait-controller.js'
+      - 'apps/private-preview/privacy-portrait-ladder-ui.js'
       - 'apps/private-preview/privacy-portrait-filters.js'
       - 'apps/private-preview/privacy-portrait-filters.css'
+      - 'apps/private-preview/discovery-selected-portrait.js'
       - 'apps/web/tests/privacy-portrait-filters.test.mjs'
+      - 'apps/web/tests/privacy-portrait-surface-binding.test.mjs'
       - 'scripts/finalize-discovery-deck-artifact.mjs'
       - 'scripts/validate-wp074-privacy-portrait-filters.mjs'
       - 'supabase/migrations/20260806225500_privacy_portrait_filter_selection.sql'
       - 'supabase/migrations/20260807153500_privacy_portrait_gradient_recalibration.sql'
+      - 'supabase/migrations/20260807193000_privacy_portrait_ladder_remap.sql'
+      - 'supabase/migrations/20260807193500_discovery_selected_portrait_delivery.sql'
       - 'supabase/tests/database/014_profile_image_preparation.test.sql'
       - 'supabase/tests/database/015_privacy_portrait_filter_selection.test.sql'
       - 'supabase/tests/database/016_privacy_portrait_gradient_recalibration.test.sql'
+      - 'supabase/tests/database/017_privacy_portrait_ladder_remap.test.sql'
+      - 'supabase/tests/database/018_discovery_selected_portrait_delivery.test.sql'
       - 'package.json'
       - 'package-lock.json'
   workflow_run:
@@ -34,7 +41,7 @@ concurrency:
 
 jobs:
   contract:
-    name: Validate recalibrated privacy portrait contract
+    name: Validate WP074B privacy portrait contract
     runs-on: ubuntu-latest
     env:
       SUPABASE_URL: https://example.supabase.co
@@ -43,12 +50,10 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
-
       - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
-
       - name: Test source, database contract and generated artifact
         run: |
           set -euo pipefail
@@ -58,7 +63,7 @@ jobs:
           node scripts/validate-wp074-privacy-portrait-filters.mjs
 
   canonical:
-    name: Verify canonical privacy portrait delivery
+    name: Verify canonical WP074B privacy portrait delivery
     if: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') }}
     runs-on: ubuntu-latest
     env:
@@ -89,17 +94,21 @@ jobs:
           done
           [[ "$matched" == "true" ]] || { echo '::error title=Deployment did not converge::Canonical deployment was not commit-matched.'; exit 1; }
 
-      - name: Verify delivered privacy presentation boundary
+      - name: Verify delivered WP074B privacy presentation boundary
         shell: bash
         run: |
           set -euo pipefail
           loader="$RUNNER_TEMP/privacy-portrait-loader.js"
           controller="$RUNNER_TEMP/privacy-portrait-controller.js"
+          ladder="$RUNNER_TEMP/privacy-portrait-ladder-ui.js"
+          selected="$RUNNER_TEMP/discovery-selected-portrait.js"
           css="$RUNNER_TEMP/privacy-portrait-filters.css"
           filters="$RUNNER_TEMP/privacy-portrait-filters.js"
           for spec in \
             "privacy-portrait-loader.js:$loader" \
             "privacy-portrait-controller.js:$controller" \
+            "privacy-portrait-ladder-ui.js:$ladder" \
+            "discovery-selected-portrait.js:$selected" \
             "privacy-portrait-filters.css:$css" \
             "privacy-portrait-filters.js:$filters"; do
             route="${spec%%:*}"
@@ -108,28 +117,28 @@ jobs:
             [[ "$status" == "200" ]] || { echo "::error title=Canonical asset missing::$route returned HTTP $status"; exit 1; }
           done
 
-          grep --fixed-strings --quiet "document.querySelector('#rv-portrait-form')" "$loader"
-          grep --fixed-strings --quiet 'import(MODULE)' "$loader"
+          grep --fixed-strings --quiet "const LADDER_UI = './privacy-portrait-ladder-ui.js'" "$loader"
+          grep --fixed-strings --quiet 'await import(LADDER_UI)' "$loader"
           grep --fixed-strings --quiet "BOUNDARY = 'wp074-privacy-portrait-filters'" "$controller"
-          grep --fixed-strings --quiet 'version: 2' "$controller"
           grep --fixed-strings --quiet 'mandatoryFilterSelection: true' "$controller"
           grep --fixed-strings --quiet 'publicRawPortraitAllowed: false' "$controller"
-          grep --fixed-strings --quiet 'publicUnfilteredDerivativeAllowed: true' "$controller"
           grep --fixed-strings --quiet 'selectedFilterId = null' "$controller"
           grep --fixed-strings --quiet 'p_privacy_filter_id: output.filterId' "$controller"
-          grep --fixed-strings --quiet "unfilteredTitle: 'Zonder filter'" "$controller"
-          grep --fixed-strings --quiet "naturalTitle: 'Natural'" "$controller"
-          grep --fixed-strings --quiet "softFocusTitle: 'Soft private'" "$controller"
-          grep --fixed-strings --quiet "warmVeilTitle: 'Balanced'" "$controller"
-          ! grep --extended-regexp --quiet "selectedFilterId[[:space:]]*=[[:space:]]*['\"](unfiltered|natural|softFocus|warmVeil|monoMist|privacyMax)" "$controller"
-          for id in unfiltered natural softFocus warmVeil; do
+          grep --fixed-strings --quiet "activeIds: Object.freeze(['unfiltered', 'softFocus', 'warmVeil', 'morePrivate'])" "$ladder"
+          grep --fixed-strings --quiet "recommendedId: 'softFocus'" "$ladder"
+          grep --fixed-strings --quiet 'defaultSelection: null' "$ladder"
+          grep --fixed-strings --quiet "title: 'Natural'" "$ladder"
+          grep --fixed-strings --quiet "title: 'Zacht privé'" "$ladder"
+          grep --fixed-strings --quiet "title: 'Soft private'" "$ladder"
+          grep --fixed-strings --quiet "title: 'Meer privé'" "$ladder"
+          grep --fixed-strings --quiet "title: 'More private'" "$ladder"
+          grep --fixed-strings --quiet "rpc('get_discovery_portrait_path'" "$selected"
+          grep --fixed-strings --quiet "portraitSource = 'selected-prepared-card'" "$selected"
+          ! grep --extended-regexp --quiet "selectedFilterId[[:space:]]*=[[:space:]]*['\"](unfiltered|natural|softFocus|warmVeil|morePrivate|monoMist|privacyMax)" "$controller"
+          for id in unfiltered softFocus warmVeil morePrivate; do
             grep --fixed-strings --quiet "id: '$id'" "$filters"
           done
-          ! grep --extended-regexp --quiet "id:[[:space:]]*['\"](monoMist|privacyMax|raw|none|original)" "$filters"
-          grep --fixed-strings --quiet "recipe.id === 'unfiltered'" "$filters"
-          grep --fixed-strings --quiet 'blur: 0' "$filters"
-          grep --fixed-strings --quiet 'blur: 3' "$filters"
-          grep --fixed-strings --quiet 'blur: 9' "$filters"
-          grep --fixed-strings --quiet 'blur: 13' "$filters"
+          ! grep --extended-regexp --quiet "id:[[:space:]]*['\"](natural|monoMist|privacyMax|raw|none|original)" "$filters"
+          for blur in 0 9 13 15; do grep --fixed-strings --quiet "blur: $blur" "$filters"; done
           grep --fixed-strings --quiet '.rv-privacy-filter-option.selected' "$css"
           grep --fixed-strings --quiet '.rv-privacy-filter-recommended' "$css"

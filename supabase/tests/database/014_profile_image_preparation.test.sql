@@ -184,7 +184,7 @@ select 'second', public.register_prepared_portrait(
   '10000000-0000-4000-8000-000000000001/prepared/20000000-0000-4000-8000-000000000002/card-4x5.webp',
   '10000000-0000-4000-8000-000000000001/prepared/20000000-0000-4000-8000-000000000002/avatar-square.webp',
   0.48, 0.44, 1.05, 1400, 2100,
-  'natural',
+  'softFocus',
   array['very-tall-source']
 );
 select is(
