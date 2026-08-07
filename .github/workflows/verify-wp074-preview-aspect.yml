@@ -1,0 +1,89 @@
+name: Verify WP074 privacy preview geometry
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-wp074-preview-aspect.yml'
+      - 'apps/private-preview/privacy-portrait-filters.css'
+      - 'apps/web/tests/privacy-portrait-surface-binding.test.mjs'
+  workflow_run:
+    workflows: ['Configure Cloudflare staging backend']
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rendezvue-wp074-preview-geometry-${{ github.event.pull_request.number || github.event.workflow_run.head_sha || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    name: Validate privacy preview geometry contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - name: Test source and generated artifact geometry
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          node --test apps/web/tests/privacy-portrait-surface-binding.test.mjs
+          npm run build:cloudflare
+          for css in apps/private-preview/privacy-portrait-filters.css dist-private-preview/privacy-portrait-filters.css; do
+            grep --fixed-strings --quiet '[data-filter-card] { display: block; width: auto; height: 100%; aspect-ratio: 4/5; }' "$css"
+            grep --fixed-strings --quiet 'width: 34%; height: auto; aspect-ratio: 1/1;' "$css"
+            ! grep --fixed-strings --quiet '[data-filter-card] { display: block; width: 72%; height: 100%; }' "$css"
+          done
+
+  canonical:
+    name: Verify canonical privacy preview geometry
+    if: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') }}
+    runs-on: ubuntu-latest
+    env:
+      STAGING_URL: https://rendezvue-private-preview.pages.dev/
+      EXPECTED_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - name: Wait for commit-matched canonical deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SHA" =~ ^[a-f0-9]{40}$ ]] || exit 1
+          metadata="$RUNNER_TEMP/deployment.json"
+          matched=false
+          for attempt in {1..72}; do
+            status="$(curl --silent --show-error --location --output "$metadata" --write-out '%{http_code}' --header 'cache-control: no-cache' "${STAGING_URL}deployment.json?commit=${EXPECTED_SHA}&attempt=${attempt}" || true)"
+            if [[ "$status" == "200" ]] && node --input-type=module --eval "
+              import { readFileSync } from 'node:fs';
+              const document = JSON.parse(readFileSync(process.argv[1], 'utf8'));
+              if (document.buildCommit !== process.argv[2]) process.exit(1);
+              if (document.hostingPlatform !== 'cloudflare-pages') process.exit(1);
+              if (document.remoteBackendConfigured !== true) process.exit(1);
+              if (document.realUserAdmissionAuthorized !== false) process.exit(1);
+            " "$metadata" "$EXPECTED_SHA"; then
+              matched=true
+              break
+            fi
+            sleep 10
+          done
+          [[ "$matched" == "true" ]] || exit 1
+
+      - name: Verify delivered card and avatar preserve geometry
+        shell: bash
+        run: |
+          set -euo pipefail
+          css="$RUNNER_TEMP/privacy-portrait-filters.css"
+          status="$(curl --silent --show-error --location --output "$css" --write-out '%{http_code}' --header 'cache-control: no-cache' "${STAGING_URL}privacy-portrait-filters.css?commit=${EXPECTED_SHA}")"
+          [[ "$status" == "200" ]]
+          grep --fixed-strings --quiet '[data-filter-card] { display: block; width: auto; height: 100%; aspect-ratio: 4/5; }' "$css"
+          grep --fixed-strings --quiet 'width: 34%; height: auto; aspect-ratio: 1/1;' "$css"
+          ! grep --fixed-strings --quiet '[data-filter-card] { display: block; width: 72%; height: 100%; }' "$css"
