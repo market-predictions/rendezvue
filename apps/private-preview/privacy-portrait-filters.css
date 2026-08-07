@@ -10,8 +10,9 @@
 .rv-privacy-filter-option strong { color: #211b18; font-size: .86rem; }
 .rv-privacy-filter-option > span:last-child { color: #6d625a; font-size: .72rem; line-height: 1.4; }
 .rv-privacy-filter-previews { position: relative; display: block; overflow: hidden; aspect-ratio: 4/3; border-radius: .72rem; background: #e2dad3; }
-.rv-privacy-filter-previews [data-filter-card] { display: block; width: 72%; height: 100%; }
-.rv-privacy-filter-previews [data-filter-avatar] { position: absolute; right: .4rem; bottom: .4rem; width: 34%; height: auto; aspect-ratio: 1; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 4px 12px rgba(33,27,24,.18); }
+/* The matrix is a fidelity preview: never stretch the prepared 4:5 card or 1:1 avatar. */
+.rv-privacy-filter-previews [data-filter-card] { display: block; width: auto; height: 100%; aspect-ratio: 4/5; }
+.rv-privacy-filter-previews [data-filter-avatar] { position: absolute; right: .4rem; bottom: .4rem; width: 34%; height: auto; aspect-ratio: 1/1; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 4px 12px rgba(33,27,24,.18); }
 .rv-privacy-filter-recommended { position: absolute; z-index: 2; top: .45rem; right: .45rem; padding: .24rem .42rem; border-radius: 999px; background: #215f50; color: #fff !important; font-size: .61rem !important; font-weight: 850; letter-spacing: .02em; }
 @media (max-width: 36rem) {
   .rv-privacy-filter-grid { grid-template-columns: minmax(0, 1fr); }
