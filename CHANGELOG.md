@@ -4,6 +4,22 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
+### Privacy portrait ladder remap and selected-card delivery
+
+- Added WP-074B / issue #115 after owner review requested a tighter, more useful four-step privacy ladder.
+- Remapped the active customer ladder to **Zonder filter / Unfiltered → Natural → Zacht privé / Soft private → Meer privé / More private** with no default selection.
+- Moved the existing former Soft private `softFocus` recipe to customer-facing **Natural** and moved the existing former Balanced `warmVeil` recipe to customer-facing **Soft private**, without silently changing their stored pixels or technical identifiers.
+- Added `morePrivate` as a bounded fourth treatment: blur 15 and moderate pixel/grayscale reduction, stronger than former Balanced but deliberately lighter and more recognisable than the rejected legacy `monoMist`/`privacyMax` tiers.
+- Moved the Recommended badge to customer-facing Natural (`softFocus`).
+- Retained the former WP-074A `natural` identifier and legacy heavy identifiers for historical database readability only; new registrations reject them.
+- Kept the uploaded/normalized source private and non-selectable; card and avatar are rendered from and persist the exact selected presentation ID.
+- Added a narrow selected-card discovery path so published, unblocked profiles can expose only their exact selected prepared card through a short-lived signed URL; source, avatar and non-selected derivatives remain denied to discovery.
+- Kept bundled synthetic discovery portraits as a safe fallback when a selected prepared card cannot be resolved unambiguously.
+- Added browser/source, cross-surface, migration, pgTAP, artifact and canonical verifier coverage, including de-publication and block revocation of discovery portrait access.
+- Initial broad CI exposed one stale pre-WP-074B test fixture that still registered the retired `natural` ID; only that fixture was corrected to `softFocus`, while the production allowlist remained fail-closed.
+- Dedicated WP-074B run `31204115559` and full validation run `31204115617` passed on implementation head `ac9b0e80624c1c82572f257bcd8831d7a68ad973`; final administrative-head CI, protected staging migration, commit-matched canonical delivery and owner visual acceptance remain pending.
+- Real-user admission remains unauthorized.
+
 ### Privacy portrait recognisability recalibration
 
 - Added WP-074A after owner field review found the former Private and Extra private levels excessively blurred.
@@ -72,7 +88,7 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Added a mobile-first 4:5 framing editor with pan, zoom, reset, safe-area guidance and square avatar preview.
 - Added warnings for low-resolution, landscape and unusually narrow sources without introducing biometric analysis.
 - Normalized orientation where supported and re-encoded the source to metadata-free private WebP rather than using the original upload directly.
-- Added explicit 960×1200 card and 384×384 avatar derivatives linked to one preparation ID.
+- Added explicit 960×1200 card and 384×384 avatar derivatives linked by one preparation ID.
 - Restricted selected portraits to the card role and enforced one selected card per account, exact private paths, idempotency and serialized replacement.
 - Redacted source and selected Storage paths from onboarding snapshots and kept object paths out of audit payloads and browser events.
 - Added resilient `contain` plus blurred same-image rendering so the app does not crop through face, chin or forehead merely to fill a slot.
