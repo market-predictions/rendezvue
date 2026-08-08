@@ -157,13 +157,17 @@ jobs:
             if not has_table_privilege('service_role', 'public.moderation_cases', 'SELECT') then
               raise exception 'service_role cannot read moderation cases';
             end if;
-            if has_table_privilege('service_role', 'public.moderation_cases', 'INSERT,UPDATE,DELETE') then
+            if has_table_privilege('service_role', 'public.moderation_cases', 'INSERT')
+               or has_table_privilege('service_role', 'public.moderation_cases', 'UPDATE')
+               or has_table_privilege('service_role', 'public.moderation_cases', 'DELETE') then
               raise exception 'service_role can bypass controlled moderation case functions';
             end if;
             if not has_table_privilege('service_role', 'public.moderation_case_events', 'SELECT') then
               raise exception 'service_role cannot read moderation case events';
             end if;
-            if has_table_privilege('service_role', 'public.moderation_case_events', 'INSERT,UPDATE,DELETE') then
+            if has_table_privilege('service_role', 'public.moderation_case_events', 'INSERT')
+               or has_table_privilege('service_role', 'public.moderation_case_events', 'UPDATE')
+               or has_table_privilege('service_role', 'public.moderation_case_events', 'DELETE') then
               raise exception 'service_role can mutate append-only moderation events directly';
             end if;
             if has_table_privilege('authenticated', 'public.moderation_cases', 'SELECT')
