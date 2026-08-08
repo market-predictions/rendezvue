@@ -1,0 +1,275 @@
+name: Verify WP070B moderation authorization staging
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-wp070b-staging.yml'
+      - 'supabase/migrations/20260808190500_moderation_action_authorization.sql'
+      - 'scripts/validate-wp070b-moderation-authorization.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: rendezvue-wp070b-staging-verification
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify protected moderation authorization contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: rendezvue-private-preview
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      STAGING_URL: https://rendezvue-private-preview.pages.dev/
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate protected verifier configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in SUPABASE_ACCESS_TOKEN SUPABASE_PROJECT_REF SUPABASE_DB_PASSWORD STAGING_URL; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error title=Missing protected configuration::$name is not configured"
+              exit 1
+            fi
+          done
+          [[ "$SUPABASE_PROJECT_REF" =~ ^[a-z0-9]{15,30}$ ]] || {
+            echo '::error title=Invalid project reference::SUPABASE_PROJECT_REF has an unexpected format'
+            exit 1
+          }
+
+      - name: Resolve read-only Supavisor session connection
+        shell: bash
+        run: |
+          set -euo pipefail
+          response="$RUNNER_TEMP/supabase-pooler.json"
+          db_url_file="$RUNNER_TEMP/supabase-db-url.txt"
+          status="$(curl --silent --show-error --output "$response" --write-out '%{http_code}' \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/database/pooler")"
+          [[ "$status" == "200" ]] || {
+            echo "::error title=Database connection discovery failed::Supabase Management API returned HTTP $status"
+            exit 1
+          }
+
+          node --input-type=module - "$response" "$db_url_file" <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const configs = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+          const candidates = Array.isArray(configs)
+            ? configs.filter((entry) => String(entry?.database_type ?? '').toUpperCase() === 'PRIMARY'
+                && String(entry?.db_host ?? '').endsWith('.pooler.supabase.com'))
+            : [];
+          if (!candidates.length) throw new Error('No PRIMARY Supavisor pooler configuration was returned');
+          const selected = candidates.find((entry) => String(entry?.pool_mode ?? '').toLowerCase() === 'transaction') ?? candidates[0];
+          for (const key of ['db_user', 'db_host', 'db_name']) {
+            if (!selected?.[key]) throw new Error(`Supabase pooler configuration is missing ${key}`);
+          }
+          const url = new URL('postgresql://placeholder:placeholder@localhost/postgres');
+          url.username = String(selected.db_user);
+          url.password = process.env.SUPABASE_DB_PASSWORD;
+          url.hostname = String(selected.db_host);
+          url.port = '5432';
+          url.pathname = `/${String(selected.db_name).replace(/^\/+/, '')}`;
+          url.searchParams.set('sslmode', 'require');
+          writeFileSync(process.argv[3], url.toString(), { mode: 0o600 });
+          NODE
+
+          db_url="$(cat "$db_url_file")"
+          echo "::add-mask::$db_url"
+          printf 'RENDEZVUE_DB_URL=%s\n' "$db_url" >> "$GITHUB_ENV"
+
+      - name: Verify exact remote WP-070B schema and privilege contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$RENDEZVUE_DB_URL" --no-psqlrc --set ON_ERROR_STOP=1 <<'SQL'
+          do $$
+          declare
+            v_missing text[] := '{}'::text[];
+          begin
+            if not exists (select 1 from supabase_migrations.schema_migrations where version = '20260808190500') then
+              v_missing := array_append(v_missing, 'migration 20260808190500');
+            end if;
+            if to_regclass('public.moderation_action_proposals') is null then
+              v_missing := array_append(v_missing, 'moderation_action_proposals table');
+            end if;
+            if to_regclass('public.moderation_action_reviews') is null then
+              v_missing := array_append(v_missing, 'moderation_action_reviews table');
+            end if;
+            if to_regprocedure('public.list_pending_moderation_action_proposals(integer)') is null then
+              v_missing := array_append(v_missing, 'list_pending_moderation_action_proposals(integer)');
+            end if;
+            if to_regprocedure('public.propose_moderation_action(uuid,integer,text,text,text)') is null then
+              v_missing := array_append(v_missing, 'propose_moderation_action(...)');
+            end if;
+            if to_regprocedure('public.review_moderation_action_proposal(uuid,text,text,text)') is null then
+              v_missing := array_append(v_missing, 'review_moderation_action_proposal(...)');
+            end if;
+            if not exists (
+              select 1 from pg_indexes
+              where schemaname='public' and tablename='moderation_action_proposals'
+                and indexname='moderation_action_proposals_one_pending_per_case_idx'
+            ) then
+              v_missing := array_append(v_missing, 'one-pending-proposal-per-case index');
+            end if;
+            if cardinality(v_missing) > 0 then
+              raise exception 'WP-070B remote contract missing: %', array_to_string(v_missing, ', ');
+            end if;
+          end $$;
+
+          do $$
+          declare
+            fn regprocedure;
+          begin
+            foreach fn in array array[
+              'public.list_pending_moderation_action_proposals(integer)'::regprocedure,
+              'public.propose_moderation_action(uuid,integer,text,text,text)'::regprocedure,
+              'public.review_moderation_action_proposal(uuid,text,text,text)'::regprocedure
+            ] loop
+              if not has_function_privilege('service_role', fn, 'EXECUTE') then
+                raise exception 'service_role execute missing for %', fn;
+              end if;
+              if has_function_privilege('authenticated', fn, 'EXECUTE') or has_function_privilege('anon', fn, 'EXECUTE') then
+                raise exception 'participant role unexpectedly has execute for %', fn;
+              end if;
+              if not (select prosecdef from pg_proc where oid = fn::oid) then
+                raise exception 'controlled authorization function is not security definer: %', fn;
+              end if;
+            end loop;
+          end $$;
+
+          do $$
+          begin
+            if not has_table_privilege('service_role', 'public.moderation_action_proposals', 'SELECT') then
+              raise exception 'service_role cannot read moderation action proposals';
+            end if;
+            if has_table_privilege('service_role', 'public.moderation_action_proposals', 'INSERT')
+               or has_table_privilege('service_role', 'public.moderation_action_proposals', 'UPDATE')
+               or has_table_privilege('service_role', 'public.moderation_action_proposals', 'DELETE') then
+              raise exception 'service_role can bypass controlled proposal functions';
+            end if;
+            if not has_table_privilege('service_role', 'public.moderation_action_reviews', 'SELECT') then
+              raise exception 'service_role cannot read moderation action reviews';
+            end if;
+            if has_table_privilege('service_role', 'public.moderation_action_reviews', 'INSERT')
+               or has_table_privilege('service_role', 'public.moderation_action_reviews', 'UPDATE')
+               or has_table_privilege('service_role', 'public.moderation_action_reviews', 'DELETE') then
+              raise exception 'service_role can bypass append-only review function';
+            end if;
+            if has_table_privilege('authenticated', 'public.moderation_action_proposals', 'SELECT')
+               or has_table_privilege('authenticated', 'public.moderation_action_reviews', 'SELECT')
+               or has_table_privilege('anon', 'public.moderation_action_proposals', 'SELECT')
+               or has_table_privilege('anon', 'public.moderation_action_reviews', 'SELECT') then
+              raise exception 'participant role can inspect private moderation authorization state';
+            end if;
+            if not exists (
+              select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace
+              where n.nspname='public' and c.relname='moderation_action_proposals' and c.relrowsecurity=true
+            ) or not exists (
+              select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace
+              where n.nspname='public' and c.relname='moderation_action_reviews' and c.relrowsecurity=true
+            ) then
+              raise exception 'moderation authorization RLS is not enabled';
+            end if;
+          end $$;
+
+          begin read only;
+          set local role service_role;
+          select count(*) as bounded_pending_proposal_probe from public.list_pending_moderation_action_proposals(1);
+          rollback;
+          SQL
+
+      - name: Verify exact canonical deployment boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          metadata="$RUNNER_TEMP/wp070b-deployment.json"
+          matched=false
+          for attempt in {1..72}; do
+            status="$(curl --silent --show-error --location \
+              --output "$metadata" --write-out '%{http_code}' \
+              --header 'cache-control: no-cache' \
+              "${STAGING_URL}deployment.json?wp070b=${GITHUB_SHA}&attempt=${attempt}" || true)"
+            if [[ "$status" == '200' ]] && node --input-type=module - "$metadata" "$GITHUB_SHA" <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const doc = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+          const expected = process.argv[3];
+          if (doc.buildCommit !== expected) process.exit(1);
+          if (doc.hostingPlatform !== 'cloudflare-pages') process.exit(1);
+          if (doc.configurationMode !== 'remote-supabase') process.exit(1);
+          if (doc.remoteBackendConfigured !== true) process.exit(1);
+          if (doc.realUserAdmissionAuthorized !== false) process.exit(1);
+          NODE
+            then
+              matched=true
+              break
+            fi
+            sleep 10
+          done
+          if [[ "$matched" != true ]]; then
+            echo '::error title=WP-070B canonical boundary mismatch::Canonical deployment did not converge to exact main with real-user admission disabled.'
+            [[ -f "$metadata" ]] && cat "$metadata" || true
+            exit 1
+          fi
+          cat "$metadata"
+
+      - name: Write WP-070B verification summary
+        shell: bash
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## WP-070B protected staging verification
+
+          - exact main commit: \`$GITHUB_SHA\`
+          - migration 20260808190500: present remotely
+          - service-only pending/propose/review RPCs: present and SECURITY DEFINER
+          - participant access to authorization operations: denied
+          - direct service mutation of proposal/review tables: denied
+          - proposal/review RLS: enabled
+          - bounded service pending-proposal probe: passed
+          - enforcement execution capability: not introduced by WP-070B
+          - canonical Cloudflare deployment: commit matched
+          - real-user admission: not authorized
+          EOF
+
+      - name: Record WP-070B protected verification
+        if: success()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment 139 --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
+          ## WP-070B protected staging verification PASS
+
+          - exact main commit: \`$GITHUB_SHA\`
+          - workflow: $RUN_URL
+          - remote migration/schema/RPC/privilege contract: passed
+          - authorization-only boundary: retained
+          - canonical deployment boundary: commit matched
+          - real-user admission: not authorized
+          EOF
+
+      - name: Record WP-070B protected verification failure
+        if: failure()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment 139 --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
+          ## WP-070B protected staging verification failed
+
+          - exact commit: \`$GITHUB_SHA\`
+          - workflow: $RUN_URL
+          - no WP-070B remote completion is claimed
+          - real-user admission: not authorized
+          EOF
