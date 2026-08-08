@@ -1,0 +1,48 @@
+/* WP-078: control-type-specific touch contract. Layout and pointer ergonomics are intentionally separate. */
+.rv-touch-contract button,.rv-touch-contract [role="button"],.rv-touch-contract summary{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+
+/* Correct the WP-071 generic input rule: choice controls are indicators, the label row is the target. */
+.rv-touch-contract .rv-fieldset input[type="checkbox"],.rv-touch-contract .rv-fieldset input[type="radio"]{box-sizing:border-box;width:1.55rem!important;height:1.55rem!important;min-width:1.55rem!important;min-height:1.55rem!important;margin:0!important;padding:0!important;border-radius:.32rem;background:#fff;box-shadow:none;accent-color:#215f50;flex:0 0 auto}
+.rv-touch-contract .rv-check,.rv-touch-contract .rv-touch-choice-row{grid-template-columns:1.55rem minmax(0,1fr)!important;align-items:center!important;gap:.8rem!important;min-height:3.65rem;padding:.72rem .82rem!important;cursor:pointer}
+.rv-touch-contract .rv-check:focus-within{outline:3px solid rgba(33,95,80,.16);outline-offset:2px}
+
+.rv-touch-range-controls{display:grid;grid-template-columns:3rem minmax(0,1fr) 3rem;gap:.55rem;align-items:center;width:100%;margin-top:.35rem}.rv-touch-range-controls input[type="range"]{width:100%;margin:0}.rv-touch-range-step{width:3rem!important;min-width:3rem!important;height:3rem!important;min-height:3rem!important;padding:.25rem!important;border-radius:.8rem!important;font-size:1.25rem!important;font-weight:800!important}
+.rv-touch-contract input[type="range"]{min-height:2.75rem;touch-action:pan-y}.rv-touch-contract input[type="range"]::-webkit-slider-thumb{width:1.75rem;height:1.75rem}.rv-touch-contract input[type="range"]::-moz-range-thumb{width:1.75rem;height:1.75rem}
+
+@media (pointer:coarse),(hover:none){
+  .rv-touch-contract button,.rv-touch-contract summary,.rv-touch-contract input[type="button"],.rv-touch-contract input[type="submit"]{min-height:3rem}
+  .rv-touch-contract .language-button{min-height:3rem;padding:.65rem .8rem}
+  .rv-touch-contract .rv-profile-media-slot-actions button,.rv-touch-contract .rv-profile-media-viewer-nav button,.rv-touch-contract .rv-profile-media-dialog-close,.rv-touch-contract .rv-discovery-media-count{min-width:3rem;min-height:3rem}
+  .rv-touch-contract .rv-profile-media-thumb{width:3.25rem;height:4.05rem;min-width:3.25rem;min-height:4.05rem}
+  .rv-touch-contract .rv-discovery-actions button,.rv-touch-contract .rv-context-form button,.rv-touch-contract .rv-chat-form button,.rv-touch-contract .rv-safety-grid button,.rv-touch-contract .rv-conversation-back{min-height:3rem}
+  .rv-touch-contract .rv-thread-row{min-height:4.8rem}
+  .rv-touch-contract .rv-privacy-filter-option{min-height:4.5rem;touch-action:manipulation}
+  .rv-touch-contract .rv-image-frame-card{touch-action:none}
+}
+
+@media(max-width:42.5rem){
+  .rv-touch-contract .rv-app{padding-bottom:5.4rem}
+  .rv-touch-contract .rv-nav{position:fixed!important;top:auto!important;right:.55rem;bottom:max(.55rem,env(safe-area-inset-bottom));left:.55rem;z-index:80;width:auto;max-width:42rem;margin:0 auto;padding:.35rem;border-radius:1rem;box-shadow:0 14px 42px rgba(35,27,23,.2)}
+  .rv-touch-contract .rv-nav button{min-height:3.35rem;padding:.55rem .2rem!important;font-size:.72rem!important;line-height:1.15}
+  .rv-touch-contract .rv-fieldset{gap:.78rem;padding:.85rem}
+  .rv-touch-contract .rv-fieldset > label{gap:.36rem}
+  .rv-touch-contract .rv-fieldset > label > span{font-size:.78rem}
+  .rv-touch-contract .rv-fieldset input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),.rv-touch-contract .rv-fieldset select,.rv-touch-contract .rv-fieldset textarea{font-size:1rem;min-height:3.25rem;padding:.78rem .85rem;border-radius:.88rem}
+  .rv-touch-contract .rv-fieldset textarea{min-height:6.5rem}
+  .rv-touch-contract .rv-check,.rv-touch-contract .rv-touch-choice-row{min-height:3.75rem;border-radius:.85rem}
+  .rv-touch-contract .rv-form-actions{display:grid;grid-template-columns:1fr;gap:.55rem}.rv-touch-contract .rv-form-actions button{width:100%;min-height:3.15rem}
+  .rv-touch-contract .rv-profile-media-actions{display:grid;grid-template-columns:1fr}.rv-touch-contract .rv-profile-media-actions button{width:100%;min-height:3rem}
+  .rv-touch-contract .rv-profile-media-camera-actions{display:grid;grid-template-columns:1fr 1fr}.rv-touch-contract .rv-profile-media-camera-actions button{min-height:3.15rem}.rv-touch-contract .rv-profile-media-camera-actions button:last-child{grid-column:1/-1}
+  .rv-touch-contract .rv-discovery-actions{grid-template-columns:repeat(3,minmax(0,1fr));gap:.45rem;padding:.65rem .75rem .8rem}.rv-touch-contract .rv-discovery-actions button{min-height:3.15rem;padding:.58rem .3rem;font-size:.78rem}
+  .rv-touch-contract .rv-context-form{grid-template-columns:1fr;gap:.5rem;padding:0 .75rem .8rem}.rv-touch-contract .rv-context-form input{min-height:3.15rem;font-size:1rem}.rv-touch-contract .rv-context-form button{width:100%;min-height:3.15rem}
+  .rv-touch-contract .rv-chat-form{grid-template-columns:minmax(0,1fr) auto;gap:.45rem;padding:.65rem}.rv-touch-contract .rv-chat-form input{min-height:3.2rem;font-size:1rem}.rv-touch-contract .rv-chat-form button{min-width:3.2rem;min-height:3.2rem}
+  .rv-touch-contract .rv-safety-grid{grid-template-columns:1fr}.rv-touch-contract .rv-safety-grid button{min-height:3.15rem}
+  .rv-touch-contract .rv-touch-summary{display:flex;align-items:center;min-height:3.15rem;padding-block:.55rem}
+}
+
+@media(max-width:30rem){
+  .rv-touch-contract .rv-card{padding:.88rem;border-radius:1.05rem}
+  .rv-touch-contract .rv-fieldset{padding:.72rem;border-radius:1rem}
+  .rv-touch-contract .rv-nav{right:.4rem;left:.4rem;bottom:max(.4rem,env(safe-area-inset-bottom))}.rv-touch-contract .rv-nav button{font-size:.66rem!important}
+  .rv-touch-contract .rv-profile-media-dialog{width:calc(100vw - .7rem)}
+}
