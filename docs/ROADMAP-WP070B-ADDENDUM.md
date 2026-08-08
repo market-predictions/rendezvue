@@ -4,20 +4,36 @@
 **Parent:** WP-070 Trust & Safety Operations  
 **Issue:** #139  
 **Priority:** P1 pilot-readiness dependency  
-**Status:** implementation in progress
+**Status:** `OUTCOME_CONFIRMED`
+
+## Outcome confirmation
+
+WP-070B is outcome-confirmed on canonical `main` commit `7e868bd08234028da86f5210158ff0a76de54335`.
+
+The implementation was independently assured before merge. A first post-merge verifier exposed a sequencing race: remote verification could start before the protected backend workflow had finished applying the newly merged migrations. Repair PR #141 changed the gate from parallel `push` verification to a causally ordered `workflow_run` chain and bound all evidence to the upstream exact `head_sha`.
+
+Final post-action evidence:
+
+- protected backend configuration run `31275987796`: PASS on `7e868bd08234028da86f5210158ff0a76de54335`;
+- protected WP-070B verifier run `31276028649`: PASS on the same exact commit;
+- remote migrations/schema/RPC/privilege/stale-recovery/durable-audit contract: PASS;
+- canonical Cloudflare deployment boundary: exact-commit matched;
+- enforcement execution capability: not introduced;
+- real-user admission: unauthorized.
 
 ## Sequencing decision
 
-WP-070A is `OUTCOME_CONFIRMED`. Its intake/triage queue is therefore a stable dependency for the next Trust & Safety layer.
-
-The next package is **WP-070B — dual-control moderation action authorization foundation** because a later enforcement system must not be able to move directly from one operator's investigation to an irreversible/material participant action.
+WP-070A and WP-070B are now both `OUTCOME_CONFIRMED`.
 
 Current Trust & Safety sequence:
 
 1. **WP-070A — intake and triage:** complete and remotely verified;
-2. **WP-070B — proposal + independent review:** current package;
-3. later WP-070 package(s): policy-bound enforcement execution, specialist escalation procedures, appeals, support ownership and incident response;
-4. WP-080 closed-city pilot authorization only after the complete Trust & Safety, legal, privacy, security, support, accessibility and authentication gates are independently satisfied.
+2. **WP-070B — proposal + independent review:** complete and remotely verified;
+3. **next WP-070 package:** define and prove the next policy-bound layer without weakening the already-proven intake or dual-control authorization boundaries;
+4. later WP-070 packages: specialist escalation procedures, appeals, support ownership and incident response;
+5. WP-080 closed-city pilot authorization only after the complete Trust & Safety, legal, privacy, security, support, accessibility and authentication gates are independently satisfied.
+
+The next package must not infer that an approved WP-070B proposal is permission for unrestricted or irreversible enforcement. Any executor must be separately scoped, policy-bound, independently assured and remotely verified.
 
 ## Relation to WP-075
 
@@ -46,4 +62,4 @@ Critical reports may not receive an ordinary approval in WP-070B. They can be re
 
 ## Pilot boundary
 
-WP-070B does not authorize real-user moderation operations or real-user admission. Completion requires protected remote verification after merge; even then, the absence of an enforcement executor means the package remains an authorization foundation only.
+WP-070B does not authorize real-user moderation operations or real-user admission. Its completion confirms only that the dual-control authorization foundation is implemented, independently assured and remotely present. The absence of a separately governed enforcement, specialist-escalation, appeals and operating-procedure layer remains a WP-080 blocker.

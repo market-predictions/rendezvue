@@ -4,6 +4,20 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
+### Dual-control moderation authorization foundation completed
+
+- Completed WP-070B / issue #139 as the non-effectful authorization layer between moderation investigation and any future material enforcement action.
+- Added immutable action proposals bound to exact case version, assignment and server-derived report category/severity, plus one-pending-per-case protection.
+- Required an independent second operator for terminal review and prohibited proposer self-approval.
+- Added critical-safety escalation rules, genuine concurrent-review race protection and controlled `superseded` recovery for demonstrably stale proposals.
+- Retained opaque proposer/reviewer/supersede operator references in sanitized durable audit evidence while excluding reporter identity and report free text.
+- Kept service-role direct mutation denied and participant access to authorization state/functions unavailable.
+- Deliberately added no suspension, discovery/contact restriction execution, termination, deletion, Auth mutation or `actioned` case transition.
+- Implementation PR #140 merged after exact-head CI/full validation and independent assurance; a first post-merge verifier then exposed a workflow-ordering race rather than a schema defect.
+- Repair PR #141 made the protected verifier depend on successful protected backend configuration, bound evidence to the upstream exact `head_sha`, made the chain self-starting and added a static anti-regression guard.
+- Final canonical `main` `7e868bd08234028da86f5210158ff0a76de54335` passed protected backend run `31275987796` followed by exact-SHA protected WP-070B verifier run `31276028649`.
+- WP-070B is `OUTCOME_CONFIRMED`; real-user moderation operations and real-user admission remain unauthorized.
+
 ### Live selfie and multi-photo profile architecture
 
 - Added WP-076 / issue #120 to separate camera-origin authenticity media from profile presentation media.
