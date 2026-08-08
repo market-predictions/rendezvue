@@ -16,8 +16,8 @@ const copy = Object.freeze({
   nl: Object.freeze({
     title: 'Foto’s en live selfie',
     intro: 'Eén live selfie geeft vertrouwen dat er echt iemand achter het profiel zit. Voeg daarnaast maximaal twee foto’s toe die beter laten zien wie je bent.',
-    trustTitle: 'Vertrouwen zonder je profiel te beperken',
-    trustBody: 'Je live selfie wordt rechtstreeks met de frontcamera gemaakt. Alleen de voorbereide profielversie kan zichtbaar worden; de challenge-opname zelf wordt niet als profielmedia opgeslagen.',
+    trustTitle: 'Live selfie voor vertrouwen',
+    trustBody: 'Je maakt deze foto rechtstreeks met de frontcamera. Alleen de voorbereide profielversie kan zichtbaar worden; de korte opname bewaren we niet als profielmedia. Dit is geen identiteitscontrole.',
     liveTitle: '1. Maak je live selfie',
     liveBody: 'Kijk in de camera, knipper rustig en draai je hoofd licht. We leggen daarna één stil beeld vast voor je profiel.',
     liveStart: 'Camera starten',
@@ -49,14 +49,14 @@ const copy = Object.freeze({
     readyToPublish: 'Live selfie aanwezig. Je kunt je profiel publiceren wanneer de rest compleet is.',
     cameraUnsupported: 'Deze browser ondersteunt de live-camera-opname niet. Gebruik een recente mobiele browser met cameratoegang.',
     cameraDenied: 'De camera kon niet worden geopend. Controleer de cameratoestemming van je browser.',
-    livePending: 'Live selfie vereist',
-    noLegalIdentity: 'Live selfie aanwezig · geen wettelijke identiteitscontrole'
+    livePending: 'Nog nodig',
+    noLegalIdentity: 'Aanwezig'
   }),
   en: Object.freeze({
     title: 'Photos and live selfie',
     intro: 'One live selfie adds confidence that a real person is behind the profile. Add up to two other photos to show more of who you are.',
-    trustTitle: 'Trust without limiting your profile',
-    trustBody: 'Your live selfie is captured directly with the front camera. Only the prepared profile version can be visible; the challenge recording itself is not stored as profile media.',
+    trustTitle: 'Live selfie for trust',
+    trustBody: 'You take this photo directly with the front camera. Only the prepared profile version can be shown; the short recording is not stored as profile media. This is not identity verification.',
     liveTitle: '1. Take your live selfie',
     liveBody: 'Look at the camera, blink naturally and turn your head slightly. We then capture one still image for your profile.',
     liveStart: 'Start camera',
@@ -88,8 +88,8 @@ const copy = Object.freeze({
     readyToPublish: 'Live selfie present. You can publish when the rest of your profile is complete.',
     cameraUnsupported: 'This browser does not support live camera capture. Use a recent mobile browser with camera access.',
     cameraDenied: 'The camera could not be opened. Check your browser camera permission.',
-    livePending: 'Live selfie required',
-    noLegalIdentity: 'Live selfie present · not legal identity verification'
+    livePending: 'Needed',
+    noLegalIdentity: 'Present'
   })
 });
 
