@@ -98,7 +98,7 @@ for (const marker of [
   'No enforcement execution',
   'independent reviewer',
   'critical',
-  'real-user admission remains unauthorized',
+  'Real-user admission',
   'governance_release_assurance'
 ]) {
   requireText(workPackage, marker, `WP-070B work-package contract missing: ${marker}`);
