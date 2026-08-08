@@ -1,0 +1,41 @@
+name: Patch WP076 governance
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/patch-wp076-governance.yml'
+      - 'scripts/patch-wp076-governance.py'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rendezvue-patch-wp076-governance-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  patch:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Merge current main and apply durable WP076 records
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'rendezvue-governance-bot'
+          git config user.email 'rendezvue-governance-bot@users.noreply.github.com'
+          git fetch origin main
+          git merge --no-edit origin/main
+          python scripts/patch-wp076-governance.py
+          git add apps/private-preview/profile-media-controller.js apps/private-preview/profile-media-gallery.js supabase/migrations/20260808100500_live_selfie_profile_media.sql docs/ROADMAP.md docs/REQUIREMENTS.md docs/ONBOARDING.md docs/PRIVACY-AND-SAFETY.md docs/ARCHITECTURE.md docs/WORKPACKAGES.md docs/WORK-CLAIMS.md docs/HANDOVER.md CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo 'No governance patch required.'
+          else
+            git commit -m 'Anchor WP076 live selfie and profile media architecture'
+            git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          fi
