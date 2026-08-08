@@ -4,7 +4,7 @@
 **Branch:** `feature/wp077-wp079-integrated-ux`  
 **Base:** `4d272021a5575008b731eaeed149a027ea3353d4`  
 **Issues:** #126 / #127 / #129  
-**Status:** `IMPLEMENTATION_IN_PROGRESS` until exact-head CI and independent assurance complete
+**Status:** `IMPLEMENTATION_IN_PROGRESS` after owner visual-feedback round; fresh exact-head evidence required
 
 ## Primary objective
 
@@ -27,6 +27,7 @@ WP-075 remains an independent authentication lane and is not modified by this ca
 - Renders the current result with the same `applyPrivacyFilterToCanvas` implementation used by the canonical privacy ladder.
 - Preserves `selectedFilterId = null` for a new preparation and therefore preserves explicit no-default privacy choice.
 - Keeps capture → frame → privacy → result → decide as the explicit task order.
+- After owner review, replaces four oversized pill-like phase labels with one compact balanced four-step indicator using small numbered circles plus text labels.
 
 ### WP-078 — mobile-first touch hardening
 
@@ -36,6 +37,10 @@ WP-075 remains an independent authentication lane and is not modified by this ca
 - Hardens camera, profile-media, discovery, conversation, safety and disclosure controls for coarse pointers.
 - Converts the mobile app navigation to a fixed safe-area-aware bottom navigation while leaving desktop navigation density unchanged.
 - Keeps mobile form text at 16 CSS px or above and tightens spacing without shrinking real touch targets.
+- After owner review, replaces the native browser date-calendar popup on mobile/coarse-pointer layouts with synchronized day/month/year selectors while retaining the canonical ISO date input as the underlying application value.
+- After owner review, gives touch/mobile select fields an explicit larger Rendezvue chevron rather than browser-default dropdown chrome.
+- After owner review, moves attraction actions immediately below the discovery image and before descriptive profile copy: image → choice → deeper reading.
+- After owner review, normalizes participant-name typography between inbox rows and the active conversation header to one shared visual scale.
 
 ### WP-079 — synthetic media compatibility
 
@@ -47,6 +52,20 @@ WP-075 remains an independent authentication lane and is not modified by this ca
   - audience = `controlled-synthetic-adult-proof-accounts`;
   - `realUserAdmissionAuthorized = false`.
 - Preserves a real prepared/live image when one exists; the synthetic stand-in only replaces obsolete/no-image fixture presentation.
+
+## Owner visual feedback — 2026-08-08 round 1
+
+The first integrated branch-preview acceptance exposed five visible UX mismatches. They are treated as required corrections to the same candidate, not as unrelated enhancements.
+
+| Observation | Required outcome | Verification |
+|---|---|---|
+| Native date selector opens desktop-like calendar chrome and is not touch-optimized | mobile/coarse-pointer date entry uses large direct day/month/year controls | acceptance fixture + source/artifact regression |
+| Native dropdown arrow looks undersized/out of style | select affordance uses a larger deliberate mobile chevron | CSS/source regression + acceptance fixture |
+| Four Live-selfie phase pills feel incorrectly scaled | phases read as a compact progress indicator, not four action buttons | composer CSS/source regression + acceptance fixture |
+| Like / Overslaan / Met bericht are too far from the visual stimulus | actions sit directly below the image, before descriptive copy | DOM-order regression + acceptance fixture |
+| Inbox row and active conversation show the same contact with inconsistent name sizing | participant name uses one shared hierarchy across both contexts | CSS regression + acceptance fixture |
+
+The earlier exact candidate `143e050c53958b986b50e8be3b7bf60b9e0fbf51` is superseded by this correction round and must not be treated as owner-accepted or assurance-current.
 
 ## Preserved boundaries
 
@@ -62,14 +81,14 @@ The candidate does **not** change:
 
 ## Acceptance/evidence plan
 
-Before the candidate can be called release-ready:
+Before the corrected candidate can be called release-ready:
 
 1. source syntax and integrated artifact build pass;
 2. existing WP-074B/WP-076 regressions pass;
-3. new WP-077/WP-078/WP-079 regressions pass;
-4. complete Rendezvue validation passes on the exact PR head;
-5. Cloudflare branch preview contains an auth-free `visual-acceptance/integrated-ux.html` route;
-6. independent `governance_release_assurance` evaluates the exact candidate under the project-local contract;
-7. owner visual acceptance checks mobile form controls, selfie workflow clustering and realistic synthetic discovery/matching presentation.
+3. WP-077/WP-078/WP-079 regressions include the five owner-feedback corrections and pass;
+4. complete Rendezvue validation passes on the exact corrected PR head;
+5. Cloudflare branch preview contains an auth-free `visual-acceptance/integrated-ux.html` route built from that same head;
+6. owner rechecks mobile DOB/select controls, selfie-step balance, discovery action placement and inbox/contact hierarchy;
+7. independent `governance_release_assurance` evaluates the exact owner-accepted candidate under the project-local contract.
 
 A CI-green implementation candidate is not itself a governance PASS or owner visual acceptance.
