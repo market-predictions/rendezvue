@@ -5,8 +5,8 @@
 
 ## WP-077 — Cohesive selfie creation, framing, privacy and result flow
 
-**Status:** planned; P1 real-user readiness; issue #126  
-**Dependency:** current WP-076 owner-correction closeout  
+**Status:** planned; P1 real-user readiness; issue #126; dependency satisfied and ready to start  
+**Dependency:** satisfied — WP-076 owner correction merged as `c62b6fad3d67535726055599680f888aa071310d`  
 **Blocks:** WP-078 and final integrated mobile owner acceptance
 
 Live-selfie creation becomes one bounded participant task: capture/retake → inspect → frame/zoom → choose WP-074B privacy presentation → inspect the current prepared result → confirm/refine/retake. Optional profile-photo management remains separate and subordinate. The privacy ladder, camera-origin requirement, private raw/challenge boundaries, publication semantics and non-identity-verification language remain unchanged.
@@ -26,9 +26,9 @@ Detailed contract: `docs/WP-078-MOBILE-FIRST-TOUCH-HARDENING.md`.
 ## Sequence
 
 ```text
-WP-076 correction closeout
+WP-076 correction closeout — complete
         ↓
-WP-077
+WP-077 — next
         ↓
 WP-078
         ↓
