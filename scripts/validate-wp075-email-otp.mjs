@@ -65,14 +65,15 @@ requireMatch(config, /otp_expiry\s*=\s*600/, 'Local Supabase OTP expiry is not 6
 requireIncludes(config, '[auth.email.template.magic_link]', 'Local Supabase magic-link/OTP template binding is missing');
 
 // Hosted configuration must be transaction-like: one field at a time, read-back
-// after each field, rollback of already-applied fields on failure, and sanitized
+// after each field, rollback of every attempted write on failure, and sanitized
 // API errors rather than dumping the protected Auth response/configuration.
 requireIncludes(workflow, "mailer_templates_magic_link_content: readFileSync('supabase/templates/magic-link.html', 'utf8')", 'Hosted template target is not repository managed');
 requireIncludes(workflow, 'mailer_otp_length: Number(process.env.OTP_LENGTH)', 'Hosted OTP length is not managed by the deployment workflow');
 requireIncludes(workflow, 'mailer_otp_exp: Number(process.env.OTP_EXPIRY_SECONDS)', 'Hosted OTP expiry is not managed by the deployment workflow');
 requireIncludes(workflow, 'async function patchOne(key, value, purpose = \'apply\')', 'Hosted Auth repair is not field-isolated');
 requireIncludes(workflow, 'const observed = await readHosted()', 'Hosted Auth field writes are not immediately read back');
-requireIncludes(workflow, 'for (const key of [...applied].reverse())', 'Hosted Auth repair lacks rollback');
+requireMatch(workflow, /attempted\.push\(key\);\s*await patchOne\(key, desired\[key\]\)/s, 'Hosted Auth writes are not rollback-eligible before read-back');
+requireIncludes(workflow, 'for (const key of [...attempted].reverse())', 'Hosted Auth repair lacks reverse-order rollback');
 requireIncludes(workflow, "await patchOne(key, before[key], 'rollback')", 'Hosted Auth rollback does not restore observed pre-state');
 requireIncludes(workflow, "const allowed = ['code', 'error', 'message', 'msg', 'details']", 'Hosted Auth failures are not sanitized');
 forbidMatch(workflow, /console\.(?:log|error)\([^\n]*raw\)/, 'Hosted Auth workflow must not dump raw Management API responses');
