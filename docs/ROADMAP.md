@@ -1,7 +1,7 @@
 # Rendezvue roadmap
 
-**Version:** 2.16  
-**Updated:** 2026-08-07
+**Version:** 2.17  
+**Updated:** 2026-08-08
 
 ## Operating doctrine
 
@@ -47,9 +47,9 @@ Dutch/English, MBO/HBO/WO fixtures, descriptive faith fields and private practic
 
 ### 1C. Selectable portrait presentations
 
-**Status:** WP-074 foundation accepted; WP-074A recognisability recalibration in review.
+**Status:** WP-074 foundation accepted; WP-074B ladder remap and selected-card delivery in review.
 
-Participants explicitly choose among four prepared portrait presentations. The original/raw source remains private. WP-074A recalibrates the active ladder to Unfiltered, Natural, Soft private and Balanced; Unfiltered is a freshly rendered metadata-free card/avatar derivative without obscuring blur, not the uploaded source file.
+Participants explicitly choose among four prepared portrait presentations. The original/raw source remains private. WP-074B remaps the active ladder to Zonder filter / Unfiltered, Natural, Zacht privé / Soft private and Meer privé / More private, while preserving the rule that the original upload never becomes the selected public profile portrait.
 
 ### 1D. Product baseline v1 and onboarding redefinition
 
@@ -93,7 +93,7 @@ Demonstrated:
 
 ### 2C. Authentication, resumable onboarding and Cloudflare deployment
 
-**Status:** controlled proof complete; product-facing account and signed-in product journeys integrated; operational recovery remains unauthorized.
+**Status:** controlled proof complete; product-facing account and signed-in product journeys integrated; browser-independent OTP access planned in WP-075; operational recovery remains unauthorized.
 
 Demonstrated in the canonical Cloudflare browser proof, WP-065A/B/D/E/F, WP-066 and WP-067:
 
@@ -134,6 +134,7 @@ Demonstrated in the canonical Cloudflare browser proof, WP-065A/B/D/E/F, WP-066 
 
 Still required:
 
+- WP-075 browser-independent passwordless sign-in using a short e-mail OTP/code while preserving non-creating existing-account access and isolated per-browser sessions;
 - owner-led desktop and mobile field review of the integrated product journey;
 - controlled disposable-account exercise of the new product shell when suitable mailboxes are available;
 - a disposable synthetic mailbox/account for the controlled remote e-mail-replacement execution proof;
@@ -348,9 +349,15 @@ Matches now scale into an inbox with separate ongoing conversations, new matches
 
 ### 2R. Privacy portrait recognisability recalibration
 
-**Status:** WP-074A technically complete and canonically verified; owner visual acceptance pending; issue #109.
+**Status:** WP-074A technically complete and canonically verified; superseded by WP-074B visual ladder; issue #109.
 
-Owner field review found the former Private and Extra private levels excessively blurred. WP-074A changes the active ladder to **Unfiltered → Natural → Soft private → Balanced**. Unfiltered is a normalized, framed, metadata-free card/avatar derivative without an obscuring filter; the original source remains private and cannot become the selected profile portrait. Natural is a new very light treatment, while Soft private and Balanced preserve the former useful WP-074 level-1 and level-2 recipes. Historical `monoMist` and `privacyMax` records remain readable but those treatments are hidden from the active UI and rejected for new registrations. Detailed evidence: `docs/WP-074-PRIVACY-PORTRAIT-FILTERS.md`.
+Owner field review found the former Private and Extra private levels excessively blurred. WP-074A changed the active ladder to **Unfiltered → Natural → Soft private → Balanced** and proved the prepared-derivative architecture. WP-074B supersedes that visual ladder with the current selected-card delivery contract. Detailed evidence: `docs/WP-074-PRIVACY-PORTRAIT-FILTERS.md` and `docs/WP-074B-PRIVACY-PORTRAIT-LADDER.md`.
+
+### 2S. Cross-browser passwordless authentication
+
+**Status:** WP-075 planned; P1 real-user readiness; issue #121.
+
+The current PKCE magic-link flow is intentionally browser-local, but a participant whose mail client opens the link in another default browser can be left unauthenticated in the browser they actually want to use. WP-075 keeps Rendezvue passwordless and preserves isolated browser/device sessions, while adding a short e-mail OTP/code path that can be completed in the intended browser. Existing-account sign-in remains non-creating, registration remains a separate explicit action, responses remain non-enumerating, and magic links remain only a convenience rather than a same-browser dependency. Implement after WP-074B closeout and before WP-080 pilot authorization. Detailed scope: `docs/WP-075-CROSS-BROWSER-OTP-AUTH.md` and `docs/ROADMAP-WP075-ADDENDUM.md`.
 
 ## Phase 3 — Closed city-based PWA pilot
 
@@ -360,6 +367,7 @@ Owner field review found the former Private and Extra private levels excessively
 
 **Entry gates:**
 
+- WP-075 cross-browser passwordless OTP sign-in implementation complete, canonically verified and independently assured;
 - operational identity-evidence policy and support procedures approved;
 - controlled end-to-end e-mail-replacement proof completed or the capability explicitly disabled;
 - secure support tooling, user notifications, objection and incident procedures approved;
@@ -386,12 +394,13 @@ Add thin iOS/Android shells only where app-store distribution, push reliability,
 
 ## Immediate next work
 
-1. Owner-review the canonically delivered WP-074A **Unfiltered → Natural → Soft private → Balanced** portrait gradient and record visual acceptance in issue #109.
-2. Owner-led desktop and mobile review of the complete account-to-conversation journey.
-3. Controlled disposable-account execution of WP-067 and the separate WP-065F mailbox-replacement proof when suitable mailboxes are available.
-4. Product refinements from field review: portrait attractiveness, profile density, navigation clarity and representative Dutch/English terminology.
-5. Operational support, retention/DPIA, moderation, accessibility, security and legal readiness.
-6. Explicit closed-city pilot decision only after all entry gates pass.
+1. Close the already-active WP-074B privacy portrait ladder and selected-card delivery package, including protected staging/canonical delivery and owner visual acceptance.
+2. Implement WP-075 **cross-browser passwordless e-mail OTP sign-in** as P1 real-user-readiness work and route the exact candidate through independent assurance.
+3. Owner-led desktop and mobile review of the complete account-to-conversation journey.
+4. Controlled disposable-account execution of WP-067 and the separate WP-065F mailbox-replacement proof when suitable mailboxes are available.
+5. Product refinements from field review: portrait attractiveness, profile density, navigation clarity and representative Dutch/English terminology.
+6. Operational support, retention/DPIA, moderation, accessibility, security and legal readiness.
+7. Explicit closed-city pilot decision only after all entry gates pass.
 
 ## Stop or reconsider criteria
 
