@@ -184,8 +184,8 @@ Rendezvue remains passwordless, but existing-account authentication must no long
 
 ## WP-076 — Live selfie and multi-photo profile architecture
 
-**Status:** implementation candidate; independent assurance and canonical owner review pending; issue #120  
-A publishable profile requires one camera-origin Live selfie prepared from a same-session blink/head-turn flow and may contain up to two optional camera/gallery photos. One prepared card remains the discovery primary; the full-profile viewer exposes the bounded media set and marks the Live selfie as a trust cue. Raw/challenge media remains private, the existing privacy ladder remains authoritative and no legal-identity or automated-liveness claim is made. Detailed evidence: `docs/WP-076-LIVE-SELFIE-PROFILE-MEDIA.md` and ADR-0009.
+**Status:** technically complete and canonically verified; owner mobile/visual acceptance pending; issue #120  
+A publishable profile requires one camera-origin Live selfie prepared from a same-session blink/head-turn flow and may contain up to two optional camera/gallery photos. One prepared card remains the discovery primary; the full-profile viewer exposes the bounded media set and marks the Live selfie as a trust cue. Raw/challenge media remains private, the existing privacy ladder remains authoritative and no legal-identity or automated-liveness claim is made. PR #123 merged as `ddecb67dbbd3487daefac16045ff147a6649c1e2`; full validation `31254828422`, protected staging `31255042784` and canonical WP-076 `31255080791` passed. Detailed evidence: `docs/WP-076-LIVE-SELFIE-PROFILE-MEDIA.md` and ADR-0009.
 
 ## WP-080 — Closed city pilot readiness
 

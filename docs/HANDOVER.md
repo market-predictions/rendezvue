@@ -1,7 +1,7 @@
 # Project handover
 
 **Updated:** 2026-08-07  
-**Milestone:** WP-076 live-selfie/profile-media architecture in implementation and assurance; owner visual acceptance pending
+**Milestone:** WP-076 live-selfie/profile-media architecture technically complete and canonically verified; owner device/visual acceptance pending
 
 ## GitHub state
 
@@ -26,7 +26,7 @@
 
 ## Current WP-076 live selfie and profile media architecture
 
-Issue #120 records the owner decision to combine a mandatory camera-origin Live selfie with up to two freely chosen profile photos. The Live selfie is a visible prepared derivative from a same-session camera challenge; challenge/raw/source media stays private. Optional photos may come from camera or photo library. Exactly one prepared card is primary in discovery, while an explicit full-profile viewer exposes the remaining media and labels the Live selfie. User-facing copy treats this as a live-camera trust signal, not legal identity or automated liveness verification. PR #123 is the implementation candidate; independent exact-head assurance, protected staging migration, canonical camera/media verification and owner mobile UX review remain required. Real-user admission remains unauthorized.
+Issue #120 records the owner decision to combine a mandatory camera-origin Live selfie with up to two freely chosen profile photos. The Live selfie is a visible prepared derivative from a same-session camera challenge; challenge/raw/source media stays private. Optional photos may come from camera or photo library. Exactly one prepared card is primary in discovery, while an explicit full-profile viewer exposes the remaining media and labels the Live selfie. User-facing copy treats this as a live-camera trust signal, not legal identity or automated liveness verification. PR #123 merged as `ddecb67dbbd3487daefac16045ff147a6649c1e2` after exact-candidate PASS; full validation `31254828422`, protected staging `31255042784` and canonical delivery `31255080791` passed. Remaining: owner mobile/device review of camera permission/capture, optional camera/gallery photos, primary selection, discovery Live trust cue and full-profile viewer. Real-user admission remains unauthorized.
 
 ## Current WP-074A privacy portrait recalibration
 

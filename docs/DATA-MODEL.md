@@ -383,3 +383,28 @@ Implemented as a versioned contract but not yet proven against a running databas
 - indexes and audit writes.
 
 The next gate is a clean local migration reset plus two-account RLS, concurrency, idempotency, blocking and deletion tests.
+
+
+## WP-076 profile-media slots and camera-origin trust
+
+`privacy_portraits` remains the authoritative prepared-media table. WP-076 adds bounded presentation metadata rather than a second media store:
+
+- `profile_media_slot`: `live_selfie`, `profile_photo_1` or `profile_photo_2`;
+- `capture_origin`: `live_camera`, `camera`, `gallery` or migration-only `legacy`;
+- `is_profile_media_visible`: only prepared `card` rows may be visible;
+- `live_capture_completed_at` and `capture_proof_version`: present for the Live-selfie slot.
+
+One user can expose at most one visible card per slot, hence at most three visible prepared media items. `live_selfie` requires `capture_origin=live_camera`. Optional slots accept camera/gallery content. Source and avatar rows remain private and cannot become discovery media.
+
+Server-authoritative operations:
+
+- `assign_prepared_profile_media(...)` binds a prepared portrait transaction to one bounded slot and capture origin;
+- `set_primary_profile_media(...)` selects exactly one visible prepared card as the discovery primary;
+- `remove_optional_profile_media(...)` removes only optional slots from the visible profile;
+- `get_own_profile_media()` returns the owner's bounded visible-card projection;
+- `get_discovery_profile_media(other_user)` returns visible prepared cards only for a published, unblocked profile;
+- `publish_profile()` requires a visible camera-origin Live selfie for authenticated product publication.
+
+The short camera challenge is not stored as a public media role. The profile-visible Live selfie is a prepared still derivative that uses the same crop/privacy pipeline as other portraits. The data model therefore records **camera origin and preparation**, not a claim of automated liveness, biometric face match or legal identity verification.
+
+Implementation PR #123 merged as `ddecb67dbbd3487daefac16045ff147a6649c1e2`; protected staging `31255042784` and canonical verifier `31255080791` confirmed the deployed contract. Real-user admission remains unauthorized.
