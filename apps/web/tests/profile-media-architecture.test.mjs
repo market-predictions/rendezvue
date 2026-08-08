@@ -32,6 +32,16 @@ test('live selfie is camera-only and challenge bytes are never uploaded as profi
   assert.match(controller, /challenge recording itself is not stored as profile media|challenge-opname zelf wordt niet als profielmedia opgeslagen/);
 });
 
+test('camera cancellation invalidates the active challenge session', async () => {
+  const camera = await read('apps/private-preview/src/camera.js');
+  assert.match(camera, /const session = cameraSession/);
+  assert.match(camera, /session !== cameraSession/);
+  assert.match(camera, /DOMException\('Camera recording cancelled\.', 'AbortError'\)/);
+  assert.match(camera, /const recorder = activeRecorder;/);
+  assert.match(camera, /if \(recorder\?\.state === 'recording'\) recorder\.stop\(\)/);
+  assert.match(camera, /activeVideoElement\.srcObject = null/);
+});
+
 test('optional profile photos support camera and gallery while discovery remains one-primary-image', async () => {
   const controller = await read('apps/private-preview/profile-media-controller.js');
   const gallery = await read('apps/private-preview/profile-media-gallery.js');
