@@ -117,6 +117,8 @@ jobs:
         run: supabase test db
       - name: Run parallel match and entitlement race tests
         run: bash supabase/tests/concurrency/run.sh
+      - name: Run parallel WP-070C restriction execution race
+        run: bash supabase/tests/concurrency/run-wp070c.sh
       - name: Execute and verify deterministic synthetic SQL seed
         shell: bash
         run: |
