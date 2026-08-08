@@ -59,9 +59,8 @@ select is((select category from public.list_moderation_queue(10) limit 1), 'mino
 select ok((select case_id is null from public.list_moderation_queue(10) where category = 'harassment'), 'medium report remains an unbound intake item before claim');
 reset role;
 
-select unlike(
-  pg_get_function_result('public.list_moderation_queue(integer)'::regprocedure),
-  '%reporter_user_id%',
+select ok(
+  position('reporter_user_id' in pg_get_function_result('public.list_moderation_queue(integer)'::regprocedure)) = 0,
   'moderation queue projection does not expose reporter identity'
 );
 
