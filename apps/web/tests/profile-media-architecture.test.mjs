@@ -10,7 +10,7 @@ import {
 
 const read = (path) => readFile(new URL(`../../../${path}`, import.meta.url), 'utf8');
 
-test('WP075 has one live-selfie slot plus exactly two optional profile photo slots', () => {
+test('WP076 has one live-selfie slot plus exactly two optional profile photo slots', () => {
   assert.deepEqual(PROFILE_MEDIA_SLOTS, ['live_selfie', 'profile_photo_1', 'profile_photo_2']);
   assert.equal(LIVE_CAPTURE_PROOF_VERSION, 'blink-turn-v1');
   assert.deepEqual(profileMediaContext({ slot: 'live_selfie', captureOrigin: 'live_camera' }), {
