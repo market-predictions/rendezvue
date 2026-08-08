@@ -1,0 +1,38 @@
+name: Patch WP076 portrait progress
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/patch-wp076-portrait-progress.yml'
+      - 'scripts/patch-wp076-portrait-progress.py'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: https://example.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_only_placeholder_00000000000000000000
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Apply portrait progress repair and test
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'rendezvue-implementation-bot'
+          git config user.email 'rendezvue-implementation-bot@users.noreply.github.com'
+          python scripts/patch-wp076-portrait-progress.py
+          npm ci
+          node --test apps/web/tests/profile-media-architecture.test.mjs
+          npm run build:cloudflare
+          node scripts/validate-wp076-profile-media.mjs
+          git add apps/private-preview/product-shell.js apps/web/tests/profile-media-architecture.test.mjs
+          git commit -m 'Tie WP076 portrait progress to Live selfie'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
