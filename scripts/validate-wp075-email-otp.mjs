@@ -7,7 +7,7 @@ const dist = resolve(root, 'dist-private-preview');
 const read = (path) => readFile(resolve(root, path), 'utf8');
 const readDist = (path) => readFile(resolve(dist, path), 'utf8');
 
-const [adapter, copy, controller, css, template, config, workflow, finalizer, activationText, index, deploymentText] = await Promise.all([
+const [adapter, copy, controller, css, template, config, workflow, finalizer, activationText, index, builtCopy, deploymentText] = await Promise.all([
   read('apps/web/src/auth-session.js'),
   read('apps/web/src/account-experience.js'),
   read('apps/private-preview/email-otp-controller.js'),
@@ -18,6 +18,7 @@ const [adapter, copy, controller, css, template, config, workflow, finalizer, ac
   read('scripts/finalize-wp075-email-otp-artifact.mjs'),
   read('config/wp075-email-otp-activation.json'),
   readDist('index.html'),
+  readDist('src/account-experience.js'),
   readDist('deployment.json')
 ]);
 const activation = JSON.parse(activationText);
@@ -45,9 +46,9 @@ forbidMatch(adapter, /signInWithPassword|password:/, 'WP-075 must remain passwor
 for (const key of ['account.otpTitle','account.otpIntro','account.otpLabel','account.otpVerify','account.otpResend','account.otpInvalid','account.otpVerified']) {
   requireIncludes(copy, `'${key}'`, `WP-075 copy is missing ${key}`);
 }
-requireIncludes(copy, '6-cijferige inlogcode', 'Dutch OTP copy is missing');
-requireIncludes(copy, '6-digit sign-in code', 'English OTP copy is missing');
-forbidMatch(copy, /same browser profile where you requested|hetzelfde browserprofiel waarin je hem hebt aangevraagd/, 'Legacy same-browser instruction remains customer-facing');
+requireIncludes(copy, '6-cijferige inlogcode', 'Dutch OTP implementation copy is missing');
+requireIncludes(copy, '6-digit sign-in code', 'English OTP implementation copy is missing');
+forbidMatch(copy, /same browser profile where you requested|hetzelfde browserprofiel waarin je hem hebt aangevraagd/, 'Legacy same-browser instruction remains in the future active OTP source copy');
 
 requireIncludes(controller, 'stopImmediatePropagation()', 'WP-075 controller does not take over the legacy request handler fail-safely when activated');
 requireIncludes(controller, 'autocomplete="one-time-code"', 'WP-075 OTP input does not support one-time-code autocomplete');
@@ -85,6 +86,7 @@ if (activation.realUserAdmissionAuthorized !== false) throw new Error('WP-075 ac
 if (activation.desiredOtpDigits !== 6 || activation.desiredOtpExpirySeconds !== 600) throw new Error('WP-075 desired activation parameters differ from approved values');
 requireIncludes(finalizer, 'wp075-email-otp-activation.json', 'WP-075 finalizer is not repository-gated by hosted activation state');
 requireIncludes(finalizer, 'emailOtpHostedDeliveryReady', 'WP-075 finalizer does not distinguish implementation from hosted readiness');
+requireIncludes(finalizer, 'blocked-mode copy source changed', 'WP-075 finalizer does not fail closed if blocked-mode account copy drifts');
 requireIncludes(finalizer, 'branchPreview', 'WP-075 acceptance route is not branch-gated');
 
 if (deployment.authFlow !== 'pkce-magic-link-cloudflare-staging') throw new Error('WP-075 must preserve the established PKCE callback compatibility contract');
@@ -102,6 +104,10 @@ if (activation.hostedDeliveryReady === true) {
   if (deployment.passwordlessPrimary !== 'email-otp') throw new Error('Active hosted OTP artifact does not declare email OTP primary');
   if (deployment.emailOtpHostedDeliveryReady !== true || deployment.crossBrowserEmailOtp !== true) throw new Error('Active hosted OTP metadata is inconsistent');
   if (deployment.emailOtpDigits !== 6 || deployment.emailOtpExpirySeconds !== 600) throw new Error('Active hosted OTP parameters differ from WP-075');
+  requireIncludes(builtCopy, "'account.existingAction': 'Stuur inlogcode'", 'Active hosted OTP Dutch action is not code-first');
+  requireIncludes(builtCopy, "'account.existingAction': 'Send sign-in code'", 'Active hosted OTP English action is not code-first');
+  requireIncludes(builtCopy, '6-cijferige inlogcode en een optionele directe aanmeldlink', 'Active hosted OTP Dutch request copy is not code-first');
+  requireIncludes(builtCopy, '6-digit sign-in code and an optional direct sign-in link', 'Active hosted OTP English request copy is not code-first');
 } else {
   if (activation.activationState !== 'blocked-external-mail-provider' || activation.activePasswordlessPath !== 'pkce-magic-link') throw new Error('WP-075 blocked state is inconsistent');
   forbidMatch(index, /email-otp-controller\.js/, 'Blocked hosted OTP delivery must not load the OTP controller');
@@ -109,6 +115,13 @@ if (activation.hostedDeliveryReady === true) {
   if (deployment.emailOtpHostedDeliveryReady !== false || deployment.crossBrowserEmailOtp !== false) throw new Error('Blocked hosted OTP metadata overstates availability');
   if (deployment.emailOtpDigits !== null || deployment.emailOtpExpirySeconds !== null) throw new Error('Blocked hosted OTP metadata must not claim active OTP parameters');
   if (deployment.emailOtpActivationState !== 'blocked-external-mail-provider') throw new Error('Blocked hosted OTP reason is not exposed in deployment metadata');
+  requireIncludes(builtCopy, "'account.existingAction': 'Aanmeldlink sturen'", 'Blocked hosted OTP Dutch action still promises a code');
+  requireIncludes(builtCopy, "'account.existingAction': 'Send sign-in link'", 'Blocked hosted OTP English action still promises a code');
+  requireIncludes(builtCopy, 'ontvang je een eenmalige aanmeldlink', 'Blocked hosted OTP Dutch request copy does not describe the available magic link');
+  requireIncludes(builtCopy, 'receive a one-time sign-in link', 'Blocked hosted OTP English request copy does not describe the available magic link');
+  forbidMatch(builtCopy, /'account\.signinIntro':\s*'[^']*(?:eenmalige code|one-time code)/, 'Blocked hosted OTP sign-in introduction still promises a code');
+  forbidMatch(builtCopy, /'account\.requestExisting':\s*'[^']*(?:6-cijferige|6-digit)/, 'Blocked hosted OTP existing-account request copy still promises a numeric code');
+  forbidMatch(builtCopy, /'account\.requestRegistration':\s*'[^']*(?:6-cijferige|6-digit)/, 'Blocked hosted OTP registration request copy still promises a numeric code');
 }
 
 const branch = String(deployment.cloudflareBranch ?? '').trim();
