@@ -26,11 +26,12 @@ assert.match(controller, /assign_prepared_profile_media/);
 assert.match(controller, /set_primary_profile_media/);
 assert.match(gallery, /get_discovery_profile_media/);
 assert.match(gallery, /Live selfie/);
-assert.match(gallery, /legal identity verification|wettelijke identiteitsverificatie/);
+assert.match(gallery, /profileMediaTrustCopy/);
+assert.match(model, /legal identity verification|wettelijke identiteitsverificatie/);
 assert.match(model, /'live_selfie'/);
 assert.match(model, /'profile_photo_1'/);
 assert.match(model, /'profile_photo_2'/);
 assert.match(css, /\.rv-profile-media-tray/);
 assert.match(css, /\.rv-profile-media-dialog/);
 
-console.log('WP075 profile-media Cloudflare artifact contract passed.');
+console.log('WP076 profile-media Cloudflare artifact contract passed.');
