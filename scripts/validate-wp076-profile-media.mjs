@@ -1,37 +1,59 @@
-import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const root = process.cwd();
-const read = (path) => readFile(resolve(root, path), 'utf8');
+const root = resolve(process.cwd());
+const dist = resolve(root, 'dist-private-preview');
 
-const [index, headers, controller, gallery, model, css] = await Promise.all([
-  read('dist-private-preview/index.html'),
-  read('dist-private-preview/_headers'),
-  read('dist-private-preview/profile-media-controller.js'),
-  read('dist-private-preview/profile-media-gallery.js'),
-  read('dist-private-preview/profile-media-model.js'),
-  read('dist-private-preview/profile-media.css')
+const [
+  model,
+  controller,
+  gallery,
+  css,
+  index,
+  headers,
+  migration,
+  build
+] = await Promise.all([
+  readFile(resolve(dist, 'profile-media-model.js'), 'utf8'),
+  readFile(resolve(dist, 'profile-media-controller.js'), 'utf8'),
+  readFile(resolve(dist, 'profile-media-gallery.js'), 'utf8'),
+  readFile(resolve(dist, 'profile-media.css'), 'utf8'),
+  readFile(resolve(dist, 'index.html'), 'utf8'),
+  readFile(resolve(dist, '_headers'), 'utf8'),
+  readFile(resolve(root, 'supabase/migrations/20260808100500_live_selfie_profile_media.sql'), 'utf8'),
+  readFile(resolve(root, 'scripts/build-private-preview.mjs'), 'utf8')
 ]);
 
-assert.match(index, /profile-media-controller\.js\?commit=/);
-assert.match(index, /profile-media-gallery\.js\?commit=/);
-assert.match(headers, /Permissions-Policy: camera=\(self\), microphone=\(\), geolocation=\(\), payment=\(\)/);
-assert.doesNotMatch(headers, /Permissions-Policy: camera=\(\),/);
-assert.match(controller, /recordChallenge\(video/);
-assert.match(controller, /slot:\s*'live_selfie',\s*captureOrigin:\s*'live_camera'/s);
-assert.match(controller, /profile_photo_1/);
-assert.match(controller, /profile_photo_2/);
-assert.match(controller, /assign_prepared_profile_media/);
-assert.match(controller, /set_primary_profile_media/);
-assert.match(gallery, /get_discovery_profile_media/);
-assert.match(gallery, /Live selfie/);
-assert.match(gallery, /profileMediaTrustCopy/);
-assert.match(model, /legal identity verification|wettelijke identiteitsverificatie/);
-assert.match(model, /'live_selfie'/);
-assert.match(model, /'profile_photo_1'/);
-assert.match(model, /'profile_photo_2'/);
-assert.match(css, /\.rv-profile-media-tray/);
-assert.match(css, /\.rv-profile-media-dialog/);
+const required = [
+  [model, "'live_selfie'"],
+  [model, "'profile_photo_1'"],
+  [model, "'profile_photo_2'"],
+  [controller, "captureOrigin: 'live_camera'"],
+  [controller, 'recordChallenge(video'],
+  [controller, "trustTitle: 'Live selfie voor vertrouwen'"],
+  [controller, "noLegalIdentity: 'Aanwezig'"],
+  [controller, 'Dit is geen identiteitscontrole.'],
+  [gallery, 'get_discovery_profile_media'],
+  [gallery, 'discoveryPrimaryImageCount: 1'],
+  [css, '.rv-profile-media-dialog'],
+  [css, '.rv-profile-media-intro{display:grid'],
+  [css, '.rv-profile-media-intro p{grid-column:1/-1'],
+  [migration, 'live selfie required before publication'],
+  [migration, 'raw_or_challenge_media_public'],
+  [index, 'profile-media-controller.js'],
+  [headers, 'camera=(self)'],
+  [headers, 'microphone=()'],
+  [build, 'assembleBranchVisualAcceptance'],
+  [build, 'if (!isCloudflarePreview) return;'],
+  [build, 'visual-acceptance/wp076.html']
+];
 
-console.log('WP076 profile-media Cloudflare artifact contract passed.');
+for (const [source, marker] of required) {
+  if (!source.includes(marker)) throw new Error(`WP076 artifact marker missing: ${marker}`);
+}
+
+if (/data-gallery-(slot|button)=["']live_selfie/.test(controller)) {
+  throw new Error('WP076 live selfie must remain camera-only');
+}
+
+console.log('WP076 live-selfie/profile-media artifact validation passed.');

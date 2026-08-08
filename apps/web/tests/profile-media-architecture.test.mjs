@@ -29,7 +29,7 @@ test('live selfie is camera-only and challenge bytes are never uploaded as profi
   assert.doesNotMatch(controller, /data-gallery-slot="live_selfie"/);
   assert.doesNotMatch(controller, /bucket\.upload\([^)]*challenge/i);
   assert.doesNotMatch(controller, /storage[^\n]*challenge/i);
-  assert.match(controller, /challenge recording itself is not stored as profile media|challenge-opname zelf wordt niet als profielmedia opgeslagen/);
+  assert.match(controller, /short recording is not stored as profile media|korte opname bewaren we niet als profielmedia|challenge recording itself is not stored as profile media|challenge-opname zelf wordt niet als profielmedia opgeslagen/);
 });
 
 test('camera cancellation invalidates the active challenge session', async () => {
@@ -69,6 +69,38 @@ test('optional profile photos support camera and gallery while discovery remains
   assert.match(gallery, /async function openProfile\(card\)/);
   assert.match(gallery, /const freshMedia = await loadProfileMedia\(data\.userId\)/);
   assert.match(gallery, /decorateCard\(card, media, profile\.user_id\)/);
+});
+
+test('live-selfie trust panel keeps status compact and explanation full-width', async () => {
+  const controller = await read('apps/private-preview/profile-media-controller.js');
+  const css = await read('apps/private-preview/profile-media.css');
+  assert.match(controller, /trustTitle: 'Live selfie voor vertrouwen'/);
+  assert.match(controller, /livePending: 'Nog nodig'/);
+  assert.match(controller, /noLegalIdentity: 'Aanwezig'/);
+  assert.match(controller, /Dit is geen identiteitscontrole\./);
+  assert.match(controller, /trustTitle: 'Live selfie for trust'/);
+  assert.match(controller, /livePending: 'Needed'/);
+  assert.match(controller, /noLegalIdentity: 'Present'/);
+  assert.match(controller, /This is not identity verification\./);
+  assert.doesNotMatch(controller, /Live selfie aanwezig · geen wettelijke identiteitscontrole/);
+  assert.match(css, /\.rv-profile-media-intro\{display:grid;grid-template-columns:minmax\(0,1fr\) auto;/);
+  assert.match(css, /\.rv-profile-media-intro>div\{display:contents\}/);
+  assert.match(css, /\.rv-profile-media-intro p\{grid-column:1\/-1;/);
+  assert.match(css, /\.rv-live-trust-badge\{grid-column:2;grid-row:1;justify-self:end;white-space:nowrap;/);
+});
+
+test('owner visual acceptance route is synthetic, backend-free and branch-preview-only', async () => {
+  const build = await read('scripts/build-private-preview.mjs');
+  const fixture = await read('scripts/fixtures/wp076-visual-acceptance.html');
+  assert.match(build, /async function assembleBranchVisualAcceptance\(\) \{\s*if \(!isCloudflarePreview\) return;/s);
+  assert.match(build, /visual-acceptance\/wp076\.html/);
+  assert.match(build, /synthetic-seed\/portraits\/yasmin\.webp/);
+  assert.match(build, /Bekijk WP-076 visueel zonder login/);
+  assert.match(fixture, /Visual acceptance zonder login/);
+  assert.match(fixture, /uitsluitend synthetische voorbeeldmedia/);
+  assert.match(fixture, /class="rv-live-trust-badge">Aanwezig</);
+  assert.match(fixture, /src="\.\/yasmin\.webp"/);
+  assert.doesNotMatch(fixture, /runtime-config\.js|app\.js|supabase|signIn|auth-session/i);
 });
 
 test('portrait progress after refresh depends on the Live-selfie slot rather than any primary photo', async () => {

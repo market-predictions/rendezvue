@@ -175,7 +175,7 @@ async function assembleSharedBrowserClient() {
   if (isCloudflarePreview) {
     generatedIndex = generatedIndex.replace(
       '<section class="staging-notice" role="note">',
-      '<section class="warning"><strong>Branchpreview zonder backend.</strong> Deze deployment valideert uitsluitend het browserartifact; authenticatie en datamutaties zijn uitgeschakeld door placeholderconfiguratie.</section><section class="staging-notice" role="note">'
+      '<section class="warning"><strong>Branchpreview zonder backend.</strong> Deze deployment valideert uitsluitend het browserartifact; authenticatie en datamutaties zijn uitgeschakeld door placeholderconfiguratie. <a href="./visual-acceptance/wp076.html">Bekijk WP-076 visueel zonder login.</a></section><section class="staging-notice" role="note">'
     );
   }
 
@@ -196,6 +196,17 @@ async function assembleSharedBrowserClient() {
     writeFile(resolve(target, 'interaction-proof.js'), sharedInteractionSource, 'utf8'),
     writeFile(resolve(target, 'index.html'), generatedIndex, 'utf8')
   ]);
+}
+
+async function assembleBranchVisualAcceptance() {
+  if (!isCloudflarePreview) return;
+  const visualTarget = resolve(target, 'visual-acceptance');
+  await mkdir(visualTarget, { recursive: true });
+  await Promise.all([
+    cp(resolve(root, 'scripts/fixtures/wp076-visual-acceptance.html'), resolve(visualTarget, 'wp076.html')),
+    cp(resolve(root, 'synthetic-seed/portraits/yasmin.webp'), resolve(visualTarget, 'yasmin.webp'))
+  ]);
+  console.log('Branch-only WP-076 visual acceptance route assembled.');
 }
 
 const {
@@ -224,6 +235,7 @@ for (const file of ['auth-session.js', 'backend-contract.js', 'onboarding-reposi
 }
 
 await assembleSharedBrowserClient();
+await assembleBranchVisualAcceptance();
 
 const runtimeConfig = {
   backendMode: 'supabase-proof',
