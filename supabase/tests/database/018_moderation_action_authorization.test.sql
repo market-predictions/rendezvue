@@ -259,7 +259,7 @@ select ok(
 reset role;
 
 select is((select status from public.moderation_action_proposals where source_category='minor_suspected'), 'escalated', 'critical proposal records escalation rather than approval');
-select is((select status::text from public.moderation_cases c join public.safety_reports r on r.id=c.source_report_id where r.description='critical authorization proof'), 'investigating', 'critical escalation does not execute case action');
+select is((select c.status::text from public.moderation_cases c join public.safety_reports r on r.id=c.source_report_id where r.description='critical authorization proof'), 'investigating', 'critical escalation does not execute case action');
 select is((select severity::text from public.safety_reports where description='critical authorization proof'), 'critical', 'critical escalation never downgrades server severity');
 select is((select count(*) from public.moderation_cases where status='actioned'), 0::bigint, 'WP-070B produces no actioned moderation cases');
 select is((select count(*) from public.blocks where blocker_user_id='71000000-0000-0000-0000-000000000001' or blocked_user_id='71000000-0000-0000-0000-000000000002'), 0::bigint, 'WP-070B authorization creates no participant block');
