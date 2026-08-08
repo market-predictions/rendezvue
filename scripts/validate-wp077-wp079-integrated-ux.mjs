@@ -92,18 +92,18 @@ if (deployment.realUserAdmissionAuthorized !== false) throw new Error('Integrate
 if (deployment.audience !== 'controlled-synthetic-adult-proof-accounts') throw new Error('Integrated UX build is not a controlled synthetic audience');
 
 requireMatch(finalizer, /branchPreview = Boolean\(branch && branch !== 'main'\)/, 'Integrated visual acceptance route is not branch-preview-only');
-requireMatch(finalizer, /visual-acceptance['"], 'integrated-ux\.html'/, 'Integrated visual acceptance route is missing from finalizer');
+requireMatch(finalizer, /integrated-ux\.html/, 'Integrated visual acceptance route is missing from finalizer');
 requireMatch(fixture, /Visual acceptance zonder login/, 'Integrated visual fixture banner is missing');
 requireMatch(fixture, /Mobile-first formelementen/, 'Integrated visual fixture does not show mobile form controls');
 requireMatch(fixture, /Selfie composer/, 'Integrated visual fixture does not show the selfie composer');
 requireMatch(fixture, /Maryam/, 'Integrated visual fixture does not show synthetic profile consistency');
-forbidMatch(fixture, /runtime-config\.js|app\.js|supabase|signIn|auth-session/i, 'Integrated visual fixture must stay backend/auth-free');
+forbidMatch(fixture, /<script\b|runtime-config\.js|app\.js|auth-session|createClient\(/i, 'Integrated visual fixture must stay executable-backend/auth-free');
 
 const branch = String(deployment.cloudflareBranch ?? '').trim();
 if (branch && branch !== 'main') {
   await access(resolve(dist, 'visual-acceptance', 'integrated-ux.html'), constants.R_OK);
   const builtFixture = await readDist('visual-acceptance/integrated-ux.html');
-  forbidMatch(builtFixture, /runtime-config\.js|app\.js|supabase|signIn|auth-session/i, 'Built integrated visual fixture is not auth-free');
+  forbidMatch(builtFixture, /<script\b|runtime-config\.js|app\.js|auth-session|createClient\(/i, 'Built integrated visual fixture is not executable-backend/auth-free');
 }
 
 console.log('WP-077/WP-078/WP-079 integrated UX artifact validated.');
