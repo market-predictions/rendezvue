@@ -41,6 +41,8 @@ test('optional profile photos support camera and gallery while discovery remains
   assert.match(controller, /data-gallery-button="profile_photo_2"/);
   assert.match(controller, /data-slot-label="profile_photo_1"/);
   assert.match(controller, /data-slot-label="profile_photo_2"/);
+  assert.match(controller, /data-live-trust-badge/);
+  assert.match(controller, /hasLive \? 'noLegalIdentity' : 'livePending'/);
   assert.match(controller, /set_primary_profile_media/);
   assert.match(gallery, /get_discovery_profile_media/);
   assert.match(gallery, /horizontalDiscoverySwipeReserved:\s*true/);

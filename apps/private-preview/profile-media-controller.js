@@ -49,6 +49,7 @@ const copy = Object.freeze({
     readyToPublish: 'Live selfie aanwezig. Je kunt je profiel publiceren wanneer de rest compleet is.',
     cameraUnsupported: 'Deze browser ondersteunt de live-camera-opname niet. Gebruik een recente mobiele browser met cameratoegang.',
     cameraDenied: 'De camera kon niet worden geopend. Controleer de cameratoestemming van je browser.',
+    livePending: 'Live selfie vereist',
     noLegalIdentity: 'Live selfie aanwezig · geen wettelijke identiteitscontrole'
   }),
   en: Object.freeze({
@@ -87,6 +88,7 @@ const copy = Object.freeze({
     readyToPublish: 'Live selfie present. You can publish when the rest of your profile is complete.',
     cameraUnsupported: 'This browser does not support live camera capture. Use a recent mobile browser with camera access.',
     cameraDenied: 'The camera could not be opened. Check your browser camera permission.',
+    livePending: 'Live selfie required',
     noLegalIdentity: 'Live selfie present · not legal identity verification'
   })
 });
@@ -250,6 +252,11 @@ function renderTray() {
     card.append(media, head, actions); tray.append(card);
   }
   const hasLive = mediaRows.some((row) => row.profile_media_slot === 'live_selfie');
+  const trustBadge = root.querySelector('[data-live-trust-badge]');
+  if (trustBadge) {
+    trustBadge.textContent = text(hasLive ? 'noLegalIdentity' : 'livePending');
+    trustBadge.classList.toggle('is-pending', !hasLive);
+  }
   const publish = document.querySelector('#rv-publish-profile');
   if (publish) publish.disabled = !hasLive;
   const hint = root.querySelector('[data-profile-publish-hint]');
@@ -329,7 +336,7 @@ function markup() {
   const section = document.createElement('section');
   section.className = 'rv-profile-media-shell'; section.dataset.wp076Boundary = BOUNDARY;
   section.innerHTML = `
-    <div class="rv-profile-media-intro"><div><strong data-media-copy="trustTitle"></strong><p data-media-copy="trustBody"></p></div><span class="rv-live-trust-badge" data-media-copy="noLegalIdentity"></span></div>
+    <div class="rv-profile-media-intro"><div><strong data-media-copy="trustTitle"></strong><p data-media-copy="trustBody"></p></div><span class="rv-live-trust-badge" data-live-trust-badge></span></div>
     <div class="rv-profile-media-steps">
       <section class="rv-profile-media-step"><h3 data-media-copy="liveTitle"></h3><p data-media-copy="liveBody"></p><div class="rv-profile-media-actions"><button type="button" data-live-camera data-media-copy="liveStart"></button></div></section>
       <section class="rv-profile-media-step"><h3 data-media-copy="optionalTitle"></h3><p data-media-copy="optionalBody"></p><div class="rv-profile-media-add-list">
