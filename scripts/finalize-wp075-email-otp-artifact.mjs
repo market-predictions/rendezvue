@@ -35,7 +35,8 @@ await writeFile(indexPath, index, 'utf8');
 
 await writeFile(deploymentPath, `${JSON.stringify({
   ...deployment,
-  authFlow: 'email-otp-primary-plus-pkce-magic-link',
+  passwordlessPrimary: 'email-otp',
+  magicLinkConvenienceRetained: true,
   crossBrowserEmailOtp: true,
   emailOtpDigits: 6,
   emailOtpExpirySeconds: 600,

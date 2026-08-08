@@ -69,7 +69,9 @@ requireIncludes(workflow, 'RENDEZVUE_WP075_EMAIL_OTP_V1', 'Hosted OTP workflow d
 
 const scriptToken = `./email-otp-controller.js?commit=${encodeURIComponent(buildCommit)}`;
 requireIncludes(index, scriptToken, 'Built artifact does not commit-pin the WP-075 OTP controller');
-if (deployment.authFlow !== 'email-otp-primary-plus-pkce-magic-link') throw new Error('Built artifact does not declare the WP-075 auth flow');
+if (deployment.authFlow !== 'pkce-magic-link-cloudflare-staging') throw new Error('WP-075 must preserve the established PKCE callback compatibility contract');
+if (deployment.passwordlessPrimary !== 'email-otp') throw new Error('Built artifact does not declare email OTP as the passwordless primary');
+if (deployment.magicLinkConvenienceRetained !== true) throw new Error('Built artifact does not retain magic-link convenience');
 if (deployment.crossBrowserEmailOtp !== true || deployment.emailOtpDigits !== 6 || deployment.emailOtpExpirySeconds !== 600) throw new Error('Built artifact OTP metadata differs from WP-075');
 if (deployment.automaticCrossBrowserSessionPropagation !== false) throw new Error('Built artifact unexpectedly allows cross-browser session propagation');
 if (deployment.passwordAuthentication !== false) throw new Error('Built artifact unexpectedly enables password authentication');
