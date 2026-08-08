@@ -13,10 +13,10 @@ const copy = Object.freeze({
     resultHelp: 'Dit is de profielkaart die anderen straks kunnen zien. Je kunt blijven kadreren, zoomen of van privacy wisselen voordat je opslaat.',
     optionalTitle: 'Extra profielfoto’s',
     mediaTitle: 'Kies wat mensen als eerste zien',
-    phaseCapture: '1 · Foto',
-    phaseFrame: '2 · Kadrering',
-    phasePrivacy: '3 · Privacy',
-    phaseResult: '4 · Resultaat'
+    phaseCapture: 'Foto',
+    phaseFrame: 'Kadrering',
+    phasePrivacy: 'Privacy',
+    phaseResult: 'Resultaat'
   }),
   en: Object.freeze({
     title: 'Create your live selfie',
@@ -26,10 +26,10 @@ const copy = Object.freeze({
     resultHelp: 'This is the profile card other people can see. Keep framing, zooming or changing privacy before you save.',
     optionalTitle: 'Extra profile photos',
     mediaTitle: 'Choose what people see first',
-    phaseCapture: '1 · Photo',
-    phaseFrame: '2 · Framing',
-    phasePrivacy: '3 · Privacy',
-    phaseResult: '4 · Result'
+    phaseCapture: 'Photo',
+    phaseFrame: 'Framing',
+    phasePrivacy: 'Privacy',
+    phaseResult: 'Result'
   })
 });
 
@@ -84,7 +84,9 @@ function applyCopy() {
   composer.querySelector('[data-selfie-result-title]').textContent = text('resultTitle');
   composer.querySelector('[data-selfie-result-empty]').textContent = text('resultEmpty');
   composer.querySelector('[data-selfie-result-help]').textContent = text('resultHelp');
-  composer.querySelectorAll('[data-selfie-phase]').forEach((node) => { node.textContent = text(node.dataset.selfiePhase); });
+  composer.querySelectorAll('[data-selfie-phase]').forEach((node) => {
+    node.querySelector('[data-selfie-phase-label]').textContent = text(node.dataset.selfiePhase);
+  });
 
   const root = composer.closest('.rv-profile-media-shell');
   const optional = root?.querySelector('.rv-profile-media-step.is-optional-media h3');
@@ -104,10 +106,10 @@ function createComposer() {
         <p data-selfie-composer-intro></p>
       </div>
       <ol class="rv-selfie-phase-strip" aria-label="Selfie workflow">
-        <li data-selfie-phase="phaseCapture"></li>
-        <li data-selfie-phase="phaseFrame"></li>
-        <li data-selfie-phase="phasePrivacy"></li>
-        <li data-selfie-phase="phaseResult"></li>
+        <li data-selfie-phase="phaseCapture"><span class="rv-selfie-phase-number">1</span><span data-selfie-phase-label></span></li>
+        <li data-selfie-phase="phaseFrame"><span class="rv-selfie-phase-number">2</span><span data-selfie-phase-label></span></li>
+        <li data-selfie-phase="phasePrivacy"><span class="rv-selfie-phase-number">3</span><span data-selfie-phase-label></span></li>
+        <li data-selfie-phase="phaseResult"><span class="rv-selfie-phase-number">4</span><span data-selfie-phase-label></span></li>
       </ol>
     </header>
     <div class="rv-selfie-composer-grid">
@@ -183,4 +185,4 @@ globalThis.addEventListener('rendezvue:language-change', (event) => {
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, { once: true }); else mount();
 globalThis.addEventListener('pagehide', () => observer?.disconnect(), { once: true });
 
-globalThis.__RENDEZVUE_SELFIE_COMPOSER__ = Object.freeze({ boundary: BOUNDARY, version: 1, taskOrder: Object.freeze(['capture','frame','privacy','result','decide']) });
+globalThis.__RENDEZVUE_SELFIE_COMPOSER__ = Object.freeze({ boundary: BOUNDARY, version: 2, taskOrder: Object.freeze(['capture','frame','privacy','result','decide']) });
