@@ -60,7 +60,7 @@ select ok(
 reset role;
 
 select is(
-  (select status from public.moderation_action_proposals p join public.safety_reports r on r.id=p.source_report_id where r.description='stale proposal recovery proof'),
+  (select p.status from public.moderation_action_proposals p join public.safety_reports r on r.id=p.source_report_id where r.description='stale proposal recovery proof'),
   'pending',
   'proposal starts pending'
 );
@@ -102,7 +102,7 @@ select ok(
 reset role;
 
 select is(
-  (select status from public.moderation_action_proposals p join public.safety_reports r on r.id=p.source_report_id where r.description='stale proposal recovery proof'),
+  (select p.status from public.moderation_action_proposals p join public.safety_reports r on r.id=p.source_report_id where r.description='stale proposal recovery proof'),
   'superseded',
   'stale proposal becomes terminal superseded'
 );
