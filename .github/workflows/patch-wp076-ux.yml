@@ -1,0 +1,35 @@
+name: Patch WP076 UX refinement
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/patch-wp076-ux.yml'
+      - 'scripts/patch-wp076-ux.py'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Apply UX refinement and test candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'rendezvue-implementation-bot'
+          git config user.email 'rendezvue-implementation-bot@users.noreply.github.com'
+          python scripts/patch-wp076-ux.py
+          npm ci
+          node --test apps/web/tests/profile-media-architecture.test.mjs
+          npm run build:cloudflare
+          node scripts/validate-wp076-profile-media.mjs
+          git add apps/private-preview/profile-media-controller.js apps/private-preview/profile-media-gallery.js apps/private-preview/profile-media.css apps/private-preview/src/camera.js apps/web/tests/profile-media-architecture.test.mjs
+          git commit -m 'Refine WP076 optional photo UX'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
