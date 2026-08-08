@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 2.18  
+**Version:** 2.19  
 **Updated:** 2026-08-08
 
 ## Operating doctrine
@@ -100,7 +100,7 @@ Demonstrated:
 
 ### 2C. Authentication, resumable onboarding and Cloudflare deployment
 
-**Status:** controlled proof complete; product-facing account and signed-in product journeys integrated; browser-independent OTP access planned in WP-075; operational recovery remains unauthorized.
+**Status:** controlled proof complete; product-facing account and signed-in product journeys integrated; WP-075 client foundation merged but hosted OTP activation blocked externally; operational recovery remains unauthorized.
 
 Demonstrated in the canonical Cloudflare browser proof, WP-065A/B/D/E/F, WP-066 and WP-067:
 
@@ -141,7 +141,7 @@ Demonstrated in the canonical Cloudflare browser proof, WP-065A/B/D/E/F, WP-066 
 
 Still required:
 
-- WP-075 browser-independent passwordless sign-in using a short e-mail OTP/code while preserving non-creating existing-account access and isolated per-browser sessions;
+- activate and prove WP-075 browser-independent passwordless sign-in using a short e-mail OTP/code after custom SMTP or another explicitly authorized provider/plan capability is available; until then canonical staging must truthfully remain on PKCE magic links;
 - owner-led desktop and mobile field review of the integrated product journey;
 - controlled disposable-account exercise of the new product shell when suitable mailboxes are available;
 - a disposable synthetic mailbox/account for the controlled remote e-mail-replacement execution proof;
@@ -225,12 +225,30 @@ WP-076 provides an explicit same-session front-camera challenge and a visible pr
 
 ### 2I. Behavioural standing and moderation proof
 
-**Status:** planned.
+**Status:** active — WP-070A and WP-070B `OUTCOME_CONFIRMED`; remaining Trust & Safety operations are P1 pilot-readiness dependencies.
 
-- feedback credibility and retaliation resistance;
-- positive badges and correction prompts;
-- explainable limitations and appeals;
-- manual moderation console and audit workflow.
+Completed and remotely confirmed:
+
+- WP-070A service-only report intake/triage queue, deterministic priority, controlled claim/unclaim, optimistic state/version handling, append-only case events and no participant moderation access;
+- WP-070B immutable action proposals bound to exact case/report state;
+- proposer/reviewer separation of duties and exactly one terminal independent review under concurrency;
+- critical-safety proposals cannot receive ordinary approval;
+- demonstrably stale proposals fail closed and can be terminally superseded only through a controlled audited service path;
+- durable sanitized audit retains opaque proposer/reviewer references while excluding reporter identity and report free text;
+- authorization itself performs no profile, discovery, contact, conversation, account or Auth enforcement;
+- final WP-070B canonical `main` `7e868bd08234028da86f5210158ff0a76de54335`, protected backend run `31275987796` and causally ordered protected verifier run `31276028649` are PASS.
+
+Still required before a real-user pilot:
+
+- the next separately governed WP-070 package for tightly bounded, policy-bound enforcement execution; irreversible actions must not be inferred from WP-070B approval and should remain disabled until their separate safeguards exist;
+- specialist escalation procedures for critical safety cases;
+- participant notice and appeal/correction pathways appropriate to the action class;
+- support ownership, operator identity/authorization model and auditable operating procedures;
+- incident response and emergency/escalation playbooks;
+- retaliation/fairness analysis for behavioural signals;
+- manual moderation tooling only after the underlying server-authoritative operating contracts are complete.
+
+Detailed evidence: `docs/WP-070A-MODERATION-TRIAGE.md`, `docs/WP-070B-DUAL-CONTROL-AUTHORIZATION.md`, issue #139 and the WP-070 roadmap addenda.
 
 ### 2J. Account recovery and lifecycle controls
 
@@ -366,9 +384,9 @@ Owner field review found the former Private and Extra private levels excessively
 
 ### 2S. Cross-browser passwordless authentication
 
-**Status:** WP-075 planned; P1 real-user readiness; issue #121.
+**Status:** WP-075 blocked — browser/client foundation merged and independently assured; hosted activation blocked on provider capability; issue #121.
 
-The current PKCE magic-link flow is intentionally browser-local, but a participant whose mail client opens the link in another default browser can be left unauthenticated in the browser they actually want to use. WP-075 keeps Rendezvue passwordless and preserves isolated browser/device sessions, while adding a short e-mail OTP/code path that can be completed in the intended browser. Existing-account sign-in remains non-creating, registration remains a separate explicit action, responses remain non-enumerating, and magic links remain only a convenience rather than a same-browser dependency. Implement after WP-074B closeout and before WP-080 pilot authorization. Detailed scope: `docs/WP-075-CROSS-BROWSER-OTP-AUTH.md` and `docs/ROADMAP-WP075-ADDENDUM.md`.
+Rendezvue keeps the browser-independent e-mail OTP design as the preferred passwordless cross-browser path, preserves non-creating existing-account sign-in and separate explicit registration, and retains isolated browser/device sessions. The client adapter and 6-digit/10-minute contract are implemented, but the current Supabase Free/default mail provider rejects the required repository-controlled template containing `{{ .Token }}`. Canonical staging therefore truthfully retains PKCE magic links and does not activate the OTP controller. Activation requires custom SMTP or another explicitly authorized provider/plan change, hosted configuration read-back, two-browser proof and fresh assurance. No password or cross-browser session propagation fallback is authorized. Detailed scope/state: `docs/WP-075-CROSS-BROWSER-OTP-AUTH.md` and `docs/ROADMAP-WP075-ADDENDUM.md`.
 
 ## Phase 3 — Closed city-based PWA pilot
 
@@ -378,7 +396,8 @@ The current PKCE magic-link flow is intentionally browser-local, but a participa
 
 **Entry gates:**
 
-- WP-075 cross-browser passwordless OTP sign-in implementation complete, canonically verified and independently assured;
+- WP-075 hosted OTP activation complete, canonically verified and independently assured after provider capability becomes available;
+- all remaining WP-070 Trust & Safety operational layers complete, including separately governed action execution, specialist escalation, participant notice/appeal and incident procedures;
 - operational identity-evidence policy and support procedures approved;
 - controlled end-to-end e-mail-replacement proof completed or the capability explicitly disabled;
 - secure support tooling, user notifications, objection and incident procedures approved;
@@ -405,12 +424,12 @@ Add thin iOS/Android shells only where app-store distribution, push reliability,
 
 ## Immediate next work
 
-1. Close the already-active WP-074B privacy portrait ladder and selected-card delivery package, including protected staging/canonical delivery and owner visual acceptance.
-2. Implement WP-075 **cross-browser passwordless e-mail OTP sign-in** as P1 real-user-readiness work and route the exact candidate through independent assurance.
-3. Owner-led desktop and mobile review of the complete account-to-conversation journey.
+1. Define and implement the next P1 WP-070 Trust & Safety package on top of the now-confirmed WP-070A/B foundations. The preferred scope is a tightly bounded, reversible, policy-bound execution layer; destructive/irreversible action classes remain disabled until separately governed safeguards exist.
+2. Close the owner-dependent WP-074B privacy portrait ladder / selected-card acceptance and remaining owner desktop/mobile field review when owner review is available.
+3. Keep WP-075 blocked rather than simulating completion; activate only after custom SMTP or another explicitly authorized provider/plan capability is available, then run hosted read-back, two-browser proof and fresh assurance.
 4. Controlled disposable-account execution of WP-067 and the separate WP-065F mailbox-replacement proof when suitable mailboxes are available.
 5. Product refinements from field review: portrait attractiveness, profile density, navigation clarity and representative Dutch/English terminology.
-6. Operational support, retention/DPIA, moderation, accessibility, security and legal readiness.
+6. Operational support, retention/DPIA, specialist moderation, appeals, accessibility, security and legal readiness.
 7. Explicit closed-city pilot decision only after all entry gates pass.
 
 ## Stop or reconsider criteria
@@ -423,6 +442,7 @@ Add thin iOS/Android shells only where app-store distribution, push reliability,
 - moderation or sensitive-data obligations are not operationally viable;
 - monetisation materially suppresses contact formation;
 - feedback mechanisms show unacceptable bias or retaliation.
+
 ## Phase 2M — Profile image quality and resilient participant preparation
 
 **Status:** WP-069A complete; WP-069B technical foundation complete and canonically verified; owner field review pending.
