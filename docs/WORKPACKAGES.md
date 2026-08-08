@@ -177,6 +177,11 @@ WP-074A proved the prepared-derivative privacy architecture and replaced the ori
 **Status:** implementation in review; technical PR validation green; canonical owner acceptance pending; issue #115  
 Owner direction remaps the active ladder to **Zonder filter / Unfiltered → Natural → Zacht privé / Soft private → Meer privé / More private**. Natural uses the former `softFocus` recipe, Soft private uses the former `warmVeil`/Balanced recipe, and More private adds a bounded stronger recipe that stays lighter than the rejected legacy heavy tiers. Natural is Recommended and no option is preselected. Historical `natural`, `monoMist` and `privacyMax` identifiers remain readable but are rejected for new writes. Card and avatar are generated from and persist the exact selected presentation. Discovery now resolves only the selected prepared card of a published, unblocked profile through a narrow private-Storage policy; source and non-selected derivatives remain private. PR #116; technical evidence includes dedicated run `31204115559` and full validation run `31204115617`. Protected staging migration, commit-matched canonical delivery and owner visual acceptance remain pending. Detailed evidence: `docs/WP-074B-PRIVACY-PORTRAIT-LADDER.md`.
 
+## WP-075 — Cross-browser passwordless sign-in with email OTP
+
+**Status:** planned; P1 real-user readiness; issue #121  
+Rendezvue remains passwordless, but existing-account authentication must no longer depend on an e-mail magic link opening in the same browser profile that requested it. WP-075 adds a short e-mail OTP/code path so a participant can authenticate the intended browser or device by proving mailbox access there, while retaining magic links as a convenience. Existing-account access remains non-creating, registration stays separate and explicit, non-enumerating/privacy-safe responses remain mandatory, and browser/device sessions remain isolated rather than being propagated automatically. Implement after WP-074B closeout and before WP-080 pilot authorization. Detailed scope and acceptance criteria: `docs/WP-075-CROSS-BROWSER-OTP-AUTH.md` and `docs/ROADMAP-WP075-ADDENDUM.md`.
+
 ## WP-080 — Closed city pilot readiness
 
 **Status:** planned  
