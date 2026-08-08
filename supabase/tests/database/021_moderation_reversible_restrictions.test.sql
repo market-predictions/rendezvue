@@ -49,7 +49,8 @@ select ok(has_function_privilege('authenticated','public.can_discover_profile(uu
 
 -- Reusable test helper: create a medium report, claim it, move the case from
 -- triage v1 to investigating v2, create a WP-070B proposal and independently
--- approve it. This helper is test-only and rolls back with this transaction.
+-- approve it. This helper is test-only, runs with the test owner privileges and
+-- rolls back with this transaction. Production service-role DML remains denied.
 create or replace function pg_temp.make_approved_proposal(
   p_subject uuid,
   p_description text,
@@ -59,6 +60,8 @@ create or replace function pg_temp.make_approved_proposal(
 )
 returns uuid
 language plpgsql
+security definer
+set search_path = public, pg_temp
 as $$
 declare
   v_report uuid;
