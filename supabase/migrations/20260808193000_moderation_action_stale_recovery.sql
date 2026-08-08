@@ -106,6 +106,7 @@ begin
     'moderation_action_proposal',
     v_proposal.id::text,
     jsonb_build_object(
+      'operator_ref', p_operator_ref,
       'proposal_case_version', v_proposal.case_version,
       'current_case_version', v_case.version,
       'proposal_case_status', v_proposal.case_status,
