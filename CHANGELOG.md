@@ -14,6 +14,7 @@ All notable project changes are recorded here. The project uses pre-release sema
 - Added a full-profile media viewer so optional photos and the visibly labelled Live selfie have a clear role in the dating interaction.
 - Added server-side media-slot/capture-origin constraints, publication gating, prepared-card access controls, pgTAP coverage and a commit-matched canonical verifier.
 - Enabled same-origin camera access in the Cloudflare Permissions-Policy while keeping microphone, geolocation and payment disabled.
+- PR #123 merged as `ddecb67dbbd3487daefac16045ff147a6649c1e2` after exact-candidate assurance; full validation `31254828422`, protected staging `31255042784` and commit-matched canonical verifier `31255080791` passed.
 - Real-user admission remains unauthorized.
 
 ### Privacy portrait ladder remap and selected-card delivery

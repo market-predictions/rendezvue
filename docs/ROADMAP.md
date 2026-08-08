@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 2.18  
+**Version:** 2.19  
 **Updated:** 2026-08-08
 
 ## Operating doctrine
@@ -54,9 +54,9 @@ Participants explicitly choose among four prepared portrait presentations. The o
 
 ### 1C.1. Live selfie and multi-photo profile architecture
 
-**Status:** WP-076 implementation candidate; issue #120.
+**Status:** WP-076 technically complete and canonically verified; owner mobile/device acceptance pending; issue #120.
 
-Rendezvue separates authenticity from presentation without reducing the profile to one technical selfie. Publication requires one **Live selfie** produced from a same-session front-camera blink/head-turn flow. Only a freshly rendered, metadata-free prepared derivative may be visible; challenge/raw source media remains private. A participant may add up to two optional camera/gallery profile photos, select one prepared card as the discovery primary, and expose the remaining media only through a deliberate full-profile viewer. The Live selfie stays visibly labelled as a live-camera trust signal and is not described as legal identity verification. Discovery remains one-primary-image so photo navigation does not compete with pass/like/swipe interaction. Detailed contract: `docs/WP-076-LIVE-SELFIE-PROFILE-MEDIA.md` and ADR-0009.
+Rendezvue separates authenticity from presentation without reducing the profile to one technical selfie. Publication requires one **Live selfie** produced from a same-session front-camera blink/head-turn flow. Only a freshly rendered, metadata-free prepared derivative may be visible; challenge/raw source media remains private. A participant may add up to two optional camera/gallery profile photos, select one prepared card as the discovery primary, and expose the remaining media only through a deliberate full-profile viewer. The Live selfie stays visibly labelled as a live-camera trust signal and is not described as legal identity verification. Discovery remains one-primary-image so photo navigation does not compete with pass/like/swipe interaction. Detailed contract: `docs/WP-076-LIVE-SELFIE-PROFILE-MEDIA.md` and ADR-0009. PR #123 merged as `ddecb67dbbd3487daefac16045ff147a6649c1e2`; exact-candidate validation `31254828422`, protected staging `31255042784` and canonical WP-076 delivery `31255080791` passed.
 
 ### 1D. Product baseline v1 and onboarding redefinition
 

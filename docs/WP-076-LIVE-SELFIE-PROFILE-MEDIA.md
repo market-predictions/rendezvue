@@ -1,7 +1,7 @@
 # WP-076 — Live selfie and profile media architecture
 
 **Issue:** #120  
-**Status:** implementation candidate  
+**Status:** technically complete and canonically verified; owner mobile/visual acceptance pending  
 **Decision date:** 2026-08-08
 
 ## Product outcome
@@ -145,3 +145,18 @@ Release requires:
 - protected staging migration;
 - commit-matched canonical camera/media delivery verification;
 - owner visual/device review before the issue is closed.
+
+
+## Release evidence
+
+WP-076 was independently assured and deployed on 2026-08-08.
+
+- implementation PR #123 merged as `ddecb67dbbd3487daefac16045ff147a6649c1e2`;
+- exact-candidate CI `31254828420`: PASS;
+- full exact-candidate validation `31254828422`: PASS, including empty-database replay, all pgTAP contracts, parallel races, deterministic seed, schema lint, Docker and Cloudflare boundary;
+- dedicated WP-076 verifier `31254828411`: PASS;
+- retained WP-074B privacy contract `31254828400`: PASS;
+- protected staging run `31255042784`: PASS; migration applied and remote/backend/artifact boundary green;
+- commit-matched canonical WP-076 run `31255080791`: PASS for both generated contract and delivered camera/profile-media boundary.
+
+Technical outcome is confirmed. Issue #120 remains open only for owner mobile/device and visual UX acceptance. Real-user admission remains unauthorized.
