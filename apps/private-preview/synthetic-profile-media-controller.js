@@ -1,15 +1,16 @@
 import {
-  syntheticFixturePresentationEnabled,
   syntheticProfileAssetForName,
   syntheticProfileMediaForName
 } from './synthetic-profile-media.js';
 
 const STYLE_ID = 'rendezvue-synthetic-profile-media-style';
 const BOUNDARY = 'wp079-synthetic-profile-media-compatibility';
+const SYNTHETIC_AUDIENCE = 'controlled-synthetic-adult-proof-accounts';
 let observer = null;
 let dialog = null;
 let scheduled = false;
 let language = document.documentElement.lang === 'en' ? 'en' : 'nl';
+let fixtureScopeEnabled = false;
 
 function copy(key) {
   const values = {
@@ -26,6 +27,22 @@ function ensureStyle() {
   link.rel = 'stylesheet';
   link.href = './synthetic-profile-media.css';
   document.head.append(link);
+}
+
+async function resolveFixtureScope() {
+  try {
+    const response = await fetch(`./deployment.json?fixture-scope=${Date.now()}`, {
+      headers: { accept: 'application/json', 'cache-control': 'no-cache' },
+      cache: 'no-store'
+    });
+    if (!response.ok) return false;
+    const deployment = await response.json();
+    return deployment?.app === 'rendezvue-private-preview'
+      && deployment?.audience === SYNTHETIC_AUDIENCE
+      && deployment?.realUserAdmissionAuthorized === false;
+  } catch {
+    return false;
+  }
 }
 
 function setImage(container, name) {
@@ -67,6 +84,7 @@ function ensureDialog() {
 }
 
 function openSyntheticProfile(card) {
+  if (!fixtureScopeEnabled) return;
   const name = card.querySelector('.rv-discovery-copy h3')?.textContent?.trim() ?? '';
   const fixture = syntheticProfileMediaForName(name);
   if (!fixture) return;
@@ -137,7 +155,7 @@ function decorateConversationHeader(header) {
 
 function decorate() {
   scheduled = false;
-  if (!syntheticFixturePresentationEnabled()) return;
+  if (!fixtureScopeEnabled) return;
   ensureStyle();
   for (const card of document.querySelectorAll('.rv-discovery-card')) decorateDiscoveryCard(card);
   for (const row of document.querySelectorAll('.rv-thread-row')) decorateThreadRow(row);
@@ -146,15 +164,21 @@ function decorate() {
 }
 
 function schedule() {
-  if (scheduled) return;
+  if (!fixtureScopeEnabled || scheduled) return;
   scheduled = true;
   requestAnimationFrame(decorate);
 }
 
-observer = new MutationObserver(schedule);
-observer.observe(document.documentElement, { childList: true, subtree: true });
+async function initialise() {
+  fixtureScopeEnabled = await resolveFixtureScope();
+  if (!fixtureScopeEnabled) return;
+  observer = new MutationObserver(schedule);
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+  schedule();
+}
+
 globalThis.addEventListener('rendezvue:language-change', (event) => { language = event.detail?.language === 'en' ? 'en' : 'nl'; schedule(); });
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', schedule, { once: true }); else schedule();
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialise, { once: true }); else void initialise();
 globalThis.addEventListener('pagehide', () => observer?.disconnect(), { once: true });
 
-globalThis.__RENDEZVUE_SYNTHETIC_PROFILE_MEDIA__ = Object.freeze({ boundary: BOUNDARY, version: 1, fixtureOnly: true, liveSelfieEvidence: false });
+globalThis.__RENDEZVUE_SYNTHETIC_PROFILE_MEDIA__ = Object.freeze({ boundary: BOUNDARY, version: 1, fixtureOnly: true, liveSelfieEvidence: false, gatedByDeploymentMetadata: true });
