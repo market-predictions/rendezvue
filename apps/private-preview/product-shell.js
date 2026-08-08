@@ -534,7 +534,17 @@ async function loadOwnPortrait() {
   if (!portrait?.object_path) return null;
   const signed = unwrap(await supabase.storage.from('privacy-portraits').createSignedUrl(portrait.object_path, 300), 'privacy portrait URL');
   state.ownPortraitUrl = signed.signedUrl;
-  state.completedStages.add('portrait');
+  const liveSelfie = unwrap(await supabase
+    .from('privacy_portraits')
+    .select('id')
+    .eq('user_id', state.user.id)
+    .eq('asset_role', 'card')
+    .eq('profile_media_slot', 'live_selfie')
+    .eq('capture_origin', 'live_camera')
+    .eq('is_profile_media_visible', true)
+    .maybeSingle(), 'live selfie progress check');
+  if (liveSelfie?.id) state.completedStages.add('portrait');
+  else state.completedStages.delete('portrait');
   const image = document.createElement('img');
   image.src = signed.signedUrl;
   image.alt = '';

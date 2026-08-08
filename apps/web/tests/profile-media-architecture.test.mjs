@@ -71,6 +71,15 @@ test('optional profile photos support camera and gallery while discovery remains
   assert.match(gallery, /decorateCard\(card, media, profile\.user_id\)/);
 });
 
+test('portrait progress after refresh depends on the Live-selfie slot rather than any primary photo', async () => {
+  const shell = await read('apps/private-preview/product-shell.js');
+  assert.match(shell, /profile_media_slot', 'live_selfie'/);
+  assert.match(shell, /capture_origin', 'live_camera'/);
+  assert.match(shell, /is_profile_media_visible', true/);
+  assert.match(shell, /if \(liveSelfie\?\.id\) state\.completedStages\.add\('portrait'\)/);
+  assert.match(shell, /else state\.completedStages\.delete\('portrait'\)/);
+});
+
 test('database contract separates visible prepared cards from raw and challenge media', async () => {
   const migration = await read('supabase/migrations/20260808100500_live_selfie_profile_media.sql');
   assert.match(migration, /profile_media_slot in \('live_selfie', 'profile_photo_1', 'profile_photo_2'\)/);
