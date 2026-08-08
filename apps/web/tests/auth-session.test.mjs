@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createAuthSessionAdapter, normaliseAccountEmail } from '../src/auth-session.js';
+import { createAuthSessionAdapter, normaliseAccountEmail, normaliseEmailOtp } from '../src/auth-session.js';
 
 function makeAuthClient(overrides = {}) {
   const calls = [];
@@ -10,6 +10,10 @@ function makeAuthClient(overrides = {}) {
     async signInWithOtp(payload) {
       calls.push(['signInWithOtp', payload]);
       return { data: {}, error: null };
+    },
+    async verifyOtp(payload) {
+      calls.push(['verifyOtp', payload]);
+      return { data: { user: { id: 'user-1' }, session: { access_token: 'synthetic', user: { id: 'user-1' } } }, error: null };
     },
     async getSession() {
       calls.push(['getSession']);
@@ -43,7 +47,12 @@ test('personal email is trimmed and normalized', () => {
   assert.throws(() => normaliseAccountEmail('not-an-email'), /valid personal email/);
 });
 
-test('existing-account magic link is fail-closed and cannot create a user', async () => {
+test('email OTP is normalized as a portable six-digit proof', () => {
+  assert.equal(normaliseEmailOtp(' 123 456 '), '123456');
+  assert.throws(() => normaliseEmailOtp('12345'), /6-digit/);
+});
+
+test('existing-account passwordless request is fail-closed and cannot create a user', async () => {
   const fake = makeAuthClient();
   const auth = createAuthSessionAdapter(fake.client, {
     redirectTo: 'https://rendezvue-private-preview.pages.dev/'
@@ -51,7 +60,8 @@ test('existing-account magic link is fail-closed and cannot create a user', asyn
   assert.deepEqual(await auth.requestMagicLink('USER@EXAMPLE.NL'), {
     email: 'user@example.nl',
     requested: true,
-    mode: 'existing_account'
+    mode: 'existing_account',
+    delivery: 'email_otp_or_link'
   });
   assert.deepEqual(fake.calls[0], [
     'signInWithOtp',
@@ -65,7 +75,7 @@ test('existing-account magic link is fail-closed and cannot create a user', asyn
   ]);
 });
 
-test('explicit registration magic link is the only path that may create a user', async () => {
+test('explicit registration request is the only passwordless path that may create a user', async () => {
   const fake = makeAuthClient();
   const auth = createAuthSessionAdapter(fake.client, {
     redirectTo: 'https://rendezvue-private-preview.pages.dev/'
@@ -73,16 +83,28 @@ test('explicit registration magic link is the only path that may create a user',
   assert.deepEqual(await auth.requestRegistrationMagicLink('new@example.nl'), {
     email: 'new@example.nl',
     requested: true,
-    mode: 'registration'
+    mode: 'registration',
+    delivery: 'email_otp_or_link'
   });
   assert.equal(fake.calls[0][1].options.shouldCreateUser, true);
 });
 
-test('existing-account alias and local requests remain fail-closed', async () => {
+test('existing-account aliases remain fail-closed', async () => {
   const fake = makeAuthClient();
   const auth = createAuthSessionAdapter(fake.client);
   await auth.requestExistingAccountMagicLink('user@example.nl');
   assert.deepEqual(fake.calls[0][1].options, { shouldCreateUser: false });
+  await auth.requestExistingAccountEmailOtp('user@example.nl');
+  assert.deepEqual(fake.calls[1][1].options, { shouldCreateUser: false });
+});
+
+test('email OTP verification creates a session in the browser performing the proof', async () => {
+  const fake = makeAuthClient();
+  const auth = createAuthSessionAdapter(fake.client);
+  const result = await auth.verifyEmailOtp('USER@example.nl', '184263');
+  assert.equal(result.verified, true);
+  assert.equal(result.user.id, 'user-1');
+  assert.deepEqual(fake.calls[0], ['verifyOtp', { email: 'user@example.nl', token: '184263', type: 'email' }]);
 });
 
 test('session restore and current user unwrap provider data', async () => {
@@ -115,15 +137,22 @@ test('provider errors are surfaced with operation context', async () => {
   const fake = makeAuthClient({
     async signInWithOtp() {
       return { data: null, error: { message: 'request rejected' } };
+    },
+    async verifyOtp() {
+      return { data: null, error: { message: 'token rejected' } };
     }
   });
   const auth = createAuthSessionAdapter(fake.client);
   await assert.rejects(
     () => auth.requestExistingAccountMagicLink('user@example.nl'),
-    /existing-account magic-link request failed: request rejected/
+    /existing-account passwordless request failed: request rejected/
   );
   await assert.rejects(
     () => auth.requestRegistrationMagicLink('user@example.nl'),
-    /registration magic-link request failed: request rejected/
+    /registration passwordless request failed: request rejected/
+  );
+  await assert.rejects(
+    () => auth.verifyEmailOtp('user@example.nl', '184263'),
+    /email OTP verification failed: token rejected/
   );
 });

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>Rendezvue · WP-075 visual acceptance</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="../email-otp.css">
+  <style>
+    body{background:#f5f1eb}.wp075-shell{width:min(42rem,calc(100% - 1.2rem));margin:1rem auto;padding:1rem}.wp075-card{padding:1.2rem;border:1px solid #ddd2c7;border-radius:1.25rem;background:#fff;box-shadow:0 16px 45px rgba(66,45,31,.08)}.wp075-card h1{margin:.1rem 0 .35rem;font-size:1.8rem}.wp075-card>p{color:#6d625a;line-height:1.55}.mock-email{margin-top:1rem;padding:1rem;border:1px dashed #cdbfb2;border-radius:1rem;background:#fff}.mock-code{font-size:2rem;font-weight:850;letter-spacing:.28em;text-align:center}.acceptance-note{margin-bottom:1rem;padding:.75rem;border-radius:.8rem;background:#e4f1ed;color:#175746;font-weight:700}
+  </style>
+</head>
+<body>
+  <main class="wp075-shell">
+    <div class="acceptance-note">Visual acceptance zonder login · geen backend- of sessiecode op deze pagina.</div>
+    <section class="wp075-card">
+      <h1>Inloggen met e-mailcode</h1>
+      <p>De code is het primaire pad. De gebruiker kan Rendezvue openen in de browser die hij of zij zelf kiest.</p>
+      <label for="mock-email">E-mailadres</label>
+      <input id="mock-email" type="email" value="maryam@example.nl" readonly>
+      <button type="button">Stuur inlogcode</button>
+      <section class="email-otp-panel">
+        <div class="email-otp-heading"><span class="email-otp-mark">✦</span><div><h3>Voer je code in</h3><p>Gebruik de 6-cijferige code uit de e-mail in de browser waarin je wilt inloggen.</p></div></div>
+        <form class="email-otp-form">
+          <label for="mock-code-input">6-cijferige code</label>
+          <div class="email-otp-entry"><input id="mock-code-input" value="184263" readonly><button type="button">Code controleren</button></div>
+          <p class="email-otp-help">Gebruik de 6-cijferige code uit de e-mail in de browser waarin je wilt inloggen.</p>
+          <button class="secondary email-otp-resend" type="button">Nieuwe code sturen</button>
+        </form>
+      </section>
+      <div class="mock-email">
+        <strong>Voorbeeld van de e-mail</strong>
+        <p>Voer deze code in in de browser waarin je Rendezvue wilt gebruiken:</p>
+        <div class="mock-code">184263</div>
+        <p>Of gebruik de optionele directe aanmeldlink in de browser die door je e-mailapp wordt geopend.</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
