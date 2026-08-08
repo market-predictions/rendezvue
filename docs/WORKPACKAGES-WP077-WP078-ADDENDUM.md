@@ -1,4 +1,4 @@
-# Work-package addendum — WP-077 / WP-078
+# Work-package addendum — WP-077 / WP-078 / WP-079
 
 **Date:** 2026-08-08  
 **Applies until:** the next consolidated `docs/WORKPACKAGES.md` revision
@@ -17,11 +17,22 @@ Detailed contract: `docs/WP-077-COHESIVE-SELFIE-CREATION-FLOW.md`.
 
 **Status:** planned; P1 real-user readiness; issue #127  
 **Dependency:** WP-077 task architecture  
-**Blocks:** final integrated mobile owner acceptance and WP-080 pilot readiness
+**Blocks:** WP-079 and final integrated mobile owner acceptance
 
 Apply one explicit touch-control system across forms, checkbox/radio rows, date/select/text controls, range/zoom, file/camera actions, navigation, disclosure rows, discovery, profile media, messaging, safety and account actions. Mobile/coarse-pointer interaction becomes finger-first while desktop retains compact premium density. Existing generic-input regression assumptions are replaced with control-type-specific contracts.
 
 Detailed contract: `docs/WP-078-MOBILE-FIRST-TOUCH-HARDENING.md`.
+
+## WP-079 — Synthetic profile photo stand-ins for Live-selfie-era discovery
+
+**Status:** planned; P2 integrated test readiness; issue #129  
+**Classification:** `IMPORTANT_DEFERRABLE` now; becomes `REQUIRED_FOR_CURRENT_RELEASE` before consolidated discovery/matching acceptance  
+**Dependency:** schedule after WP-077 and WP-078  
+**Blocks:** realistic integrated discovery, profile-selection, match and inbox owner acceptance
+
+The ten known synthetic discovery profiles predate WP-076 but already have approved WP-069A photorealistic portraits. WP-079 gives those fixtures a deterministic synthetic-only compatibility projection so their approved photo occupies the Live-selfie-era primary visual position instead of reverting to the obsolete illustrated/avatar fallback. It must preserve truthful fixture provenance and may not weaken or forge the real `live_selfie -> live_camera` contract for ordinary accounts.
+
+Detailed contract: `docs/WP-079-SYNTHETIC-LIVE-SELFIE-STANDIN-COMPATIBILITY.md`.
 
 ## Sequence
 
@@ -32,9 +43,11 @@ WP-077 — next
         ↓
 WP-078
         ↓
-integrated desktop/mobile acceptance
+WP-079
+        ↓
+integrated desktop/mobile discovery + matching acceptance
         ↓
 WP-080
 ```
 
-WP-075 remains a separate P1 authentication lane and may execute in parallel if independent capacity exists. WP-075, WP-077 and WP-078 are all required before real-user admission.
+WP-075 remains a separate P1 authentication lane and may execute in parallel if independent capacity exists. WP-075 is mandatory before real-user admission. WP-079 is mandatory before the consolidated synthetic discovery/matching owner-acceptance run, but does not need to interrupt WP-077/WP-078 now.
