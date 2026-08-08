@@ -124,4 +124,13 @@ assert_equal "$(query "select count(*) from auth.users where id='$SUBJECT'")" "1
 "${PSQL[@]}" -c "update public.moderation_enforcement_policies set active=false where policy_key='wp070c.synthetic.reversible';"
 assert_equal "$(query "select count(*) from public.moderation_enforcement_policies where active")" "0" "local race test restores zero active enforcement policies"
 
-echo 'WP-070C parallel reversible restriction execution race passed.'
+# Remove the disposable race accounts so subsequent deterministic synthetic-seed
+# checks observe the same pristine database cardinality as they did before
+# WP-070C. Auth-user deletion cascades the synthetic profile and its moderation
+# operational rows; retained audit evidence is not counted by the seed contract.
+"${PSQL[@]}" -c "delete from auth.users where id in ('$REPORTER'::uuid, '$SUBJECT'::uuid);"
+assert_equal "$(query "select count(*) from auth.users where id in ('$REPORTER'::uuid, '$SUBJECT'::uuid)")" "0" "WP-070C race removes disposable Auth fixtures"
+assert_equal "$(query "select count(*) from public.profiles where user_id in ('$REPORTER'::uuid, '$SUBJECT'::uuid)")" "0" "WP-070C race removes disposable profile fixtures before seed"
+assert_equal "$(query "select count(*) from public.moderation_restrictions where subject_user_id='$SUBJECT'::uuid")" "0" "WP-070C race removes disposable restriction fixture before seed"
+
+echo 'WP-070C parallel reversible restriction execution race passed and restored the local database fixture baseline.'
