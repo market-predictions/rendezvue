@@ -1,0 +1,10 @@
+{
+  "contract": "RENDEZVUE_WP075_EMAIL_OTP_ACTIVATION_V1",
+  "hostedDeliveryReady": false,
+  "activationState": "blocked-external-mail-provider",
+  "activePasswordlessPath": "pkce-magic-link",
+  "desiredOtpDigits": 6,
+  "desiredOtpExpirySeconds": 600,
+  "blockedReason": "Supabase hosted passwordless template customization is unavailable on the current new Free/default-provider project; custom SMTP or an explicitly authorized provider/plan change is required before {{ .Token }} delivery can be proven.",
+  "realUserAdmissionAuthorized": false
+}
