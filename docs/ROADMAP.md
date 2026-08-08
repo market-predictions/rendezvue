@@ -1,6 +1,6 @@
 # Rendezvue roadmap
 
-**Version:** 2.17  
+**Version:** 2.18  
 **Updated:** 2026-08-08
 
 ## Operating doctrine
@@ -13,6 +13,7 @@
 - Staging is restricted to controlled synthetic adult accounts. Real-user admission remains unauthorized.
 - Rendezvue is adult-only, currently-single and serious-intent, with a student-first community layer rather than student-only admission.
 - Participant-controlled, browser-prepared portrait presentations are the MVP baseline; the original source remains private and AI portraits are optional.
+- Authenticity media and profile presentation media are separate: a publishable profile requires one camera-origin Live selfie derivative, while up to two optional camera/gallery photos preserve freedom of presentation.
 - Safety, fairness, privacy and legal controls are product features.
 
 ## Phase 0 — Foundation and hosting
@@ -50,6 +51,12 @@ Dutch/English, MBO/HBO/WO fixtures, descriptive faith fields and private practic
 **Status:** WP-074 foundation accepted; WP-074B ladder remap and selected-card delivery in review.
 
 Participants explicitly choose among four prepared portrait presentations. The original/raw source remains private. WP-074B remaps the active ladder to Zonder filter / Unfiltered, Natural, Zacht privé / Soft private and Meer privé / More private, while preserving the rule that the original upload never becomes the selected public profile portrait.
+
+### 1C.1. Live selfie and multi-photo profile architecture
+
+**Status:** WP-076 implementation candidate; issue #120.
+
+Rendezvue separates authenticity from presentation without reducing the profile to one technical selfie. Publication requires one **Live selfie** produced from a same-session front-camera blink/head-turn flow. Only a freshly rendered, metadata-free prepared derivative may be visible; challenge/raw source media remains private. A participant may add up to two optional camera/gallery profile photos, select one prepared card as the discovery primary, and expose the remaining media only through a deliberate full-profile viewer. The Live selfie stays visibly labelled as a live-camera trust signal and is not described as legal identity verification. Discovery remains one-primary-image so photo navigation does not compete with pass/like/swipe interaction. Detailed contract: `docs/WP-076-LIVE-SELFIE-PROFILE-MEDIA.md` and ADR-0009.
 
 ### 1D. Product baseline v1 and onboarding redefinition
 
@@ -184,12 +191,16 @@ Detailed evidence: `docs/WP-057-COMPLETION.md`.
 
 ### 2F. Age and liveness proofs
 
-**Status:** planned.
+**Status:** planned beyond the WP-076 camera-origin trust foundation.
+
+WP-076 provides an explicit same-session front-camera challenge and a visible prepared Live selfie derivative, but it deliberately does not claim automated liveness or identity verification. Production assurance still requires:
 
 - privacy-preserving age assurance;
-- replay threat model;
-- randomized challenges;
-- error thresholds and appeal paths.
+- automated or independently validated liveness design, if adopted;
+- replay/spoof threat model and randomized challenges;
+- any face-comparison/biometric processing decision only after DPIA/legal approval;
+- error thresholds, manual review and appeal paths;
+- retention/deletion rules for verification evidence separate from public prepared media.
 
 ### 2G. Sensitive-data and fairness proof
 
