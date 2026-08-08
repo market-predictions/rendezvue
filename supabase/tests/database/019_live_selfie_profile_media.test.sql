@@ -40,7 +40,7 @@ select ok(public.assign_prepared_profile_media(
   '73000000-0000-4000-8000-000000000001','live_selfie','live_camera',null,true,'blink-turn-v1'
 ) is not null, 'prepared derivative is assigned to the mandatory live-selfie slot');
 
-select ok(public.profile_has_visible_live_selfie('63000000-0000-4000-8000-000000000001'), 'visible live selfie is recognized');
+select is((select profile_media_slot from public.get_own_profile_media() where profile_media_slot = 'live_selfie'), 'live_selfie', 'visible live selfie is exposed through the owner-safe media projection');
 select is((select count(*)::int from public.get_own_profile_media()), 1, 'owner initially has exactly one visible media item');
 
 select ok(public.register_prepared_portrait(

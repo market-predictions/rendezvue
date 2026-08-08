@@ -90,11 +90,14 @@ select throws_ok(
 );
 
 insert into public.privacy_portraits (
-  user_id, object_path, treatment, status, is_public_profile_portrait
+  user_id, object_path, treatment, status, is_public_profile_portrait,
+  asset_role, profile_media_slot, capture_origin, is_profile_media_visible,
+  live_capture_completed_at, capture_proof_version
 ) values (
   '00000000-0000-0000-0000-000000000a55',
   '00000000-0000-0000-0000-000000000a55/portrait.webp',
-  'balanced', 'pending', true
+  'balanced', 'pending', true,
+  'card', 'live_selfie', 'live_camera', true, now(), 'blink-turn-v1'
 );
 
 select is(public.publish_profile(), '00000000-0000-0000-0000-000000000a55'::uuid, 'publish RPC returns authenticated user ID');

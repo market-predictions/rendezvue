@@ -455,7 +455,9 @@ $$;
 revoke all on function public.can_read_discovery_portrait_object(text) from public, anon;
 grant execute on function public.can_read_discovery_portrait_object(text) to authenticated;
 
--- Publishing through either the RPC or a direct profile update requires the live-camera slot.
+-- Authenticated product publication requires the live-camera slot. Privileged database/bootstrap
+-- fixture writes remain possible for controlled synthetic administration; publish_profile() always
+-- enforces the Live selfie for ordinary authenticated product use.
 create or replace function public.enforce_live_selfie_before_publish()
 returns trigger
 language plpgsql
@@ -463,7 +465,8 @@ security definer
 set search_path = public
 as $$
 begin
-  if new.publication_status = 'published'
+  if auth.uid() is not null
+     and new.publication_status = 'published'
      and old.publication_status is distinct from 'published'
      and not public.profile_has_visible_live_selfie(new.user_id) then
     raise exception 'live selfie required before publication';
