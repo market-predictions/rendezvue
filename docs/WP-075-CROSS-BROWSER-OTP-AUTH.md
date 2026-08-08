@@ -1,9 +1,10 @@
 # WP-075 — Cross-browser passwordless sign-in with email OTP
 
-**Status:** post-merge hosted-configuration repair in progress  
+**Status:** `BLOCKED_EXTERNAL_SMTP_OR_PLAN`; browser/client implementation merged and independently assured; hosted activation not complete  
 **Priority:** P1 — Rendezvue real-user readiness  
 **Issue:** #121  
-**Sequence:** after WP-077/078/079 closeout; before WP-080 closed-city pilot authorization  
+**Release-truthfulness repair:** issue #136 / PR #137  
+**Sequence:** before WP-080 closed-city pilot authorization  
 **Implementation role:** `implementation_operations`  
 **Independent assurance:** `governance_release_assurance`
 
@@ -23,9 +24,9 @@ This is a usability and access-continuity defect for real-user readiness, not a 
 
 Rendezvue remains passwordless and device/browser sessions remain isolated. Authentication in a new browser requires fresh proof of mailbox access, but that proof must not depend on the mail client opening a link in that same browser.
 
-## Implemented design contract
+## Intended design contract
 
-WP-075 makes e-mail OTP/code entry the primary browser-independent sign-in path while retaining the existing direct sign-in link as a secondary convenience.
+WP-075 is designed to make e-mail OTP/code entry the primary browser-independent sign-in path while retaining the existing direct sign-in link as a secondary convenience.
 
 1. The participant opens Rendezvue in the browser or device they want to use.
 2. They enter the e-mail address and request a sign-in code or explicitly choose new-account registration.
@@ -34,63 +35,60 @@ WP-075 makes e-mail OTP/code entry the primary browser-independent sign-in path 
 5. The code and direct link represent alternate uses of the same one-time proof; once one is consumed, the participant must request a new proof before using the other route.
 6. Session persistence, global sign-out, account deletion and support/recovery semantics continue to work as before.
 
-## Implementation boundaries
+## Implemented browser/client foundation
 
-- `requestExistingAccountEmailOtp` retains `shouldCreateUser: false`.
-- Registration is a separate explicit request and is the only OTP request path that may set `shouldCreateUser: true`.
-- `verifyEmailOtp` accepts a normalized six-digit code and uses Supabase e-mail OTP verification.
-- The product request response remains generic whether an address is unknown, delivery fails or the provider rate-limits the request.
-- Invalid/expired/used-code feedback is actionable only after the participant supplies a code and does not disclose account existence.
-- No password sign-in or password-reset UX is introduced.
-- No access token, refresh token, cookie or session material is copied between browsers.
-- `persistSession: true` remains browser-local; each browser authenticates independently.
-- Real-user admission remains unauthorized.
+The repository contains and tests:
 
-## Hosted Auth configuration
+- `requestExistingAccountEmailOtp` with `shouldCreateUser: false`;
+- explicit registration as the only request path that may create a user;
+- `verifyEmailOtp` using Supabase e-mail OTP verification;
+- Dutch/English six-digit OTP UX;
+- resend, invalid/expired/used-code handling;
+- mobile numeric input and `autocomplete="one-time-code"`;
+- no password path;
+- no copied access token, refresh token, cookie or session material between browsers;
+- browser-local `persistSession` semantics.
 
-The protected staging pipeline holds a Supabase Management API access token. WP-075 therefore manages the hosted e-mail template and OTP policy in-repository instead of requiring a manual dashboard step.
+The browser/client candidate passed exact-head validation and independent assurance before merge. This proves implementation readiness, not hosted e-mail delivery.
 
-Repository contract:
+## Hosted Auth configuration blocker
 
-- `supabase/templates/magic-link.html` — bilingual code-first passwordless template containing both `{{ .Token }}` and `{{ .ConfirmationURL }}`;
-- six-digit OTP;
-- ten-minute expiry;
-- `.github/workflows/configure-wp075-email-otp.yml` — applies and reads back the hosted Auth configuration on `main`;
-- local `supabase/config.toml` mirrors the same OTP length, expiry and template for reproducible local validation.
+The protected staging pipeline can reach the Supabase Management API and the repository contains the desired bilingual template plus six-digit / ten-minute local policy.
 
-The template states explicitly that the code and direct link are alternatives and that consuming one invalidates the other one-time proof.
+Post-merge evidence isolated the remaining external dependency:
 
-### Post-merge configuration incident and repair
+- browser/client implementation merged through PR #132;
+- transactional hosted-configuration repair merged through PR #133 as main `dd7b981e24fb567e55fdc5750b0dc4af16d727ce` after fresh independent PASS;
+- protected run `31264468858` attempted the repository-controlled passwordless template and Supabase rejected the template field with HTTP 400:
+  `Email template modification is not available for free tier projects using the default email provider. Please upgrade your plan or configure a custom SMTP provider.`
+- no existing SMTP/Resend/Postmark/SendGrid/SES integration is present in the Rendezvue repository;
+- hosted Auth therefore still uses the legacy default-provider magic-link template, which does not expose `{{ .Token }}`.
 
-The original candidate `75f6a05d8d915f46b2b4fddaf98a628e61bbce50` passed exact-head CI/full validation and independent pre-action assurance, then merged through PR #132 as main `9d5cdd67229183a65db29ac12408a0c817f8f78c`.
+The required external dependency is one of:
 
-The first protected hosted-configuration run `31263692183` reached the Supabase Management API with valid protected credentials but its combined four-field PATCH returned HTTP 400. The workflow therefore did **not** claim hosted configuration success.
+1. configure a suitable custom SMTP provider for the Supabase project; or
+2. explicitly authorize a Supabase provider/plan change that permits template customization.
 
-A temporary read-only diagnostic run `31263802570` established the pre-repair hosted state without exposing secrets or the full Auth configuration:
+Neither expenditure nor third-party provider commitment is implicitly authorized.
 
-- `mailer_otp_length = 8`;
-- `mailer_otp_exp = 3600`;
-- magic-link subject = `Your sign-in link`;
-- current magic-link template contains `{{ .ConfirmationURL }}` but not `{{ .Token }}` or the WP-075 marker.
+## Canonical activation rule
 
-This confirms that the hosted project remains on its pre-WP-075 passwordless-email configuration and that the failure is in the platform configuration action rather than browser/client code. Local clean-stack validation already accepts the repository's six-digit / 600-second OTP configuration and template.
+A merged implementation must not be presented as an active hosted feature before the provider can actually deliver it.
 
-The repair changes the hosted mutation from one combined PATCH to a transaction-like sequence:
+Issue #136 / PR #137 therefore introduces a repository-controlled activation contract:
 
-1. read the current four target values;
-2. PATCH one field at a time;
-3. read each field back immediately;
-4. on any failure, restore already-applied fields to the observed pre-state in reverse order;
-5. emit only sanitized Management API error keys (`code`, `error`, `message`, `msg`, `details`) and never dump the raw Auth configuration;
-6. after all writes succeed, perform a separate final GET/read-back verification.
+- `config/wp075-email-otp-activation.json` is authoritative for whether hosted OTP delivery is proven;
+- while `hostedDeliveryReady=false`, canonical staging keeps **PKCE magic link** as the active passwordless path;
+- the OTP controller remains in source but is **not loaded** by the canonical artifact;
+- deployment metadata separately records implementation presence, desired OTP parameters and actual hosted readiness;
+- only a future independently assured repository change after successful hosted template/read-back evidence may set OTP active;
+- branch-preview auth-free visual acceptance may remain available without implying hosted availability.
 
-The temporary branch-only diagnostic workflow is not part of the durable repair candidate.
+This is a fail-safe activation boundary, not a rollback of the WP-075 design.
 
-## Product UX
+## Product UX when hosted OTP is eventually active
 
-The Cloudflare artifact commit-pins `email-otp-controller.js`. The controller takes over the existing passwordless request form at capture phase, while the previous magic-link handler remains a fail-safe if the module does not load.
-
-After a neutral request response, the UI exposes:
+The activated UI will expose:
 
 - a large numeric six-digit input;
 - `autocomplete="one-time-code"`;
@@ -98,9 +96,10 @@ After a neutral request response, the UI exposes:
 - explicit verification;
 - resend;
 - Dutch/English parity;
-- mobile/coarse-pointer sizing.
+- mobile/coarse-pointer sizing;
+- the direct magic link as convenience rather than as the only usable path.
 
-A branch-preview-only auth-free visual acceptance route is generated at `visual-acceptance/wp075-email-otp.html`.
+Until hosted activation is proven, canonical staging must not present this code path as available.
 
 ## Non-goals
 
@@ -124,11 +123,12 @@ A branch-preview-only auth-free visual acceptance route is generated at `visual-
 9. No browser receives another browser's session material automatically.
 10. Canonical Cloudflare staging verification is commit-matched and green.
 11. Hosted Supabase Auth configuration is read back and proves six-digit/ten-minute OTP plus the repository-controlled code/link template.
-12. Independent `governance_release_assurance` issues `PASS` on every repaired candidate before its main-branch mutation is executed.
+12. Independent `governance_release_assurance` issues `PASS` on every repaired/activation candidate before its main-branch mutation is executed.
+13. While acceptance criterion 11 is not met, canonical staging must truthfully remain on the working PKCE magic-link path and must not load the OTP controller.
 
 ## Evidence plan
 
-Implementation evidence includes:
+Completion evidence must include:
 
 - exact source commit and PR;
 - unit/integration tests for auth adapter and account UX;
@@ -136,8 +136,14 @@ Implementation evidence includes:
 - Supabase/Auth configuration source and hosted read-back evidence;
 - canonical Cloudflare delivery evidence;
 - controlled synthetic cross-browser proof;
-- regression evidence for existing account lifecycle and recovery contracts.
+- regression evidence for existing account lifecycle and recovery contracts;
+- independent assurance on the activation candidate;
+- post-action confirmation that the hosted e-mail actually contains and accepts the six-digit token.
 
 ## Current gate
 
-WP-075 is **not** `OUTCOME_CONFIRMED`. The browser/client implementation is merged, but the first hosted Auth configuration action failed safely. The immediate gate is a fresh exact-candidate validation and independent assurance of the transactional configuration repair. After that repair merges, completion still requires successful hosted field-by-field application/read-back, commit-matched canonical Cloudflare verification and a controlled two-browser mailbox proof. Real-user admission remains unauthorized throughout.
+WP-075 is **not** `OUTCOME_CONFIRMED`.
+
+The browser/client implementation exists and has been independently assured, but hosted code delivery is blocked by the current Supabase Free/default-provider restriction. Canonical staging therefore remains on PKCE magic-link authentication until custom SMTP or an explicitly authorized provider/plan change makes template customization executable and the complete hosted/read-back/two-browser proof passes.
+
+Real-user admission remains unauthorized throughout.
