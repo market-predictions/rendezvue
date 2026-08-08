@@ -27,6 +27,8 @@ const copy = Object.freeze({
     liveReady: 'Live selfie vastgelegd. Kies nu de kadrering en het privacyniveau hieronder.',
     optionalTitle: '2. Voeg eventueel twee andere foto’s toe',
     optionalBody: 'Deze foto’s zijn voor uitstraling en persoonlijkheid. Je kunt ze direct maken of uit je fotobibliotheek kiezen.',
+    optionalSlotOne: 'Een tweede beeld van jou, bijvoorbeeld andere kleding of setting.',
+    optionalSlotTwo: 'Nog een aanvullend beeld als dat echt iets toevoegt aan je profiel.',
     takePhoto: 'Maak foto',
     choosePhoto: 'Kies uit foto’s',
     capture: 'Foto maken',
@@ -63,6 +65,8 @@ const copy = Object.freeze({
     liveReady: 'Live selfie captured. Now choose framing and privacy level below.',
     optionalTitle: '2. Optionally add two other photos',
     optionalBody: 'These photos are for personality and presentation. Take them now or choose them from your photo library.',
+    optionalSlotOne: 'A second view of you, for example different clothing or setting.',
+    optionalSlotTwo: 'One more image only if it genuinely adds something to your profile.',
     takePhoto: 'Take photo',
     choosePhoto: 'Choose from photos',
     capture: 'Take photo',
@@ -323,14 +327,14 @@ function galleryInput(slot) {
 
 function markup() {
   const section = document.createElement('section');
-  section.className = 'rv-profile-media-shell'; section.dataset.wp075Boundary = BOUNDARY;
+  section.className = 'rv-profile-media-shell'; section.dataset.wp076Boundary = BOUNDARY;
   section.innerHTML = `
     <div class="rv-profile-media-intro"><div><strong data-media-copy="trustTitle"></strong><p data-media-copy="trustBody"></p></div><span class="rv-live-trust-badge" data-media-copy="noLegalIdentity"></span></div>
     <div class="rv-profile-media-steps">
       <section class="rv-profile-media-step"><h3 data-media-copy="liveTitle"></h3><p data-media-copy="liveBody"></p><div class="rv-profile-media-actions"><button type="button" data-live-camera data-media-copy="liveStart"></button></div></section>
-      <section class="rv-profile-media-step"><h3 data-media-copy="optionalTitle"></h3><p data-media-copy="optionalBody"></p><div class="rv-profile-media-actions">
-        <button type="button" class="secondary" data-camera-slot="profile_photo_1" data-media-copy="takePhoto"></button><button type="button" class="secondary" data-gallery-button="profile_photo_1" data-media-copy="choosePhoto"></button>
-        <button type="button" class="secondary" data-camera-slot="profile_photo_2" data-media-copy="takePhoto"></button><button type="button" class="secondary" data-gallery-button="profile_photo_2" data-media-copy="choosePhoto"></button>
+      <section class="rv-profile-media-step"><h3 data-media-copy="optionalTitle"></h3><p data-media-copy="optionalBody"></p><div class="rv-profile-media-add-list">
+        <div class="rv-profile-media-add-row"><div><strong data-slot-label="profile_photo_1"></strong><small data-media-copy="optionalSlotOne"></small></div><div class="rv-profile-media-actions"><button type="button" class="secondary" data-camera-slot="profile_photo_1" data-media-copy="takePhoto"></button><button type="button" class="secondary" data-gallery-button="profile_photo_1" data-media-copy="choosePhoto"></button></div></div>
+        <div class="rv-profile-media-add-row"><div><strong data-slot-label="profile_photo_2"></strong><small data-media-copy="optionalSlotTwo"></small></div><div class="rv-profile-media-actions"><button type="button" class="secondary" data-camera-slot="profile_photo_2" data-media-copy="takePhoto"></button><button type="button" class="secondary" data-gallery-button="profile_photo_2" data-media-copy="choosePhoto"></button></div></div>
       </div></section>
     </div>
     <div class="rv-profile-media-camera" data-profile-camera hidden><video playsinline muted></video><p data-camera-challenge data-media-copy="liveChallenge"></p><div class="rv-profile-media-progress"><span data-camera-progress></span></div><div class="rv-profile-media-camera-actions"><button type="button" data-camera-start-record data-media-copy="liveRecord"></button><button type="button" data-camera-capture data-media-copy="capture"></button><button type="button" class="secondary" data-camera-close data-media-copy="closeCamera"></button></div></div>
@@ -343,6 +347,7 @@ function markup() {
 function applyCopy() {
   if (!root) return;
   root.querySelectorAll('[data-media-copy]').forEach((node) => { node.textContent = text(node.dataset.mediaCopy); });
+  root.querySelectorAll('[data-slot-label]').forEach((node) => { node.textContent = profileMediaLabel(language, node.dataset.slotLabel); });
   const heading = form?.closest('.rv-card')?.querySelector('.rv-section-heading h2');
   const intro = form?.closest('.rv-card')?.querySelector('.rv-section-heading p');
   if (heading) { heading.removeAttribute('data-rv-i18n'); heading.textContent = text('title'); }

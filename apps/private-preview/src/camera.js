@@ -1,4 +1,4 @@
-// WP-075 staging camera adapter. Mirrors the reusable camera contract used by the concept app.
+// WP-076 staging camera adapter. Mirrors the reusable camera contract used by the concept app.
 let activeStream = null;
 let activeRecorder = null;
 let chunks = [];

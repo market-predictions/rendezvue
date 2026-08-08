@@ -57,7 +57,7 @@ function ensureDialog() {
   if (dialog) return dialog;
   dialog = document.createElement('dialog');
   dialog.className = 'rv-profile-media-dialog';
-  dialog.dataset.wp075Boundary = BOUNDARY;
+  dialog.dataset.wp076Boundary = BOUNDARY;
   dialog.innerHTML = `
     <div class="rv-profile-media-dialog-inner">
       <div class="rv-profile-media-dialog-head"><div><h3 data-gallery-name></h3><p data-gallery-meta></p></div><button type="button" class="secondary rv-profile-media-dialog-close" data-gallery-close aria-label="Close">×</button></div>
