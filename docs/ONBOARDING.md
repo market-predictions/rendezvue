@@ -51,9 +51,11 @@ Rendezvue is a community for introductions between men and women. The user is th
 
 No identifying data about children is collected.
 
-### 6. Live camera and privacy portrait
+### 6. Live selfie and profile photos
 
-Explain purpose, request camera permission in context, record a short blink/head-turn challenge, create controlled fuzzy variants locally and let the user choose. The pilot does not claim automated liveness classification.
+Explain the trust purpose before requesting camera permission. The first media item is mandatory and camera-only: record a short blink/head-turn challenge, capture one still frame from that same live session, then let the user frame it and choose the normal privacy presentation. The challenge bytes are not public profile media and the pilot does not claim automated liveness or legal identity verification.
+
+After the Live selfie is prepared, offer up to two optional photo slots. Each slot provides two clear actions: **Maak foto / Take photo** or **Kies uit foto’s / Choose from photos**. Optional photos use the same framing/privacy preparation path. The user then chooses which prepared card is the discovery primary. The full profile keeps the other visible media and marks the Live selfie explicitly.
 
 ### 7. Faith and lifestyle
 
@@ -96,8 +98,11 @@ The community sex policy is applied as a dedicated browser module. It removes un
 - start-to-eligibility completion;
 - account-stage completion;
 - drop-off by stage;
-- camera permission and successful capture;
-- privacy-variant selection;
+- camera permission and successful Live-selfie capture;
+- successful completion of the camera-origin trust step;
+- optional camera/gallery profile-photo adoption;
+- privacy-variant selection per prepared image;
+- primary-photo selection and full-profile media opens;
 - profile publication;
 - time to first profile view;
 - comprehension of student verification and contact pricing;

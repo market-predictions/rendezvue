@@ -182,3 +182,26 @@ No real-user production lane exists. A production environment requires legal/pri
 ## 10. Framework decision
 
 The dependency-light PWA remains appropriate for proof and interaction validation. A production component framework is selected only after the interaction model stabilizes, using accessibility, localization, state-machine, WebRTC, testing, bundle-size and maintainability criteria.
+
+
+## WP-076 authenticity-media and profile-media boundary
+
+Rendezvue uses one shared image-preparation pipeline but two distinct product purposes:
+
+```text
+front camera + short challenge
+  -> private challenge bytes (not profile media)
+  -> same-session still
+  -> crop/privacy preparation
+  -> visible Live selfie card
+
+camera or photo library
+  -> crop/privacy preparation
+  -> optional profile photo card (max 2)
+
+visible prepared cards (max 3)
+  -> one explicit primary -> discovery
+  -> complete set -> full-profile media viewer
+```
+
+Server metadata records the bounded media slot and capture origin. `live_selfie` accepts `live_camera` only. Source and avatar roles remain outside discovery profile-media access. Publication requires the Live selfie slot, but no automated liveness, face matching or legal identity claim is inferred from that requirement. Same-origin camera access is enabled in the Cloudflare `Permissions-Policy`; microphone stays disabled.

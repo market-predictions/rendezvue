@@ -42,7 +42,10 @@ Each class requires a separate purpose, access policy, retention rule and deleti
 
 ## Source-media and portrait principles
 
-- request camera access only in context;
+- request camera access only in context and only after an explicit user action;
+- treat the live-camera challenge/raw capture as authenticity evidence distinct from profile presentation media;
+- do not publish or expose challenge/video bytes as profile media;
+- allow the same-session Live selfie to remain visibly represented only as a freshly rendered metadata-free prepared derivative with an explicit Live selfie label;
 - never publish the original/raw capture or the normalized private source asset;
 - process locally where feasible;
 - public portrait assets are freshly rendered, metadata-free prepared card/avatar derivatives rather than the uploaded source file;
@@ -53,7 +56,9 @@ Each class requires a separate purpose, access policy, retention rule and deleti
 - do not train models without separate optional consent;
 - do not claim that blur provides anonymity;
 - explain that an unfiltered prepared derivative is intentionally recognisable;
-- keep AI portrait generation optional rather than a prerequisite.
+- keep AI portrait generation optional rather than a prerequisite;
+- do not describe the Live selfie as legal identity verification, automated liveness proof or biometric match;
+- require a separate legal/DPIA decision before automated face comparison between the Live selfie and optional profile photos.
 
 ## Age, relationship and student principles
 

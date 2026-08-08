@@ -1,4 +1,4 @@
--- WP-075: separate camera-origin authenticity media from freely chosen profile media.
+-- WP-076: separate camera-origin authenticity media from freely chosen profile media.
 -- One required live-selfie slot and two optional profile-photo slots may be visible.
 -- Challenge/video material is never a public asset; only prepared card derivatives are visible.
 
@@ -181,7 +181,7 @@ begin
   end if;
 
   -- WP-074's legacy upload path marks portrait progress after every preparation.
-  -- WP-075 corrects that state: the portrait stage is complete only after a live selfie exists.
+  -- WP-076 corrects that state: the portrait stage is complete only after a live selfie exists.
   update public.onboarding_progress
   set completed_stages = case
         when public.profile_has_visible_live_selfie(v_user_id)

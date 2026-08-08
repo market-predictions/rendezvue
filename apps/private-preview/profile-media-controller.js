@@ -9,7 +9,7 @@ import {
 } from './profile-media-model.js';
 
 const STYLE_ID = 'rendezvue-profile-media-style';
-const BOUNDARY = 'wp075-live-selfie-profile-media';
+const BOUNDARY = 'wp076-live-selfie-profile-media';
 const CAMERA_DURATION_MS = 4000;
 
 const copy = Object.freeze({
@@ -180,7 +180,7 @@ async function runLiveChallenge() {
     });
     const frame = captureFrame(video, 1000);
     const file = await canvasFile(frame, `rendezvue-live-selfie-${Date.now()}.webp`);
-    // Deliberately release the challenge bytes. WP-075 does not upload or publish challenge video.
+    // Deliberately release the challenge bytes. WP-076 does not upload or publish challenge video.
     void challengeBlob.size;
     closeCamera();
     assignFileToPrivacyEditor(file, {
@@ -276,7 +276,7 @@ async function persistSchemaV2Progress() {
     p_current_stage: snapshot?.progress?.current_stage ?? 'portrait',
     p_completed_stages: snapshot?.progress?.completed_stages ?? [],
     p_schema_version: Math.max(2, Number(snapshot?.progress?.schema_version ?? 1))
-  }), 'WP075 onboarding schema adoption');
+  }), 'WP076 onboarding schema adoption');
 }
 
 async function finishAssignment(event) {

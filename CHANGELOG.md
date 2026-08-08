@@ -4,6 +4,18 @@ All notable project changes are recorded here. The project uses pre-release sema
 
 ## [Unreleased]
 
+### Live selfie and multi-photo profile architecture
+
+- Added WP-076 / issue #120 to separate camera-origin authenticity media from profile presentation media.
+- Added one required same-session front-camera Live selfie flow with a short blink/head-turn challenge; challenge bytes are not uploaded as visible profile media.
+- Kept the visible Live selfie as a freshly prepared 4:5 privacy-controlled derivative and explicitly avoided legal-identity or automated-liveness claims.
+- Added two optional profile-photo slots with camera and photo-library entry points.
+- Added explicit primary-image selection while preserving the one-image discovery interaction.
+- Added a full-profile media viewer so optional photos and the visibly labelled Live selfie have a clear role in the dating interaction.
+- Added server-side media-slot/capture-origin constraints, publication gating, prepared-card access controls, pgTAP coverage and a commit-matched canonical verifier.
+- Enabled same-origin camera access in the Cloudflare Permissions-Policy while keeping microphone, geolocation and payment disabled.
+- Real-user admission remains unauthorized.
+
 ### Privacy portrait ladder remap and selected-card delivery
 
 - Added WP-074B / issue #115 after owner review requested a tighter, more useful four-step privacy ladder.

@@ -182,6 +182,11 @@ Owner direction remaps the active ladder to **Zonder filter / Unfiltered → Nat
 **Status:** planned; P1 real-user readiness; issue #121  
 Rendezvue remains passwordless, but existing-account authentication must no longer depend on an e-mail magic link opening in the same browser profile that requested it. WP-075 adds a short e-mail OTP/code path so a participant can authenticate the intended browser or device by proving mailbox access there, while retaining magic links as a convenience. Existing-account access remains non-creating, registration stays separate and explicit, non-enumerating/privacy-safe responses remain mandatory, and browser/device sessions remain isolated rather than being propagated automatically. Implement after WP-074B closeout and before WP-080 pilot authorization. Detailed scope and acceptance criteria: `docs/WP-075-CROSS-BROWSER-OTP-AUTH.md` and `docs/ROADMAP-WP075-ADDENDUM.md`.
 
+## WP-076 — Live selfie and multi-photo profile architecture
+
+**Status:** implementation candidate; independent assurance and canonical owner review pending; issue #120  
+A publishable profile requires one camera-origin Live selfie prepared from a same-session blink/head-turn flow and may contain up to two optional camera/gallery photos. One prepared card remains the discovery primary; the full-profile viewer exposes the bounded media set and marks the Live selfie as a trust cue. Raw/challenge media remains private, the existing privacy ladder remains authoritative and no legal-identity or automated-liveness claim is made. Detailed evidence: `docs/WP-076-LIVE-SELFIE-PROFILE-MEDIA.md` and ADR-0009.
+
 ## WP-080 — Closed city pilot readiness
 
 **Status:** planned  

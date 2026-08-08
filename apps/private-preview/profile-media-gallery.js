@@ -1,7 +1,7 @@
 import { supabase } from './app.js';
 import { profileMediaLabel, profileMediaTrustCopy } from './profile-media-model.js';
 
-const BOUNDARY = 'wp075-profile-media-gallery';
+const BOUNDARY = 'wp076-profile-media-gallery';
 const registry = new WeakMap();
 let language = document.documentElement.lang === 'en' ? 'en' : 'nl';
 let observer = null;

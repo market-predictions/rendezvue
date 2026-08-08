@@ -9,7 +9,7 @@
 
 Rendezvue is an adult-only, privacy-first platform for serious introductions between Muslims and people from a Muslim background in the Netherlands. Membership is open to eligible adults; it is **student-first, not student-only**. Students, recent graduates and young professionals are priority launch communities.
 
-The public profile uses a controlled fuzzy privacy portrait derived from a live camera capture. The source selfie is never the public profile image. The public pilot is a Dutch-first, English-capable mobile PWA hosted as a generated Hugging Face Static Space artifact.
+Rendezvue separates live-camera authenticity media from profile presentation media. A publishable profile requires one camera-origin Live selfie, represented publicly only by a freshly rendered metadata-free prepared derivative, plus up to two optional camera/gallery profile photos. Raw/challenge capture and normalized source media are never public profile objects. The public pilot is a Dutch-first, English-capable mobile PWA hosted as a generated Hugging Face Static Space artifact.
 
 The community is designed for introductions between men and women. A user selects sex as man or woman; the partner sex is derived automatically and is not asked as a separate seeking preference.
 
@@ -87,6 +87,9 @@ The required sequence is documented in `docs/ONBOARDING.md`.
 | LIVE-01 | P0 | The verification source shall use the live front camera rather than a gallery upload. |
 | LIVE-02 | P0 | The capture shall request a short blink/head-turn challenge. |
 | LIVE-03 | P0 | The concept pilot shall state that capture is not automated liveness classification. |
+| LIVE-04 | P0 | Publication shall require one camera-origin Live selfie prepared from the same front-camera challenge session. |
+| LIVE-05 | P0 | The visible Live selfie shall be labelled as a live-camera trust signal and shall not be described as legal identity verification. |
+| LIVE-06 | P0 | Challenge/video bytes shall not be published as profile media; only a freshly rendered prepared still derivative may be visible. |
 | PORT-01 | P0 | The source selfie shall never be public. |
 | PORT-02 | P0 | The primary MVP solution shall be a browser-local fuzzy privacy portrait, not a required AI avatar bridge. |
 | PORT-03 | P0 | Users shall choose from controlled privacy variants with a minimum privacy floor. |
@@ -94,6 +97,9 @@ The required sequence is documented in `docs/ONBOARDING.md`.
 | PORT-05 | P0 | Apparent age, skin tone, hair/head covering, glasses and broad appearance shall not be materially falsified. |
 | PORT-06 | P1 | AI-generated illustrated portraits may be evaluated later as an optional implementation, not a product dependency. |
 | PORT-07 | P0 | Production portrait objects shall be stored privately and exposed only through an approved derivative/access policy. |
+| PORT-08 | P0 | Visible profile media shall be bounded to one required Live selfie slot and at most two optional profile-photo slots. |
+| PORT-09 | P0 | Optional profile photos may come from camera or photo library but shall use the same preparation/privacy pipeline as the Live selfie derivative. |
+| PORT-10 | P0 | Exactly one prepared card shall be the discovery primary; the full profile may reveal the remaining visible prepared media. |
 
 ## 8. Faith and lifestyle
 
@@ -113,7 +119,9 @@ The required sequence is documented in `docs/ONBOARDING.md`.
 |---|---:|---|
 | PROF-01 | P0 | Public profiles shall use a first name or nickname, never a surname. |
 | PROF-02 | P0 | Profiles shall include intent, family context, at least two prompts and at least three interests. |
-| PROF-03 | P0 | Exact location, account email, phone number and source selfie shall never be public. |
+| PROF-03 | P0 | Exact location, account email, phone number and raw/normalized source selfie shall never be public. |
+| PROF-04 | P0 | A visible Live selfie derivative shall remain distinguishable from optional profile photos so another participant can understand the trust cue. |
+| PROF-05 | P0 | Discovery shall continue to present one primary image; additional profile media shall be available through an explicit full-profile interaction rather than overloading the discovery swipe gesture. |
 | DISC-01 | P0 | Discovery shall present one profile at a time. |
 | DISC-02 | P0 | Users shall be able to pass, directly like or send a contextual like. |
 | DISC-03 | P0 | Swipe left/right shall be supported, with visible button alternatives. |
