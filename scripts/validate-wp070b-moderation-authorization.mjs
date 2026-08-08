@@ -1,16 +1,18 @@
 import { readFile } from 'node:fs/promises';
 
-const [baseMigration, recoveryMigration, basePgTap, recoveryPgTap, concurrency, workPackage, recoveryAddendum] = await Promise.all([
+const [baseMigration, recoveryMigration, auditMigration, basePgTap, recoveryPgTap, auditPgTap, concurrency, workPackage, recoveryAddendum] = await Promise.all([
   readFile('supabase/migrations/20260808190500_moderation_action_authorization.sql', 'utf8'),
   readFile('supabase/migrations/20260808193000_moderation_action_stale_recovery.sql', 'utf8'),
+  readFile('supabase/migrations/20260808195000_moderation_action_audit_actor_refs.sql', 'utf8'),
   readFile('supabase/tests/database/018_moderation_action_authorization.test.sql', 'utf8'),
   readFile('supabase/tests/database/019_moderation_action_stale_recovery.test.sql', 'utf8'),
+  readFile('supabase/tests/database/020_moderation_action_audit_actor_refs.test.sql', 'utf8'),
   readFile('supabase/tests/concurrency/run.sh', 'utf8'),
   readFile('docs/WP-070B-DUAL-CONTROL-AUTHORIZATION.md', 'utf8'),
   readFile('docs/WP-070B-STALE-RECOVERY-ADDENDUM.md', 'utf8')
 ]);
-const migration = `${baseMigration}\n${recoveryMigration}`;
-const pgTap = `${basePgTap}\n${recoveryPgTap}`;
+const migration = `${baseMigration}\n${recoveryMigration}\n${auditMigration}`;
+const pgTap = `${basePgTap}\n${recoveryPgTap}\n${auditPgTap}`;
 
 function requireText(source, text, message) {
   if (!source.includes(text)) throw new Error(message);
@@ -41,6 +43,9 @@ for (const marker of [
   'moderation action proposal snapshot is immutable',
   'moderation action proposal is not stale',
   "'operator_ref', p_operator_ref",
+  "'proposed_by_ref', p_operator_ref",
+  "'proposed_by_ref', v_proposal.proposed_by_ref",
+  "'reviewer_ref', p_reviewer_ref",
   'moderation_action_proposed',
   'moderation_action_reviewed',
   'moderation_action_superseded'
@@ -70,6 +75,8 @@ requireText(
   'grant execute on function public.supersede_stale_moderation_action_proposal(uuid, text, text) to service_role;',
   'WP-070B service execute grant missing for stale-proposal recovery'
 );
+requireText(auditMigration, 'grant execute on function public.propose_moderation_action(uuid, integer, text, text, text) to service_role;', 'WP-070B audit-hardening migration does not preserve propose grant');
+requireText(auditMigration, 'grant execute on function public.review_moderation_action_proposal(uuid, text, text, text) to service_role;', 'WP-070B audit-hardening migration does not preserve review grant');
 
 const proposalTable = baseMigration.match(/create table if not exists public\.moderation_action_proposals \([\s\S]*?\n\);/)?.[0] ?? '';
 forbidPattern(proposalTable, /reporter_user_id|description|free_text|comment/i, 'WP-070B proposal snapshot contains prohibited reporter/free-text material');
@@ -94,13 +101,19 @@ for (const marker of [
   'controlled service operation can terminally supersede a proven stale proposal',
   'administrative supersede does not fabricate independent review evidence',
   'fresh proposal can be created after stale proposal is superseded',
-  'one-pending-per-case invariant is restored after stale recovery'
+  'one-pending-per-case invariant is restored after stale recovery',
+  'proposal audit durably retains opaque proposing operator ref',
+  'review audit durably retains proposer ref',
+  'review audit durably retains independent reviewer ref',
+  'durable review audit proves two distinct opaque refs'
 ]) {
   requireText(pgTap, marker, `WP-070B pgTAP coverage missing: ${marker}`);
 }
 requireText(basePgTap, "position('reporter_user_id'", 'WP-070B pgTAP does not prove reporter identity omission');
 requireText(basePgTap, "position('description'", 'WP-070B pgTAP does not prove free-text omission');
 requireText(recoveryPgTap, 'supersede audit omits reporter identity and report free text', 'WP-070B stale-recovery audit privacy proof is missing');
+requireText(auditPgTap, 'proposal audit still omits reporter identity and report free text', 'WP-070B durable proposal-audit privacy proof is missing');
+requireText(auditPgTap, 'review audit still omits reporter identity and report free text', 'WP-070B durable review-audit privacy proof is missing');
 
 for (const marker of [
   'parallel moderation review race',
@@ -132,4 +145,4 @@ for (const marker of [
   requireText(recoveryAddendum, marker, `WP-070B stale-recovery addendum missing: ${marker}`);
 }
 
-console.log('WP-070B dual-control moderation authorization and stale-recovery source contracts are valid.');
+console.log('WP-070B dual-control moderation authorization, stale recovery and durable actor-audit contracts are valid.');
