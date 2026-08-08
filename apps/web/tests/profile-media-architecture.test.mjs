@@ -71,6 +71,24 @@ test('optional profile photos support camera and gallery while discovery remains
   assert.match(gallery, /decorateCard\(card, media, profile\.user_id\)/);
 });
 
+test('live-selfie trust panel keeps status compact and explanation full-width', async () => {
+  const controller = await read('apps/private-preview/profile-media-controller.js');
+  const css = await read('apps/private-preview/profile-media.css');
+  assert.match(controller, /trustTitle: 'Live selfie voor vertrouwen'/);
+  assert.match(controller, /livePending: 'Nog nodig'/);
+  assert.match(controller, /noLegalIdentity: 'Aanwezig'/);
+  assert.match(controller, /Dit is geen identiteitscontrole\./);
+  assert.match(controller, /trustTitle: 'Live selfie for trust'/);
+  assert.match(controller, /livePending: 'Needed'/);
+  assert.match(controller, /noLegalIdentity: 'Present'/);
+  assert.match(controller, /This is not identity verification\./);
+  assert.doesNotMatch(controller, /Live selfie aanwezig · geen wettelijke identiteitscontrole/);
+  assert.match(css, /\.rv-profile-media-intro\{display:grid;grid-template-columns:minmax\(0,1fr\) auto;/);
+  assert.match(css, /\.rv-profile-media-intro>div\{display:contents\}/);
+  assert.match(css, /\.rv-profile-media-intro p\{grid-column:1\/-1;/);
+  assert.match(css, /\.rv-live-trust-badge\{grid-column:2;grid-row:1;justify-self:end;white-space:nowrap;/);
+});
+
 test('portrait progress after refresh depends on the Live-selfie slot rather than any primary photo', async () => {
   const shell = await read('apps/private-preview/product-shell.js');
   assert.match(shell, /profile_media_slot', 'live_selfie'/);
