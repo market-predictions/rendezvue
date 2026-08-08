@@ -1,6 +1,6 @@
 begin;
 
-select plan(10);
+select plan(11);
 
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -9,6 +9,8 @@ insert into auth.users (
   ('00000000-0000-0000-0000-000000000000','62000000-0000-4000-8000-000000000001','authenticated','authenticated','discovery-owner@rendezvue.test',crypt('proof', gen_salt('bf')),now(),'{"provider":"email","providers":["email"]}','{}',now(),now()),
   ('00000000-0000-0000-0000-000000000000','62000000-0000-4000-8000-000000000002','authenticated','authenticated','discovery-viewer@rendezvue.test',crypt('proof', gen_salt('bf')),now(),'{"provider":"email","providers":["email"]}','{}',now(),now());
 
+-- Synthetic fixture publication remains a privileged setup concern. Product publication
+-- through publish_profile() is separately proven to require a Live selfie in WP-076.
 update public.profiles set nickname = 'Selected Portrait Owner', sex = 'woman', publication_status = 'published', published_at = now()
 where user_id = '62000000-0000-4000-8000-000000000001';
 update public.profiles set nickname = 'Selected Portrait Viewer', sex = 'man', publication_status = 'published', published_at = now()
@@ -32,20 +34,33 @@ select ok(
   ) is not null,
   'owner registers one exact More private prepared portrait'
 );
+select ok(
+  public.assign_prepared_profile_media(
+    '72000000-0000-4000-8000-000000000001',
+    'profile_photo_1',
+    'gallery',
+    null,
+    true,
+    null
+  ) is not null,
+  'owner explicitly exposes the prepared card through a bounded profile-media slot'
+);
 reset role;
+set local "request.jwt.claims" = '{}';
 
 set local "request.jwt.claims" = '{"sub":"62000000-0000-4000-8000-000000000002","role":"authenticated"}';
 set local role authenticated;
 select is(
   public.get_discovery_portrait_path('62000000-0000-4000-8000-000000000001'),
   '62000000-0000-4000-8000-000000000001/prepared/72000000-0000-4000-8000-000000000001/card-4x5.webp',
-  'discovery resolves exactly the selected public prepared card'
+  'discovery resolves exactly the selected visible prepared card'
 );
 select ok(public.can_read_discovery_portrait_object('62000000-0000-4000-8000-000000000001/prepared/72000000-0000-4000-8000-000000000001/card-4x5.webp'), 'authenticated discovery may read the selected published card object');
 select ok(not public.can_read_discovery_portrait_object('62000000-0000-4000-8000-000000000001/prepared/72000000-0000-4000-8000-000000000001/source.webp'), 'normalized source is never readable through discovery');
 select ok(not public.can_read_discovery_portrait_object('62000000-0000-4000-8000-000000000001/prepared/72000000-0000-4000-8000-000000000001/avatar-square.webp'), 'non-selected avatar object is not opened by discovery card policy');
 select is(public.get_discovery_portrait_path('62000000-0000-4000-8000-000000000002'), null::text, 'self portrait lookup is denied');
 reset role;
+set local "request.jwt.claims" = '{}';
 
 update public.profiles set publication_status = 'paused' where user_id = '62000000-0000-4000-8000-000000000001';
 set local "request.jwt.claims" = '{"sub":"62000000-0000-4000-8000-000000000002","role":"authenticated"}';
@@ -53,6 +68,7 @@ set local role authenticated;
 select is(public.get_discovery_portrait_path('62000000-0000-4000-8000-000000000001'), null::text, 'unpublished profile portrait is unavailable to discovery');
 select ok(not public.can_read_discovery_portrait_object('62000000-0000-4000-8000-000000000001/prepared/72000000-0000-4000-8000-000000000001/card-4x5.webp'), 'unpublished selected card is denied by storage policy helper');
 reset role;
+set local "request.jwt.claims" = '{}';
 
 update public.profiles set publication_status = 'published' where user_id = '62000000-0000-4000-8000-000000000001';
 insert into public.blocks (blocker_user_id, blocked_user_id, reason_code)
