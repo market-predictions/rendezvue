@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/configure-wp075-email-otp.yml'
+      - 'config/wp075-email-otp-activation.json'
       - 'supabase/templates/magic-link.html'
       - 'supabase/config.toml'
       - 'apps/web/src/auth-session.js'
@@ -37,7 +38,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate protected configuration
+      - name: Validate protected configuration and activation contract
+        id: activation
         shell: bash
         run: |
           set -euo pipefail
@@ -47,7 +49,26 @@ jobs:
           grep -q '{{ .Token }}' supabase/templates/magic-link.html
           grep -q '{{ .ConfirmationURL }}' supabase/templates/magic-link.html
 
+          node --input-type=module <<'NODE'
+          import { appendFileSync, readFileSync } from 'node:fs';
+          const activation = JSON.parse(readFileSync('config/wp075-email-otp-activation.json', 'utf8'));
+          if (activation.contract !== 'RENDEZVUE_WP075_EMAIL_OTP_ACTIVATION_V1') throw new Error('Unsupported WP-075 activation contract');
+          if (activation.realUserAdmissionAuthorized !== false) throw new Error('WP-075 activation contract may not authorize real users');
+          if (Number(activation.desiredOtpDigits) !== 6 || Number(activation.desiredOtpExpirySeconds) !== 600) throw new Error('WP-075 desired OTP parameters differ from approved values');
+          const ready = activation.hostedDeliveryReady === true;
+          if (ready) {
+            if (activation.activationState !== 'active-hosted-email-otp' || activation.activePasswordlessPath !== 'email-otp') {
+              throw new Error('WP-075 active hosted-delivery state is internally inconsistent');
+            }
+          } else if (activation.activationState !== 'blocked-external-mail-provider' || activation.activePasswordlessPath !== 'pkce-magic-link') {
+            throw new Error('WP-075 blocked hosted-delivery state is internally inconsistent');
+          }
+          appendFileSync(process.env.GITHUB_OUTPUT, `hosted_ready=${ready}\nactivation_state=${activation.activationState}\n`);
+          console.log(`WP-075 repository activation state: ${activation.activationState}; hostedReady=${ready}.`);
+          NODE
+
       - name: Configure hosted Auth transactionally
+        if: ${{ steps.activation.outputs.hosted_ready == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -132,7 +153,8 @@ jobs:
           console.log('Hosted WP-075 email OTP configuration applied transactionally and verified.');
           NODE
 
-      - name: Verify hosted Auth OTP contract independently
+      - name: Verify active hosted Auth OTP contract independently
+        if: ${{ steps.activation.outputs.hosted_ready == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -153,3 +175,38 @@ jobs:
           }
           console.log('Hosted WP-075 email OTP configuration independently read back and verified.');
           NODE
+
+      - name: Verify blocked hosted state read-only
+        if: ${{ steps.activation.outputs.hosted_ready != 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          response="$RUNNER_TEMP/wp075-blocked-auth-state.json"
+          status="$(curl --silent --show-error --output "$response" --write-out '%{http_code}' \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/auth")"
+          [[ "$status" == "200" ]] || { echo "::error title=WP-075 blocked-state read failed::HTTP $status"; exit 1; }
+          node --input-type=module - "$response" <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const config = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+          const template = String(config.mailer_templates_magic_link_content ?? '');
+          if (template.includes('RENDEZVUE_WP075_EMAIL_OTP_V1') || template.includes('{{ .Token }}')) {
+            throw new Error('Hosted provider now appears to expose the Rendezvue OTP template while repository activation remains blocked; reconcile and independently assure activation instead of silently continuing.');
+          }
+          console.log(`WP-075 hosted delivery remains blocked/dormant; read-only check observed no active Rendezvue OTP template. Hosted otp_length=${Number(config.mailer_otp_length) || 'unknown'}, otp_exp=${Number(config.mailer_otp_exp) || 'unknown'}.`);
+          NODE
+
+      - name: Write WP-075 configuration summary
+        shell: bash
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## WP-075 hosted passwordless state
+
+          - repository activation state: \`${{ steps.activation.outputs.activation_state }}\`
+          - hosted OTP delivery ready: \`${{ steps.activation.outputs.hosted_ready }}\`
+          - hosted mutation attempted: \`${{ steps.activation.outputs.hosted_ready }}\`
+          - blocked state uses read-only provider verification only
+          - password fallback introduced: no
+          - cross-browser session propagation introduced: no
+          - real-user admission authorized: no
+          EOF
