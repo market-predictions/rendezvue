@@ -120,6 +120,22 @@ A review can produce:
 
 The append-only `moderation_action_reviews` table permits exactly one review row per proposal. The proposal row is locked during review so concurrent reviewers cannot create conflicting terminal decisions.
 
+## Stale proposal recovery
+
+A proposal that no longer matches the current case version/state/assignment must remain impossible to approve. Pure fail-closed behavior, however, would leave that stale row `pending` and permanently occupy the one-pending-per-case index.
+
+WP-070B therefore adds the terminal administrative state `superseded` and the controlled service-only RPC `supersede_stale_moderation_action_proposal`.
+
+It may succeed only when the proposal is demonstrably stale. A still-current proposal cannot be superseded. Supersede:
+
+- creates no independent review row;
+- authorizes no action;
+- executes no action;
+- records a bounded reason plus opaque operator reference in the durable audit;
+- releases the pending slot so a fresh proposal can bind the then-current investigating case state.
+
+Detailed contract: `docs/WP-070B-STALE-RECOVERY-ADDENDUM.md`.
+
 ## Critical safety boundary
 
 A proposal derived from a `critical` report is marked `critical_escalation_required=true`.
@@ -144,7 +160,7 @@ The bounded pending-proposal projection omits reporter identity and report free 
 
 ## Audit model
 
-Proposal and review functions append sanitized service audit events.
+Proposal, review and stale-supersede functions append sanitized service audit events.
 
 Permitted audit metadata includes:
 
@@ -153,7 +169,12 @@ Permitted audit metadata includes:
 - review lane;
 - technical action code;
 - critical-escalation flag;
-- review decision/code.
+- review decision/code;
+- opaque proposing-operator reference;
+- opaque independent-reviewer reference;
+- opaque stale-supersede operator reference.
+
+The proposer and reviewer references are deliberately retained in the durable audit so the four-eyes evidence survives later governed cleanup of operational proposal/review rows. They are technical opaque references, not e-mail addresses or a claim of production staff SSO identity.
 
 Reporter identity and report description are excluded.
 
@@ -192,14 +213,14 @@ WP-070B does **not**:
 4. Proposal state is bound to exact case version/status and server-derived report severity/category.
 5. One pending proposal per case is enforced.
 6. The proposer cannot review their own proposal.
-7. Stale case version/state or changed assignment fails closed.
+7. Stale case version/state or changed assignment fails closed; a proven-stale proposal has a controlled, audited `superseded` recovery route that cannot be used on a current proposal.
 8. Exactly one review can decide a proposal, including under a real parallel race.
 9. Critical proposals cannot receive ordinary approval and require specialist escalation for further action.
-10. Authorization does not mutate participant/product/Auth state or set a case to `actioned`.
-11. Proposal/review audit evidence excludes reporter identity and report free text.
+10. Authorization and stale recovery do not mutate participant/product/Auth state or set a case to `actioned`.
+11. Proposal/review/supersede audit evidence excludes reporter identity and report free text while durably retaining the involved opaque operator references.
 12. Clean migration replay, pgTAP/database contracts, concurrency tests, schema lint and full repository validation pass on the exact candidate.
 13. Independent `governance_release_assurance` issues `PASS` on the exact candidate before merge.
-14. Protected staging verification confirms the remote schema/RPC/privilege contract on exact main after merge.
+14. Protected staging verification confirms the remote schema/RPC/privilege/stale-recovery/durable-audit contract on exact main after merge.
 15. Real-user admission remains unauthorized.
 
 ## Definition of done
@@ -207,7 +228,7 @@ WP-070B does **not**:
 WP-070B is complete only after:
 
 - implementation is merged from an exact independently assured candidate;
-- migrations are applied to protected staging;
+- all WP-070B migrations are applied to protected staging;
 - a protected read-only verifier confirms the remote contract;
 - post-action evidence confirms no enforcement capability or real-user admission was introduced.
 
