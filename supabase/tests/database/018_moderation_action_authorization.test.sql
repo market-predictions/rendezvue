@@ -1,6 +1,6 @@
 begin;
 
-select plan(67);
+select plan(69);
 
 select has_table('public', 'moderation_action_proposals', 'moderation action proposal table exists');
 select has_table('public', 'moderation_action_reviews', 'moderation action review table exists');
