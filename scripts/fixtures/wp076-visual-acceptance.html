@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Rendezvue · WP-076 visual acceptance</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="../product-shell.css">
+  <link rel="stylesheet" href="../profile-media.css">
+  <style>
+    body{margin:0;background:#f6f1eb;color:#211b18;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    .review-page{width:min(46rem,calc(100% - 2rem));margin:2rem auto 4rem}
+    .review-kicker{margin:0 0 .4rem;color:#226956;font-size:.76rem;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
+    .review-page h1{margin:0;font-size:clamp(1.7rem,4vw,2.35rem);line-height:1.1}
+    .review-intro{max-width:42rem;margin:.65rem 0 1.25rem;color:#6d625a;line-height:1.55}
+    .review-note{margin:0 0 1rem;padding:.72rem .85rem;border-radius:.8rem;background:#fff8e9;color:#71571d;font-size:.8rem;line-height:1.45}
+    .review-card{padding:1.1rem;border:1px solid #ded4ca;border-radius:1.2rem;background:#fff;box-shadow:0 18px 45px rgba(49,39,32,.06)}
+    .review-section-title{margin:1.25rem 0 .35rem;font-size:1rem}
+    .review-section-copy{margin:0 0 .8rem;color:#6d625a;font-size:.82rem;line-height:1.5}
+    @media(max-width:32rem){.review-page{width:min(100% - 1rem,46rem);margin-top:.75rem}.review-card{padding:.75rem}}
+  </style>
+</head>
+<body>
+  <main class="review-page">
+    <p class="review-kicker">Rendezvue · WP-076</p>
+    <h1>Visual acceptance zonder login</h1>
+    <p class="review-intro">Deze pagina toont uitsluitend synthetische voorbeeldmedia en de echte WP-076 presentatiestijlen. Er is geen authenticatie, backend of datamutatie actief.</p>
+    <p class="review-note"><strong>Alleen voor visuele beoordeling.</strong> Deze route wordt uitsluitend in Cloudflare branch previews gebouwd en bestaat niet op canonical staging.</p>
+
+    <section class="review-card" aria-label="WP-076 visuele acceptatie">
+      <div class="rv-profile-media-shell">
+        <div class="rv-profile-media-intro">
+          <div>
+            <strong>Live selfie voor vertrouwen</strong>
+            <p>Je maakt deze foto rechtstreeks met de frontcamera. Alleen de voorbereide profielversie kan zichtbaar worden; de korte opname bewaren we niet als profielmedia. Dit is geen identiteitscontrole.</p>
+          </div>
+          <span class="rv-live-trust-badge">Aanwezig</span>
+        </div>
+
+        <div>
+          <h3 class="review-section-title">Je profielmedia</h3>
+          <p class="review-section-copy">Voorbeeld van de zichtbare live selfie en twee optionele fotoslots.</p>
+          <div class="rv-profile-media-tray">
+            <article class="rv-profile-media-slot is-live is-primary">
+              <div class="rv-profile-media-slot-media"><img src="./yasmin.webp" alt="Synthetisch voorbeeldportret"></div>
+              <div class="rv-profile-media-slot-head"><strong>Live selfie</strong><span class="rv-profile-media-chip">LIVE</span></div>
+              <div class="rv-profile-media-slot-actions"><span class="rv-profile-media-chip">Hoofdfoto</span><small>Vervang via de knoppen hierboven</small></div>
+            </article>
+            <article class="rv-profile-media-slot">
+              <div class="rv-profile-media-slot-media"><div class="rv-profile-media-slot-placeholder">Nog geen extra foto</div></div>
+              <div class="rv-profile-media-slot-head"><strong>Profielfoto 1</strong></div>
+            </article>
+            <article class="rv-profile-media-slot">
+              <div class="rv-profile-media-slot-media"><div class="rv-profile-media-slot-placeholder">Nog geen extra foto</div></div>
+              <div class="rv-profile-media-slot-head"><strong>Profielfoto 2</strong></div>
+            </article>
+          </div>
+          <p class="rv-profile-media-publish-hint ready">Live selfie aanwezig. Je kunt je profiel publiceren wanneer de rest compleet is.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
