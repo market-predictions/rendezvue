@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/verify-wp070b-staging.yml'
       - 'supabase/migrations/20260808190500_moderation_action_authorization.sql'
+      - 'supabase/migrations/20260808193000_moderation_action_stale_recovery.sql'
       - 'scripts/validate-wp070b-moderation-authorization.mjs'
   workflow_dispatch:
 
@@ -99,6 +100,9 @@ jobs:
             if not exists (select 1 from supabase_migrations.schema_migrations where version = '20260808190500') then
               v_missing := array_append(v_missing, 'migration 20260808190500');
             end if;
+            if not exists (select 1 from supabase_migrations.schema_migrations where version = '20260808193000') then
+              v_missing := array_append(v_missing, 'migration 20260808193000');
+            end if;
             if to_regclass('public.moderation_action_proposals') is null then
               v_missing := array_append(v_missing, 'moderation_action_proposals table');
             end if;
@@ -113,6 +117,9 @@ jobs:
             end if;
             if to_regprocedure('public.review_moderation_action_proposal(uuid,text,text,text)') is null then
               v_missing := array_append(v_missing, 'review_moderation_action_proposal(...)');
+            end if;
+            if to_regprocedure('public.supersede_stale_moderation_action_proposal(uuid,text,text)') is null then
+              v_missing := array_append(v_missing, 'supersede_stale_moderation_action_proposal(...)');
             end if;
             if not exists (
               select 1 from pg_indexes
@@ -133,7 +140,8 @@ jobs:
             foreach fn in array array[
               'public.list_pending_moderation_action_proposals(integer)'::regprocedure,
               'public.propose_moderation_action(uuid,integer,text,text,text)'::regprocedure,
-              'public.review_moderation_action_proposal(uuid,text,text,text)'::regprocedure
+              'public.review_moderation_action_proposal(uuid,text,text,text)'::regprocedure,
+              'public.supersede_stale_moderation_action_proposal(uuid,text,text)'::regprocedure
             ] loop
               if not has_function_privilege('service_role', fn, 'EXECUTE') then
                 raise exception 'service_role execute missing for %', fn;
@@ -229,8 +237,8 @@ jobs:
           ## WP-070B protected staging verification
 
           - exact main commit: \`$GITHUB_SHA\`
-          - migration 20260808190500: present remotely
-          - service-only pending/propose/review RPCs: present and SECURITY DEFINER
+          - migrations 20260808190500 and 20260808193000: present remotely
+          - service-only pending/propose/review/stale-supersede RPCs: present and SECURITY DEFINER
           - participant access to authorization operations: denied
           - direct service mutation of proposal/review tables: denied
           - proposal/review RLS: enabled
@@ -252,7 +260,7 @@ jobs:
 
           - exact main commit: \`$GITHUB_SHA\`
           - workflow: $RUN_URL
-          - remote migration/schema/RPC/privilege contract: passed
+          - remote migrations/schema/RPC/privilege/stale-recovery contract: passed
           - authorization-only boundary: retained
           - canonical deployment boundary: commit matched
           - real-user admission: not authorized
