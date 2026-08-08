@@ -45,6 +45,7 @@ test('camera cancellation invalidates the active challenge session', async () =>
 test('optional profile photos support camera and gallery while discovery remains one-primary-image', async () => {
   const controller = await read('apps/private-preview/profile-media-controller.js');
   const gallery = await read('apps/private-preview/profile-media-gallery.js');
+  const css = await read('apps/private-preview/profile-media.css');
   assert.match(controller, /data-camera-slot="profile_photo_1"/);
   assert.match(controller, /data-camera-slot="profile_photo_2"/);
   assert.match(controller, /data-gallery-button="profile_photo_1"/);
@@ -58,6 +59,9 @@ test('optional profile photos support camera and gallery while discovery remains
   assert.match(gallery, /horizontalDiscoverySwipeReserved:\s*true/);
   assert.match(gallery, /discoveryPrimaryImageCount:\s*1/);
   assert.match(gallery, /profileMediaTrustCopy/);
+  assert.match(gallery, /liveShort:\s*'✓ Live'/);
+  assert.match(gallery, /trigger\.classList\.toggle\('is-live', hasLive\)/);
+  assert.match(css, /\.rv-discovery-media-count\.is-live\{background:rgba\(23,95,78,\.94\)\}/);
   assert.match(gallery, /setAttribute\('aria-label', copy\('previous'\)\)/);
   assert.match(gallery, /setAttribute\('aria-label', copy\('next'\)\)/);
   assert.match(gallery, /setAttribute\('aria-pressed', index === activeIndex \? 'true' : 'false'\)/);
