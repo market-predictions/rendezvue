@@ -96,5 +96,5 @@ test('integrated visual acceptance remains branch-only and authentication-free',
   assert.match(fixture, /Maryam/);
   assert.match(fixture, /rv-thread-row/);
   assert.match(fixture, /rv-conversation-header/);
-  assert.doesNotMatch(fixture, /runtime-config\.js|app\.js|supabase|signIn|auth-session/i);
+  assert.doesNotMatch(fixture, /<script\b|runtime-config\.js|app\.js|auth-session|createClient\(/i);
 });
