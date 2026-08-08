@@ -195,4 +195,84 @@ assert_equal "$(query "select count(*) from public.moderation_cases where source
 assert_equal "$(query "select count(*) from public.moderation_case_events e join public.moderation_cases c on c.id=e.case_id where c.source_report_id='$MOD_REPORT_ID' and e.event_type='claimed'")" "1" "parallel moderation claim records exactly one claim event"
 assert_equal "$(query "select count(*) from public.audit_events a join public.moderation_cases c on c.id::text=a.entity_id where c.source_report_id='$MOD_REPORT_ID' and a.event_type='moderation_case_claimed'")" "1" "parallel moderation claim records exactly one service audit"
 
+# WP-070B: two independent reviewers racing on one still-pending action proposal
+# must produce exactly one terminal review. The proposal-row FOR UPDATE lock
+# serializes the decision; the losing reviewer must observe the terminal status
+# and fail closed. This proves that dual control cannot accidentally become two
+# conflicting authorizations under concurrency.
+"${PSQL[@]}" <<SQL
+begin;
+set local "request.jwt.claims" = '{"sub":"$USER_A","role":"authenticated"}';
+set local role authenticated;
+select public.create_safety_report('$USER_B', null, 'harassment', 'parallel moderation review race');
+commit;
+
+begin;
+set local role service_role;
+select public.claim_moderation_report(
+  (select id from public.safety_reports where reporter_user_id='$USER_A' and subject_user_id='$USER_B' and description='parallel moderation review race'),
+  'operator:dual-proposer', null
+);
+select public.transition_moderation_case(
+  (select c.id from public.moderation_cases c join public.safety_reports r on r.id=c.source_report_id where r.description='parallel moderation review race'),
+  1, 'triage', 'investigating', 'operator:dual-proposer', null, 'dual-control race preparation'
+);
+select public.propose_moderation_action(
+  (select c.id from public.moderation_cases c join public.safety_reports r on r.id=c.source_report_id where r.description='parallel moderation review race'),
+  2, 'operator:dual-proposer', 'restrict_contact', 'race_authorization'
+);
+commit;
+SQL
+
+DUAL_PROPOSAL_ID="$(query "select p.id from public.moderation_action_proposals p join public.safety_reports r on r.id=p.source_report_id where r.description='parallel moderation review race'")"
+[[ -n "$DUAL_PROPOSAL_ID" ]] || { echo "FAIL: dual-control race proposal id missing" >&2; exit 1; }
+
+cat >"$TMP_DIR/mod-review-a.sql" <<SQL
+begin;
+set local statement_timeout = '15s';
+set local role service_role;
+select pg_sleep(1);
+select public.review_moderation_action_proposal('$DUAL_PROPOSAL_ID', 'operator:review-race-a', 'approved', 'race_approved');
+commit;
+SQL
+
+cat >"$TMP_DIR/mod-review-b.sql" <<SQL
+begin;
+set local statement_timeout = '15s';
+set local role service_role;
+select pg_sleep(1);
+select public.review_moderation_action_proposal('$DUAL_PROPOSAL_ID', 'operator:review-race-b', 'rejected', 'race_rejected');
+commit;
+SQL
+
+"${PSQL[@]}" -f "$TMP_DIR/mod-review-a.sql" >"$TMP_DIR/mod-review-a.out" 2>"$TMP_DIR/mod-review-a.err" &
+PID_REVIEW_A=$!
+"${PSQL[@]}" -f "$TMP_DIR/mod-review-b.sql" >"$TMP_DIR/mod-review-b.out" 2>"$TMP_DIR/mod-review-b.err" &
+PID_REVIEW_B=$!
+set +e
+wait "$PID_REVIEW_A"; STATUS_REVIEW_A=$?
+wait "$PID_REVIEW_B"; STATUS_REVIEW_B=$?
+set -e
+
+if [[ "$STATUS_REVIEW_A" -eq 0 && "$STATUS_REVIEW_B" -eq 0 ]] || [[ "$STATUS_REVIEW_A" -ne 0 && "$STATUS_REVIEW_B" -ne 0 ]]; then
+  echo "FAIL: moderation review race must have exactly one winner (a=$STATUS_REVIEW_A b=$STATUS_REVIEW_B)" >&2
+  cat "$TMP_DIR/mod-review-a.err" >&2 || true
+  cat "$TMP_DIR/mod-review-b.err" >&2 || true
+  exit 1
+fi
+
+REVIEW_LOSER_ERR="$TMP_DIR/mod-review-a.err"
+[[ "$STATUS_REVIEW_B" -ne 0 ]] && REVIEW_LOSER_ERR="$TMP_DIR/mod-review-b.err"
+if ! grep -q 'moderation action proposal already decided' "$REVIEW_LOSER_ERR"; then
+  echo "FAIL: moderation review race loser did not fail with terminal-proposal protection" >&2
+  cat "$REVIEW_LOSER_ERR" >&2
+  exit 1
+fi
+
+echo "PASS: parallel moderation action review has exactly one winner and one protected loser"
+assert_equal "$(query "select count(*) from public.moderation_action_reviews where proposal_id='$DUAL_PROPOSAL_ID'")" "1" "parallel moderation review creates exactly one review record"
+assert_equal "$(query "select count(*) from public.moderation_action_proposals where id='$DUAL_PROPOSAL_ID' and status in ('approved','rejected')")" "1" "parallel moderation review leaves exactly one terminal authorization decision"
+assert_equal "$(query "select count(*) from public.audit_events where entity_type='moderation_action_proposal' and entity_id='$DUAL_PROPOSAL_ID' and event_type='moderation_action_reviewed'")" "1" "parallel moderation review records exactly one service audit"
+assert_equal "$(query "select count(*) from public.moderation_action_proposals p join public.moderation_cases c on c.id=p.case_id where p.id='$DUAL_PROPOSAL_ID' and c.status='investigating' and c.version=2")" "1" "parallel authorization review does not execute moderation action"
+
 echo "All backend concurrency tests passed."
