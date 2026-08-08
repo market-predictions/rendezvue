@@ -99,18 +99,20 @@ jobs:
           }
 
           const before = await readHosted();
-          const applied = [];
+          const attempted = [];
           try {
             for (const key of keys) {
               if (before[key] === desired[key]) continue;
+              // Add before PATCH: a successful write followed by a failed/normalized
+              // read-back must still be eligible for restoration.
+              attempted.push(key);
               await patchOne(key, desired[key]);
-              applied.push(key);
               console.log(`WP-075 applied and read back ${key}.`);
             }
           } catch (error) {
             console.error(`::error title=WP-075 hosted Auth configuration failed::${error.message}`);
             let rollbackFailed = false;
-            for (const key of [...applied].reverse()) {
+            for (const key of [...attempted].reverse()) {
               try {
                 await patchOne(key, before[key], 'rollback');
                 console.log(`WP-075 rolled back ${key}.`);
