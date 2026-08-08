@@ -53,6 +53,19 @@ async function loadProfileMedia(userId) {
   return media;
 }
 
+function updateDialogLanguage() {
+  if (!dialog) return;
+  dialog.querySelector('[data-gallery-close]')?.setAttribute('aria-label', copy('close'));
+  dialog.querySelector('[data-gallery-prev]')?.setAttribute('aria-label', copy('previous'));
+  dialog.querySelector('[data-gallery-next]')?.setAttribute('aria-label', copy('next'));
+  if (active?.media?.length) {
+    const hasLive = active.media.some((item) => item.is_live_selfie);
+    dialog.querySelector('[data-gallery-trust]').textContent = hasLive
+      ? `${copy('trust')}. ${profileMediaTrustCopy(language)}`
+      : copy('noTrust');
+  }
+}
+
 function ensureDialog() {
   if (dialog) return dialog;
   dialog = document.createElement('dialog');
@@ -60,7 +73,7 @@ function ensureDialog() {
   dialog.dataset.wp076Boundary = BOUNDARY;
   dialog.innerHTML = `
     <div class="rv-profile-media-dialog-inner">
-      <div class="rv-profile-media-dialog-head"><div><h3 data-gallery-name></h3><p data-gallery-meta></p></div><button type="button" class="secondary rv-profile-media-dialog-close" data-gallery-close aria-label="Close">×</button></div>
+      <div class="rv-profile-media-dialog-head"><div><h3 data-gallery-name></h3><p data-gallery-meta></p></div><button type="button" class="secondary rv-profile-media-dialog-close" data-gallery-close>×</button></div>
       <div class="rv-profile-media-viewer"><div class="rv-profile-media-viewer-frame"><img data-gallery-image alt=""><span class="rv-profile-media-viewer-label" data-gallery-label></span></div>
       <div class="rv-profile-media-viewer-nav"><button type="button" class="secondary" data-gallery-prev>←</button><button type="button" class="secondary" data-gallery-next>→</button></div><div class="rv-profile-media-thumbs" data-gallery-thumbs></div></div>
       <div class="rv-profile-media-trust" data-gallery-trust></div>
@@ -72,6 +85,7 @@ function ensureDialog() {
   dialog.querySelector('[data-gallery-next]').addEventListener('click', () => move(1));
   dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
   dialog.addEventListener('keydown', (event) => { if (event.key === 'ArrowLeft') move(-1); if (event.key === 'ArrowRight') move(1); });
+  updateDialogLanguage();
   return dialog;
 }
 
@@ -79,19 +93,24 @@ function renderActive() {
   if (!dialog || !active?.media?.length) return;
   activeIndex = Math.max(0, Math.min(activeIndex, active.media.length - 1));
   const item = active.media[activeIndex];
-  const image = dialog.querySelector('[data-gallery-image]'); image.src = item.signedUrl;
+  const labelText = `${profileMediaLabel(language, item.profile_media_slot)}${item.is_primary ? ` · ${copy('primary')}` : ''}`;
+  const image = dialog.querySelector('[data-gallery-image]');
+  image.src = item.signedUrl;
+  image.alt = active.nickname ? `${labelText} — ${active.nickname}` : labelText;
   const label = dialog.querySelector('[data-gallery-label]');
-  label.textContent = `${profileMediaLabel(language, item.profile_media_slot)}${item.is_primary ? ` · ${copy('primary')}` : ''}`;
+  label.textContent = labelText;
   label.classList.toggle('live', Boolean(item.is_live_selfie));
   const thumbs = dialog.querySelector('[data-gallery-thumbs]'); thumbs.replaceChildren();
   active.media.forEach((entry, index) => {
     const button = document.createElement('button'); button.type = 'button'; button.className = `rv-profile-media-thumb${index === activeIndex ? ' active' : ''}`;
-    button.setAttribute('aria-label', profileMediaLabel(language, entry.profile_media_slot));
+    button.setAttribute('aria-label', `${profileMediaLabel(language, entry.profile_media_slot)} · ${index + 1}/${active.media.length}`);
+    button.setAttribute('aria-pressed', index === activeIndex ? 'true' : 'false');
     const thumb = document.createElement('img'); thumb.alt = ''; thumb.src = entry.signedUrl; button.append(thumb);
     button.addEventListener('click', () => { activeIndex = index; renderActive(); }); thumbs.append(button);
   });
   dialog.querySelector('[data-gallery-prev]').disabled = active.media.length < 2;
   dialog.querySelector('[data-gallery-next]').disabled = active.media.length < 2;
+  updateDialogLanguage();
 }
 
 function move(delta) {
@@ -102,19 +121,18 @@ function move(delta) {
 
 function openProfile(card) {
   const data = registry.get(card); if (!data?.media?.length) return;
-  active = data; activeIndex = Math.max(0, data.media.findIndex((item) => item.is_primary)); if (activeIndex < 0) activeIndex = 0;
+  const identity = profileIdentity(card);
+  active = Object.freeze({ ...data, nickname: identity.nickname, meta: identity.meta });
+  activeIndex = Math.max(0, data.media.findIndex((item) => item.is_primary)); if (activeIndex < 0) activeIndex = 0;
   const modal = ensureDialog();
-  modal.querySelector('[data-gallery-name]').textContent = card.querySelector('.rv-discovery-copy h3')?.textContent?.trim() ?? '';
-  modal.querySelector('[data-gallery-meta]').textContent = card.querySelector('.rv-discovery-meta')?.textContent?.trim() ?? '';
+  modal.querySelector('[data-gallery-name]').textContent = identity.nickname;
+  modal.querySelector('[data-gallery-meta]').textContent = identity.meta;
   const copyTarget = modal.querySelector('[data-gallery-copy]'); copyTarget.replaceChildren();
   const sourceCopy = card.querySelector('.rv-discovery-copy');
   if (sourceCopy) {
     const clone = sourceCopy.cloneNode(true); clone.querySelector('h3')?.remove(); clone.querySelector('.rv-discovery-meta')?.remove(); copyTarget.append(clone);
   }
-  const hasLive = data.media.some((item) => item.is_live_selfie);
-  modal.querySelector('[data-gallery-trust]').textContent = hasLive
-    ? `${copy('trust')}. ${profileMediaTrustCopy(language)}`
-    : copy('noTrust');
+  updateDialogLanguage();
   renderActive();
   modal.showModal();
 }
@@ -150,7 +168,11 @@ async function sync() {
 function schedule() { if (scheduled) return; scheduled = true; queueMicrotask(async () => { scheduled = false; await sync(); }); }
 function mount() { const target = document.querySelector('#rendezvue-product-app') ?? document.documentElement; observer?.disconnect(); observer = new MutationObserver(schedule); observer.observe(target, { childList: true, subtree: true }); schedule(); }
 
-globalThis.addEventListener('rendezvue:language-change', (event) => { language = event.detail?.language === 'en' ? 'en' : 'nl'; schedule(); if (dialog?.open) renderActive(); });
+globalThis.addEventListener('rendezvue:language-change', (event) => {
+  language = event.detail?.language === 'en' ? 'en' : 'nl';
+  schedule();
+  if (dialog?.open) { updateDialogLanguage(); renderActive(); }
+});
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, { once: true }); else mount();
 globalThis.addEventListener('pagehide', () => observer?.disconnect(), { once: true });
 
