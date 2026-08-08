@@ -114,7 +114,23 @@ jobs:
       - name: Replay migrations from an empty database
         run: supabase db reset
       - name: Run database contract tests
-        run: supabase test db
+        shell: bash
+        run: |
+          set -o pipefail
+          log_file="$RUNNER_TEMP/database-contract-tests.log"
+          set +e
+          supabase test db 2>&1 | tee "$log_file"
+          test_status=${PIPESTATUS[0]}
+          set -e
+          if [[ "$test_status" -ne 0 ]]; then
+            grep -E '(^|[[:space:]])not ok|ERROR:|Failed test|Tests failed|Dubious|failed' "$log_file" \
+              | head -n 20 \
+              | while IFS= read -r line; do
+                  safe_line="${line//$'\r'/ }"
+                  echo "::error title=Database contract failure::$safe_line"
+                done
+            exit "$test_status"
+          fi
       - name: Run parallel match and entitlement race tests
         run: bash supabase/tests/concurrency/run.sh
       - name: Run parallel WP-070C restriction execution race
