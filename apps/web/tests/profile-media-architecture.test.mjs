@@ -58,6 +58,10 @@ test('optional profile photos support camera and gallery while discovery remains
   assert.match(gallery, /horizontalDiscoverySwipeReserved:\s*true/);
   assert.match(gallery, /discoveryPrimaryImageCount:\s*1/);
   assert.match(gallery, /profileMediaTrustCopy/);
+  assert.match(gallery, /setAttribute\('aria-label', copy\('previous'\)\)/);
+  assert.match(gallery, /setAttribute\('aria-label', copy\('next'\)\)/);
+  assert.match(gallery, /setAttribute\('aria-pressed', index === activeIndex \? 'true' : 'false'\)/);
+  assert.match(gallery, /image\.alt = active\.nickname/);
 });
 
 test('database contract separates visible prepared cards from raw and challenge media', async () => {
