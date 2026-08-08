@@ -7,7 +7,7 @@ insert into auth.users (
   raw_app_meta_data, raw_user_meta_data, created_at, updated_at
 ) values
   ('00000000-0000-0000-0000-000000000000','63000000-0000-4000-8000-000000000001','authenticated','authenticated','media-owner@rendezvue.test',crypt('proof', gen_salt('bf')),now(),'{"provider":"email","providers":["email"]}','{}',now(),now()),
-  ('00000000-0000-0000-8000-000000000000','63000000-0000-4000-8000-000000000002','authenticated','authenticated','media-viewer@rendezvue.test',crypt('proof', gen_salt('bf')),now(),'{"provider":"email","providers":["email"]}','{}',now(),now());
+  ('00000000-0000-0000-0000-000000000000','63000000-0000-4000-8000-000000000002','authenticated','authenticated','media-viewer@rendezvue.test',crypt('proof', gen_salt('bf')),now(),'{"provider":"email","providers":["email"]}','{}',now(),now());
 
 select has_column('public', 'privacy_portraits', 'profile_media_slot', 'profile media slot is persisted');
 select has_column('public', 'privacy_portraits', 'capture_origin', 'capture origin is persisted');
