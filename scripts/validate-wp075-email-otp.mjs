@@ -7,7 +7,7 @@ const dist = resolve(root, 'dist-private-preview');
 const read = (path) => readFile(resolve(root, path), 'utf8');
 const readDist = (path) => readFile(resolve(dist, path), 'utf8');
 
-const [adapter, copy, controller, css, template, config, workflow, finalizer, index, deploymentText] = await Promise.all([
+const [adapter, copy, controller, css, template, config, workflow, finalizer, activationText, index, deploymentText] = await Promise.all([
   read('apps/web/src/auth-session.js'),
   read('apps/web/src/account-experience.js'),
   read('apps/private-preview/email-otp-controller.js'),
@@ -16,9 +16,11 @@ const [adapter, copy, controller, css, template, config, workflow, finalizer, in
   read('supabase/config.toml'),
   read('.github/workflows/configure-wp075-email-otp.yml'),
   read('scripts/finalize-wp075-email-otp-artifact.mjs'),
+  read('config/wp075-email-otp-activation.json'),
   readDist('index.html'),
   readDist('deployment.json')
 ]);
+const activation = JSON.parse(activationText);
 const deployment = JSON.parse(deploymentText);
 const buildCommit = String(deployment.buildCommit ?? '').trim();
 
@@ -43,11 +45,11 @@ forbidMatch(adapter, /signInWithPassword|password:/, 'WP-075 must remain passwor
 for (const key of ['account.otpTitle','account.otpIntro','account.otpLabel','account.otpVerify','account.otpResend','account.otpInvalid','account.otpVerified']) {
   requireIncludes(copy, `'${key}'`, `WP-075 copy is missing ${key}`);
 }
-requireIncludes(copy, '6-cijferige inlogcode', 'Dutch request copy is not code-first');
-requireIncludes(copy, '6-digit sign-in code', 'English request copy is not code-first');
+requireIncludes(copy, '6-cijferige inlogcode', 'Dutch OTP copy is missing');
+requireIncludes(copy, '6-digit sign-in code', 'English OTP copy is missing');
 forbidMatch(copy, /same browser profile where you requested|hetzelfde browserprofiel waarin je hem hebt aangevraagd/, 'Legacy same-browser instruction remains customer-facing');
 
-requireIncludes(controller, 'stopImmediatePropagation()', 'WP-075 controller does not take over the legacy request handler fail-safely');
+requireIncludes(controller, 'stopImmediatePropagation()', 'WP-075 controller does not take over the legacy request handler fail-safely when activated');
 requireIncludes(controller, 'autocomplete="one-time-code"', 'WP-075 OTP input does not support one-time-code autocomplete');
 requireIncludes(controller, 'inputmode="numeric"', 'WP-075 OTP input is not numeric-touch optimized');
 requireIncludes(controller, 'requestExistingAccountEmailOtp', 'WP-075 controller does not use existing-account OTP request');
@@ -64,9 +66,8 @@ requireMatch(config, /otp_length\s*=\s*6/, 'Local Supabase OTP length is not 6')
 requireMatch(config, /otp_expiry\s*=\s*600/, 'Local Supabase OTP expiry is not 600 seconds');
 requireIncludes(config, '[auth.email.template.magic_link]', 'Local Supabase magic-link/OTP template binding is missing');
 
-// Hosted configuration must be transaction-like: one field at a time, read-back
-// after each field, rollback of every attempted write on failure, and sanitized
-// API errors rather than dumping the protected Auth response/configuration.
+// Hosted configuration is kept as the intended activation mechanism, but
+// activation of the customer-facing OTP path is separately repository-gated.
 requireIncludes(workflow, "mailer_templates_magic_link_content: readFileSync('supabase/templates/magic-link.html', 'utf8')", 'Hosted template target is not repository managed');
 requireIncludes(workflow, 'mailer_otp_length: Number(process.env.OTP_LENGTH)', 'Hosted OTP length is not managed by the deployment workflow');
 requireIncludes(workflow, 'mailer_otp_exp: Number(process.env.OTP_EXPIRY_SECONDS)', 'Hosted OTP expiry is not managed by the deployment workflow');
@@ -79,16 +80,36 @@ requireIncludes(workflow, "const allowed = ['code', 'error', 'message', 'msg', '
 forbidMatch(workflow, /console\.(?:log|error)\([^\n]*raw\)/, 'Hosted Auth workflow must not dump raw Management API responses');
 requireIncludes(workflow, 'RENDEZVUE_WP075_EMAIL_OTP_V1', 'Hosted OTP workflow does not verify the template marker');
 
-const scriptToken = `./email-otp-controller.js?commit=${encodeURIComponent(buildCommit)}`;
-requireIncludes(index, scriptToken, 'Built artifact does not commit-pin the WP-075 OTP controller');
+if (activation.contract !== 'RENDEZVUE_WP075_EMAIL_OTP_ACTIVATION_V1') throw new Error('WP-075 activation contract is unsupported');
+if (activation.realUserAdmissionAuthorized !== false) throw new Error('WP-075 activation contract may not authorize real users');
+if (activation.desiredOtpDigits !== 6 || activation.desiredOtpExpirySeconds !== 600) throw new Error('WP-075 desired activation parameters differ from approved values');
+requireIncludes(finalizer, 'wp075-email-otp-activation.json', 'WP-075 finalizer is not repository-gated by hosted activation state');
+requireIncludes(finalizer, 'emailOtpHostedDeliveryReady', 'WP-075 finalizer does not distinguish implementation from hosted readiness');
+requireIncludes(finalizer, 'branchPreview', 'WP-075 acceptance route is not branch-gated');
+
 if (deployment.authFlow !== 'pkce-magic-link-cloudflare-staging') throw new Error('WP-075 must preserve the established PKCE callback compatibility contract');
-if (deployment.passwordlessPrimary !== 'email-otp') throw new Error('Built artifact does not declare email OTP as the passwordless primary');
-if (deployment.magicLinkConvenienceRetained !== true) throw new Error('Built artifact does not retain magic-link convenience');
-if (deployment.crossBrowserEmailOtp !== true || deployment.emailOtpDigits !== 6 || deployment.emailOtpExpirySeconds !== 600) throw new Error('Built artifact OTP metadata differs from WP-075');
+if (deployment.magicLinkConvenienceRetained !== true) throw new Error('Built artifact lost magic-link support');
+if (deployment.emailOtpImplementationPresent !== true) throw new Error('Built artifact does not record the presence of the WP-075 implementation');
 if (deployment.automaticCrossBrowserSessionPropagation !== false) throw new Error('Built artifact unexpectedly allows cross-browser session propagation');
 if (deployment.passwordAuthentication !== false) throw new Error('Built artifact unexpectedly enables password authentication');
 if (deployment.realUserAdmissionAuthorized !== false) throw new Error('WP-075 may not authorize real users');
-requireIncludes(finalizer, 'branchPreview', 'WP-075 acceptance route is not branch-gated');
+if (deployment.desiredEmailOtpDigits !== 6 || deployment.desiredEmailOtpExpirySeconds !== 600) throw new Error('Built artifact lost the desired WP-075 OTP contract');
+
+const scriptToken = `./email-otp-controller.js?commit=${encodeURIComponent(buildCommit)}`;
+if (activation.hostedDeliveryReady === true) {
+  if (activation.activationState !== 'active-hosted-email-otp' || activation.activePasswordlessPath !== 'email-otp') throw new Error('WP-075 active state is inconsistent');
+  requireIncludes(index, scriptToken, 'Active hosted OTP artifact does not commit-pin the controller');
+  if (deployment.passwordlessPrimary !== 'email-otp') throw new Error('Active hosted OTP artifact does not declare email OTP primary');
+  if (deployment.emailOtpHostedDeliveryReady !== true || deployment.crossBrowserEmailOtp !== true) throw new Error('Active hosted OTP metadata is inconsistent');
+  if (deployment.emailOtpDigits !== 6 || deployment.emailOtpExpirySeconds !== 600) throw new Error('Active hosted OTP parameters differ from WP-075');
+} else {
+  if (activation.activationState !== 'blocked-external-mail-provider' || activation.activePasswordlessPath !== 'pkce-magic-link') throw new Error('WP-075 blocked state is inconsistent');
+  forbidMatch(index, /email-otp-controller\.js/, 'Blocked hosted OTP delivery must not load the OTP controller');
+  if (deployment.passwordlessPrimary !== 'pkce-magic-link') throw new Error('Blocked hosted OTP delivery must keep PKCE magic link active');
+  if (deployment.emailOtpHostedDeliveryReady !== false || deployment.crossBrowserEmailOtp !== false) throw new Error('Blocked hosted OTP metadata overstates availability');
+  if (deployment.emailOtpDigits !== null || deployment.emailOtpExpirySeconds !== null) throw new Error('Blocked hosted OTP metadata must not claim active OTP parameters');
+  if (deployment.emailOtpActivationState !== 'blocked-external-mail-provider') throw new Error('Blocked hosted OTP reason is not exposed in deployment metadata');
+}
 
 const branch = String(deployment.cloudflareBranch ?? '').trim();
 if (branch && branch !== 'main') {
@@ -97,4 +118,4 @@ if (branch && branch !== 'main') {
   forbidMatch(fixture, /<script\b|runtime-config\.js|app\.js|createClient\(/i, 'WP-075 visual acceptance route must remain auth/backend-free');
 }
 
-console.log('WP-075 cross-browser email OTP artifact validated.');
+console.log(`WP-075 implementation validated; hosted delivery ready=${activation.hostedDeliveryReady === true}.`);
