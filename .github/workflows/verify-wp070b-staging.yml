@@ -89,6 +89,25 @@ jobs:
           echo "::add-mask::$db_url"
           printf 'RENDEZVUE_DB_URL=%s\n' "$db_url" >> "$GITHUB_ENV"
 
+      - name: Wait for protected WP-070B migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in {1..60}; do
+            migration_count="$(psql "$RENDEZVUE_DB_URL" --no-psqlrc --tuples-only --no-align --set ON_ERROR_STOP=1 \
+              --command "select count(*) from supabase_migrations.schema_migrations where version in ('20260808190500','20260808193000','20260808195000');")"
+            if [[ "$migration_count" == '3' ]]; then
+              echo "WP-070B protected migrations are present after attempt $attempt."
+              exit 0
+            fi
+            if (( attempt == 60 )); then
+              echo "::error title=WP-070B migration convergence timeout::Protected staging still exposes only $migration_count of 3 required WP-070B migrations."
+              exit 1
+            fi
+            echo "Waiting for protected staging migration convergence ($migration_count/3 present; attempt $attempt/60)..."
+            sleep 5
+          done
+
       - name: Verify exact remote WP-070B schema and privilege contract
         shell: bash
         run: |
