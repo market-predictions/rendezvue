@@ -101,19 +101,17 @@ jobs:
             exit 1
           fi
 
-          node --input-type=module --eval "
-            import { readFileSync } from 'node:fs';
-            const document = JSON.parse(readFileSync(process.argv[1], 'utf8'));
-            const out = process.env.GITHUB_OUTPUT;
-            const lines = [
-              ['configuration_source', document.configurationSource],
-              ['passwordless_primary', document.passwordlessPrimary],
-              ['email_otp_ready', String(document.emailOtpHostedDeliveryReady === true)],
-              ['email_otp_state', document.emailOtpActivationState]
-            ];
-            const { appendFileSync } = await import('node:fs');
-            appendFileSync(out, lines.map(([key, value]) => `${key}=${value}\n`).join(''));
-          " "$metadata"
+          node --input-type=module - "$metadata" <<'NODE'
+          import { appendFileSync, readFileSync } from 'node:fs';
+          const document = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+          const lines = [
+            ['configuration_source', document.configurationSource],
+            ['passwordless_primary', document.passwordlessPrimary],
+            ['email_otp_ready', String(document.emailOtpHostedDeliveryReady === true)],
+            ['email_otp_state', document.emailOtpActivationState]
+          ];
+          appendFileSync(process.env.GITHUB_OUTPUT, lines.map(([key, value]) => `${key}=${value}\n`).join(''));
+          NODE
           echo "deployment_url=${STAGING_URL}deployment.json" >> "$GITHUB_OUTPUT"
           cat "$metadata"
 
