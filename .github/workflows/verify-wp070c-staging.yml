@@ -1,0 +1,295 @@
+name: Verify WP070C reversible restrictions staging
+
+on:
+  workflow_run:
+    workflows: ['Configure Cloudflare staging backend']
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: rendezvue-wp070c-staging-verification-${{ github.event.workflow_run.head_sha || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    name: Verify protected reversible restriction contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: rendezvue-private-preview
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      STAGING_URL: https://rendezvue-private-preview.pages.dev/
+      TARGET_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Verify exact upstream commit binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          if [[ "$actual" != "$TARGET_SHA" ]]; then
+            echo "::error title=WP-070C checkout mismatch::Expected $TARGET_SHA but checked out $actual"
+            exit 1
+          fi
+
+      - name: Validate protected verifier configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in SUPABASE_ACCESS_TOKEN SUPABASE_PROJECT_REF SUPABASE_DB_PASSWORD STAGING_URL TARGET_SHA; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error title=Missing protected configuration::$name is not configured"
+              exit 1
+            fi
+          done
+          [[ "$SUPABASE_PROJECT_REF" =~ ^[a-z0-9]{15,30}$ ]] || {
+            echo '::error title=Invalid project reference::SUPABASE_PROJECT_REF has an unexpected format'
+            exit 1
+          }
+          [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+            echo '::error title=Invalid target commit::TARGET_SHA is not a full Git commit SHA'
+            exit 1
+          }
+
+      - name: Resolve read-only Supavisor session connection
+        shell: bash
+        run: |
+          set -euo pipefail
+          response="$RUNNER_TEMP/supabase-pooler.json"
+          db_url_file="$RUNNER_TEMP/supabase-db-url.txt"
+          status="$(curl --silent --show-error --output "$response" --write-out '%{http_code}' \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/database/pooler")"
+          [[ "$status" == "200" ]] || {
+            echo "::error title=Database connection discovery failed::Supabase Management API returned HTTP $status"
+            exit 1
+          }
+
+          node --input-type=module - "$response" "$db_url_file" <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const configs = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+          const candidates = Array.isArray(configs)
+            ? configs.filter((entry) => String(entry?.database_type ?? '').toUpperCase() === 'PRIMARY'
+                && String(entry?.db_host ?? '').endsWith('.pooler.supabase.com'))
+            : [];
+          if (!candidates.length) throw new Error('No PRIMARY Supavisor pooler configuration was returned');
+          const selected = candidates.find((entry) => String(entry?.pool_mode ?? '').toLowerCase() === 'transaction') ?? candidates[0];
+          for (const key of ['db_user', 'db_host', 'db_name']) {
+            if (!selected?.[key]) throw new Error(`Supabase pooler configuration is missing ${key}`);
+          }
+          const url = new URL('postgresql://placeholder:placeholder@localhost/postgres');
+          url.username = String(selected.db_user);
+          url.password = process.env.SUPABASE_DB_PASSWORD;
+          url.hostname = String(selected.db_host);
+          url.port = '5432';
+          url.pathname = `/${String(selected.db_name).replace(/^\/+/, '')}`;
+          url.searchParams.set('sslmode', 'require');
+          writeFileSync(process.argv[3], url.toString(), { mode: 0o600 });
+          NODE
+
+          db_url="$(cat "$db_url_file")"
+          echo "::add-mask::$db_url"
+          printf 'RENDEZVUE_DB_URL=%s\n' "$db_url" >> "$GITHUB_ENV"
+
+      - name: Verify exact remote WP-070C schema, privileges and default-off policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$RENDEZVUE_DB_URL" --no-psqlrc --set ON_ERROR_STOP=1 <<'SQL'
+          do $$
+          declare
+            v_missing text[] := '{}'::text[];
+          begin
+            if not exists (select 1 from supabase_migrations.schema_migrations where version='20260808203500') then
+              v_missing := array_append(v_missing, 'migration 20260808203500');
+            end if;
+            if not exists (select 1 from supabase_migrations.schema_migrations where version='20260808203600') then
+              v_missing := array_append(v_missing, 'migration 20260808203600');
+            end if;
+            if to_regclass('public.moderation_enforcement_policies') is null then
+              v_missing := array_append(v_missing, 'moderation_enforcement_policies table');
+            end if;
+            if to_regclass('public.moderation_restrictions') is null then
+              v_missing := array_append(v_missing, 'moderation_restrictions table');
+            end if;
+            if to_regprocedure('public.has_active_moderation_restriction(uuid,text)') is null then
+              v_missing := array_append(v_missing, 'has_active_moderation_restriction(uuid,text)');
+            end if;
+            if to_regprocedure('public.execute_approved_moderation_restriction(uuid,text,integer,text)') is null then
+              v_missing := array_append(v_missing, 'execute_approved_moderation_restriction(...)');
+            end if;
+            if cardinality(v_missing) > 0 then
+              raise exception 'WP-070C remote contract missing: %', array_to_string(v_missing, ', ');
+            end if;
+          end $$;
+
+          do $$
+          declare
+            v_executor text := pg_get_functiondef('public.execute_approved_moderation_restriction(uuid,text,integer,text)'::regprocedure);
+          begin
+            if (select count(*) from public.moderation_enforcement_policies) <> 2 then
+              raise exception 'WP-070C remote policy template count is not exactly two';
+            end if;
+            if exists (select 1 from public.moderation_enforcement_policies where active) then
+              raise exception 'WP-070C remote enforcement policy unexpectedly active';
+            end if;
+            if exists (select 1 from public.moderation_enforcement_policies where scope <> 'synthetic_only') then
+              raise exception 'WP-070C remote policy scope is not synthetic-only';
+            end if;
+            if exists (select 1 from public.moderation_enforcement_policies where action_code not in ('restrict_discovery','restrict_contact')) then
+              raise exception 'WP-070C remote policy contains unsupported action';
+            end if;
+            if position('critical moderation proposal cannot use reversible executor' in v_executor)=0
+               or position('WP-070C executor is restricted to synthetic profiles' in v_executor)=0 then
+              raise exception 'WP-070C executor is missing critical/synthetic safety gates';
+            end if;
+            if v_executor ~* '(insert[[:space:]]+into|update|delete[[:space:]]+from)[[:space:]]+public[.](profiles|blocks|matches|conversations)'
+               or v_executor ~* '(insert[[:space:]]+into|update|delete[[:space:]]+from)[[:space:]]+auth[.]users' then
+              raise exception 'WP-070C executor contains prohibited participant/Auth mutation';
+            end if;
+          end $$;
+
+          do $$
+          begin
+            if not has_table_privilege('service_role','public.moderation_enforcement_policies','SELECT')
+               or not has_table_privilege('service_role','public.moderation_restrictions','SELECT') then
+              raise exception 'service role cannot read bounded WP-070C operational state';
+            end if;
+            if has_table_privilege('service_role','public.moderation_enforcement_policies','INSERT')
+               or has_table_privilege('service_role','public.moderation_enforcement_policies','UPDATE')
+               or has_table_privilege('service_role','public.moderation_enforcement_policies','DELETE')
+               or has_table_privilege('service_role','public.moderation_restrictions','INSERT')
+               or has_table_privilege('service_role','public.moderation_restrictions','UPDATE')
+               or has_table_privilege('service_role','public.moderation_restrictions','DELETE') then
+              raise exception 'service role can bypass controlled WP-070C mutation boundary';
+            end if;
+            if has_table_privilege('authenticated','public.moderation_enforcement_policies','SELECT')
+               or has_table_privilege('authenticated','public.moderation_restrictions','SELECT')
+               or has_table_privilege('anon','public.moderation_enforcement_policies','SELECT')
+               or has_table_privilege('anon','public.moderation_restrictions','SELECT') then
+              raise exception 'participant can inspect WP-070C operational state';
+            end if;
+            if not has_function_privilege('service_role','public.execute_approved_moderation_restriction(uuid,text,integer,text)','EXECUTE') then
+              raise exception 'service role cannot execute controlled WP-070C RPC';
+            end if;
+            if has_function_privilege('authenticated','public.execute_approved_moderation_restriction(uuid,text,integer,text)','EXECUTE')
+               or has_function_privilege('anon','public.execute_approved_moderation_restriction(uuid,text,integer,text)','EXECUTE') then
+              raise exception 'participant can execute WP-070C restriction RPC';
+            end if;
+            if has_function_privilege('service_role','public.has_active_moderation_restriction(uuid,text)','EXECUTE')
+               or has_function_privilege('authenticated','public.has_active_moderation_restriction(uuid,text)','EXECUTE') then
+              raise exception 'private WP-070C restriction helper is directly callable';
+            end if;
+            if not has_function_privilege('authenticated','public.can_discover_profile(uuid,public.sex_type)','EXECUTE') then
+              raise exception 'authenticated profile RLS lost can_discover_profile execution privilege';
+            end if;
+            if not exists (select 1 from pg_class c where c.oid='public.moderation_enforcement_policies'::regclass and c.relrowsecurity)
+               or not exists (select 1 from pg_class c where c.oid='public.moderation_restrictions'::regclass and c.relrowsecurity) then
+              raise exception 'WP-070C RLS is not enabled';
+            end if;
+          end $$;
+          SQL
+
+      - name: Verify exact canonical deployment boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          metadata="$RUNNER_TEMP/wp070c-deployment.json"
+          matched=false
+          for attempt in {1..72}; do
+            status="$(curl --silent --show-error --location \
+              --output "$metadata" --write-out '%{http_code}' \
+              --header 'cache-control: no-cache' \
+              "${STAGING_URL}deployment.json?wp070c=${TARGET_SHA}&attempt=${attempt}" || true)"
+            if [[ "$status" == '200' ]] && node --input-type=module - "$metadata" "$TARGET_SHA" <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const doc = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+          const expected = process.argv[3];
+          if (doc.buildCommit !== expected) process.exit(1);
+          if (doc.hostingPlatform !== 'cloudflare-pages') process.exit(1);
+          if (doc.configurationMode !== 'remote-supabase') process.exit(1);
+          if (doc.remoteBackendConfigured !== true) process.exit(1);
+          if (doc.realUserAdmissionAuthorized !== false) process.exit(1);
+          NODE
+            then
+              matched=true
+              break
+            fi
+            sleep 10
+          done
+          if [[ "$matched" != true ]]; then
+            echo '::error title=WP-070C canonical boundary mismatch::Canonical deployment did not converge to exact target commit with real-user admission disabled.'
+            [[ -f "$metadata" ]] && cat "$metadata" || true
+            exit 1
+          fi
+          cat "$metadata"
+
+      - name: Write WP-070C verification summary
+        shell: bash
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## WP-070C protected staging verification
+
+          - exact verified commit: \`$TARGET_SHA\`
+          - upstream protected backend configuration: completed successfully before this verifier
+          - migrations 20260808203500 and 20260808203600: present remotely
+          - reversible policy templates: exactly two
+          - active enforcement policies: zero
+          - policy scope: synthetic-only
+          - executable actions: restrict_discovery / restrict_contact only
+          - service direct policy/restriction DML: denied
+          - participant operational access: denied
+          - irreversible participant/Auth mutations in executor: absent
+          - canonical Cloudflare deployment: commit matched
+          - real-user admission: not authorized
+          EOF
+
+      - name: Record WP-070C protected verification
+        if: success()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment 143 --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
+          ## WP-070C protected staging verification PASS
+
+          - exact verified commit: \`$TARGET_SHA\`
+          - upstream protected backend configuration: completed successfully before verification
+          - workflow: $RUN_URL
+          - remote schema/RPC/RLS/privilege contract: passed
+          - active enforcement policies: **0**
+          - policy scope: synthetic-only
+          - irreversible executor actions: absent
+          - canonical deployment boundary: commit matched
+          - real-user admission: not authorized
+          EOF
+
+      - name: Record WP-070C protected verification failure
+        if: failure()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment 143 --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
+          ## WP-070C protected staging verification failed
+
+          - exact target commit: \`$TARGET_SHA\`
+          - workflow: $RUN_URL
+          - no WP-070C remote completion is claimed
+          - no policy activation is authorized
+          - real-user admission: not authorized
+          EOF
