@@ -10,11 +10,14 @@ on:
       - 'apps/web/src/auth-session.js'
       - 'apps/web/src/backend-contract.js'
       - 'apps/web/src/onboarding-repository.js'
+      - 'config/wp075-email-otp-activation.json'
       - 'scripts/build-private-preview.mjs'
       - 'scripts/copy-product-assets.mjs'
+      - 'scripts/finalize-wp075-email-otp-artifact.mjs'
       - 'scripts/validate-private-preview.mjs'
       - 'scripts/validate-wp066-account-experience.mjs'
       - 'scripts/validate-wp067-product-shell.mjs'
+      - 'scripts/validate-wp075-email-otp.mjs'
       - 'package.json'
       - 'package-lock.json'
   workflow_dispatch:
@@ -66,29 +69,52 @@ jobs:
                 if (document.pkceCodeCallbacksAccepted !== true) process.exit(1);
                 if (document.implicitTokenFragmentsAccepted !== false) process.exit(1);
                 if (document.realUserAdmissionAuthorized !== false) process.exit(1);
+                if (document.emailOtpImplementationPresent !== true) process.exit(1);
+                if (document.automaticCrossBrowserSessionPropagation !== false) process.exit(1);
+                if (document.passwordAuthentication !== false) process.exit(1);
+                if (document.desiredEmailOtpDigits !== 6 || document.desiredEmailOtpExpirySeconds !== 600) process.exit(1);
+                const ready = document.emailOtpHostedDeliveryReady === true;
+                if (ready) {
+                  if (document.emailOtpActivationState !== 'active-hosted-email-otp') process.exit(1);
+                  if (document.passwordlessPrimary !== 'email-otp') process.exit(1);
+                  if (document.crossBrowserEmailOtp !== true) process.exit(1);
+                  if (document.emailOtpDigits !== 6 || document.emailOtpExpirySeconds !== 600) process.exit(1);
+                } else {
+                  if (document.emailOtpActivationState !== 'blocked-external-mail-provider') process.exit(1);
+                  if (document.passwordlessPrimary !== 'pkce-magic-link') process.exit(1);
+                  if (document.crossBrowserEmailOtp !== false) process.exit(1);
+                  if (document.emailOtpDigits !== null || document.emailOtpExpirySeconds !== null) process.exit(1);
+                }
               " "$metadata" "$GITHUB_SHA"; then
                 matched=true
                 break
               fi
             fi
 
-            echo "Cloudflare production is not commit-matched with a real Supabase backend yet (attempt $attempt, HTTP $status)."
+            echo "Cloudflare production is not commit-matched with a truthful remote-supabase deployment yet (attempt $attempt, HTTP $status)."
             sleep 10
           done
 
           if [[ "$matched" != "true" ]]; then
-            echo '::error title=Cloudflare deployment did not converge::Production deployment.json did not match the pushed commit with an approved remote-supabase configuration source within 12 minutes.'
+            echo '::error title=Cloudflare deployment did not converge::Production deployment.json did not match the pushed commit and current authentication availability contract within 12 minutes.'
             [[ -f "$metadata" ]] && cat "$metadata" || true
             exit 1
           fi
 
-          configuration_source="$(node --input-type=module --eval "
+          node --input-type=module --eval "
             import { readFileSync } from 'node:fs';
             const document = JSON.parse(readFileSync(process.argv[1], 'utf8'));
-            process.stdout.write(document.configurationSource);
-          " "$metadata")"
+            const out = process.env.GITHUB_OUTPUT;
+            const lines = [
+              ['configuration_source', document.configurationSource],
+              ['passwordless_primary', document.passwordlessPrimary],
+              ['email_otp_ready', String(document.emailOtpHostedDeliveryReady === true)],
+              ['email_otp_state', document.emailOtpActivationState]
+            ];
+            const { appendFileSync } = await import('node:fs');
+            appendFileSync(out, lines.map(([key, value]) => `${key}=${value}\n`).join(''));
+          " "$metadata"
           echo "deployment_url=${STAGING_URL}deployment.json" >> "$GITHUB_OUTPUT"
-          echo "configuration_source=$configuration_source" >> "$GITHUB_OUTPUT"
           cat "$metadata"
 
       - name: Verify product application, assets and security headers
@@ -123,6 +149,7 @@ jobs:
           index="$RUNNER_TEMP/index.html"
           account_shell="$RUNNER_TEMP/account-shell.js"
           product_shell="$RUNNER_TEMP/product-shell.js"
+          conversation_controller="$RUNNER_TEMP/conversation-inbox-controller.js"
           product_model="$RUNNER_TEMP/product-model.js"
           product_css="$RUNNER_TEMP/product-shell.css"
           portrait_manifest="$RUNNER_TEMP/profile-manifest.json"
@@ -130,6 +157,7 @@ jobs:
           fetch_artifact '' "$index"
           fetch_artifact 'account-shell.js' "$account_shell"
           fetch_artifact 'product-shell.js' "$product_shell"
+          fetch_artifact 'conversation-inbox-controller.js' "$conversation_controller"
           fetch_artifact 'product-model.js' "$product_model"
           fetch_artifact 'product-shell.css' "$product_css"
           fetch_artifact 'assets/profiles/manifest.json' "$portrait_manifest"
@@ -143,8 +171,10 @@ jobs:
           require_marker "$account_shell" 'rendezvue:language-change' 'shared language-change event'
           require_marker "$product_shell" 'rendezvue-product-app' 'integrated signed-in product application'
           require_marker "$product_shell" 'record_attraction_signal' 'server-authoritative discovery action'
-          require_marker "$product_shell" 'open_match_conversation' 'server-authoritative conversation action'
-          require_marker "$product_shell" 'postgres_changes' 'Realtime message subscription'
+          require_marker "$product_shell" 'createConversationInboxController' 'current conversation controller integration'
+          require_marker "$conversation_controller" 'open_match_conversation' 'server-authoritative conversation action'
+          require_marker "$conversation_controller" 'postgres_changes' 'Realtime message subscription'
+          require_marker "$conversation_controller" 'create_safety_report' 'participant safety report action'
           require_marker "$product_shell" 'operator-synthetic-only' 'operator proof boundary'
           require_marker "$product_model" 'derivePartnerSex' 'derived opposite-sex discovery policy'
           require_marker "$product_model" 'projectDiscoveryProfile' 'product-safe discovery projection'
@@ -179,16 +209,18 @@ jobs:
             echo '::error title=Placeholder deployment::Production is serving the non-functional branch-preview artifact.'
             exit 1
           fi
-          if grep -Eq 'email-otp-form|otp-proof\.js' "$index"; then
-            echo '::error title=Unavailable auth mode::Production index still contains the numeric OTP interface.'
+          if [[ '${{ steps.deployment.outputs.email_otp_ready }}' == 'true' ]]; then
+            require_marker "$index" "./email-otp-controller.js?commit=${GITHUB_SHA}" 'active hosted e-mail OTP controller'
+          elif grep -Fq 'email-otp-controller.js' "$index"; then
+            echo '::error title=Unavailable auth mode::Canonical staging loads the OTP controller while hosted OTP delivery is not ready.'
             exit 1
           fi
           if grep -Eiq 'Hugging Face|static\.hf\.space' "$index"; then
             echo '::error title=Stale hosting reference::Production index still references Hugging Face.'
             exit 1
           fi
-          if grep -Eiq 'service_role|sb_secret_|SUPABASE_SERVICE_ROLE_KEY|execute-account-email-replacement' "$product_shell"; then
-            echo '::error title=Privileged browser capability exposed::Product shell contains prohibited privileged material.'
+          if grep -Eiq 'service_role|sb_secret_|SUPABASE_SERVICE_ROLE_KEY|execute-account-email-replacement' "$product_shell" "$conversation_controller"; then
+            echo '::error title=Privileged browser capability exposed::Product browser modules contain prohibited privileged material.'
             exit 1
           fi
 
@@ -221,8 +253,11 @@ jobs:
           - Configuration source: \`${{ steps.deployment.outputs.configuration_source }}\`
           - Account entry and recovery shell: passed
           - Integrated onboarding/discovery/conversation shell: passed
+          - Conversation architecture: WP-073 inbox controller verified
           - Ten synthetic product portraits and manifest: passed
-          - Passwordless interface: PKCE magic link
+          - Active passwordless path: \`${{ steps.deployment.outputs.passwordless_primary }}\`
+          - Hosted e-mail OTP ready: \`${{ steps.deployment.outputs.email_otp_ready }}\`
+          - OTP activation state: \`${{ steps.deployment.outputs.email_otp_state }}\`
           - Implicit access/refresh token fragments: disabled
           - Runtime configuration cache: no-store
           - Security headers: passed
@@ -244,13 +279,15 @@ jobs:
           - canonical URL: $STAGING_URL
           - commit: \`$GITHUB_SHA\`
           - workflow: $RUN_URL
-          - deployment metadata: commit-matched
+          - deployment metadata: commit-matched and auth-availability-consistent
           - Supabase configuration: remote, not placeholder
           - configuration source: \`${{ steps.deployment.outputs.configuration_source }}\`
           - account entry/recovery shell: passed
-          - integrated onboarding/discovery/conversation shell: passed
+          - integrated onboarding/discovery/conversation shell: passed against current WP-073 controller architecture
           - synthetic portrait asset manifest and delivery: passed
-          - passwordless interface: default-provider PKCE magic link
+          - active passwordless path: \`${{ steps.deployment.outputs.passwordless_primary }}\`
+          - hosted e-mail OTP ready: \`${{ steps.deployment.outputs.email_otp_ready }}\`
+          - OTP activation state: \`${{ steps.deployment.outputs.email_otp_state }}\`
           - implicit access/refresh token fragments: disabled
           - runtime no-store and security headers: passed
           - privileged browser capability scan: passed
@@ -271,7 +308,7 @@ jobs:
           - canonical URL: $STAGING_URL
           - expected commit: \`$GITHUB_SHA\`
           - workflow: $RUN_URL
-          - result: deployment metadata, account/product markers, synthetic assets, privileged-capability scan or security headers did not pass
+          - result: deployment metadata/auth availability, account/product markers, current conversation-controller markers, synthetic assets, privileged-capability scan or security headers did not pass
           - action: inspect the linked run; no canonical product deployment success is claimed
           - real-user admission: not authorized
           EOF
