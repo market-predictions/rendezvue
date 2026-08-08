@@ -4,9 +4,11 @@ import { resolve } from 'node:path';
 const root = resolve(process.cwd());
 const migrationPath = 'supabase/migrations/20260808154500_moderation_intake_triage.sql';
 const testPath = 'supabase/tests/database/017_moderation_intake_triage.test.sql';
-const [migration, test] = await Promise.all([
+const concurrencyPath = 'supabase/tests/concurrency/run.sh';
+const [migration, test, concurrency] = await Promise.all([
   readFile(resolve(root, migrationPath), 'utf8'),
-  readFile(resolve(root, testPath), 'utf8')
+  readFile(resolve(root, testPath), 'utf8'),
+  readFile(resolve(root, concurrencyPath), 'utf8')
 ]);
 
 function requireIncludes(source, value, message) {
@@ -54,4 +56,14 @@ for (const marker of [
   "'moderation workflow never downgrades critical child-safety severity'"
 ]) requireIncludes(test, marker, `WP-070A pgTAP coverage missing: ${marker}`);
 
-console.log('WP-070A moderation intake/triage source contract validated.');
+for (const marker of [
+  'parallel moderation claim race',
+  "operator:race-a",
+  "operator:race-b",
+  'moderation claim race must have exactly one winner',
+  'parallel moderation claim creates exactly one case',
+  'parallel moderation claim records exactly one claim event',
+  'parallel moderation claim records exactly one service audit'
+]) requireIncludes(concurrency, marker, `WP-070A concurrency coverage missing: ${marker}`);
+
+console.log('WP-070A moderation intake/triage source and concurrency contracts validated.');
