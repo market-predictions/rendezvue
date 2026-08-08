@@ -53,7 +53,7 @@ set local role authenticated;
 select is(
   public.get_discovery_portrait_path('62000000-0000-4000-8000-000000000001'),
   '62000000-0000-4000-8000-000000000001/prepared/72000000-0000-4000-8000-000000000001/card-4x5.webp',
-  'discovery resolves exactly the selected visible prepared card'
+  'discovery resolves exactly the selected public prepared card'
 );
 select ok(public.can_read_discovery_portrait_object('62000000-0000-4000-8000-000000000001/prepared/72000000-0000-4000-8000-000000000001/card-4x5.webp'), 'authenticated discovery may read the selected published card object');
 select ok(not public.can_read_discovery_portrait_object('62000000-0000-4000-8000-000000000001/prepared/72000000-0000-4000-8000-000000000001/source.webp'), 'normalized source is never readable through discovery');
