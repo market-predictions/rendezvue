@@ -7,6 +7,7 @@ on:
       - '.github/workflows/verify-wp070b-staging.yml'
       - 'supabase/migrations/20260808190500_moderation_action_authorization.sql'
       - 'supabase/migrations/20260808193000_moderation_action_stale_recovery.sql'
+      - 'supabase/migrations/20260808195000_moderation_action_audit_actor_refs.sql'
       - 'scripts/validate-wp070b-moderation-authorization.mjs'
   workflow_dispatch:
 
@@ -103,6 +104,9 @@ jobs:
             if not exists (select 1 from supabase_migrations.schema_migrations where version = '20260808193000') then
               v_missing := array_append(v_missing, 'migration 20260808193000');
             end if;
+            if not exists (select 1 from supabase_migrations.schema_migrations where version = '20260808195000') then
+              v_missing := array_append(v_missing, 'migration 20260808195000');
+            end if;
             if to_regclass('public.moderation_action_proposals') is null then
               v_missing := array_append(v_missing, 'moderation_action_proposals table');
             end if;
@@ -153,6 +157,19 @@ jobs:
                 raise exception 'controlled authorization function is not security definer: %', fn;
               end if;
             end loop;
+          end $$;
+
+          do $$
+          declare
+            v_propose text := pg_get_functiondef('public.propose_moderation_action(uuid,integer,text,text,text)'::regprocedure);
+            v_review text := pg_get_functiondef('public.review_moderation_action_proposal(uuid,text,text,text)'::regprocedure);
+          begin
+            if position('proposed_by_ref' in v_propose) = 0 then
+              raise exception 'proposal audit does not retain opaque proposer ref';
+            end if;
+            if position('proposed_by_ref' in v_review) = 0 or position('reviewer_ref' in v_review) = 0 then
+              raise exception 'review audit does not retain both opaque dual-control refs';
+            end if;
           end $$;
 
           do $$
@@ -237,8 +254,9 @@ jobs:
           ## WP-070B protected staging verification
 
           - exact main commit: \`$GITHUB_SHA\`
-          - migrations 20260808190500 and 20260808193000: present remotely
+          - migrations 20260808190500, 20260808193000 and 20260808195000: present remotely
           - service-only pending/propose/review/stale-supersede RPCs: present and SECURITY DEFINER
+          - durable audit: opaque proposer + independent reviewer refs retained without reporter/free-text report data
           - participant access to authorization operations: denied
           - direct service mutation of proposal/review tables: denied
           - proposal/review RLS: enabled
@@ -260,7 +278,7 @@ jobs:
 
           - exact main commit: \`$GITHUB_SHA\`
           - workflow: $RUN_URL
-          - remote migrations/schema/RPC/privilege/stale-recovery contract: passed
+          - remote migrations/schema/RPC/privilege/stale-recovery/durable-audit contract: passed
           - authorization-only boundary: retained
           - canonical deployment boundary: commit matched
           - real-user admission: not authorized
