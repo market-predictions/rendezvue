@@ -67,9 +67,10 @@ select throws_ok(
 );
 
 reset role;
+set local "request.jwt.claims" = '{}';
 update public.profiles set nickname='Media Owner', sex='woman', city_region='Utrecht', publication_status='published', published_at=now()
 where user_id='63000000-0000-4000-8000-000000000001';
-update public.profiles set nickname='Media Viewer', sex='man', city_region='Utrecht'
+update public.profiles set nickname='Media Viewer', sex='man', city_region='Utrecht', publication_status='published', published_at=now()
 where user_id='63000000-0000-4000-8000-000000000002';
 
 set local "request.jwt.claims" = '{"sub":"63000000-0000-4000-8000-000000000002","role":"authenticated"}';
