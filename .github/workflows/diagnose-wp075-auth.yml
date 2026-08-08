@@ -1,0 +1,54 @@
+name: Diagnose WP-075 hosted Auth
+
+on:
+  push:
+    branches: [fix/wp075-hosted-auth-config]
+    paths:
+      - '.github/workflows/diagnose-wp075-auth.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    name: Read hosted passwordless Auth contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: rendezvue-private-preview
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Read and sanitize hosted Auth configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${SUPABASE_ACCESS_TOKEN:-}" ]] || { echo '::error title=Missing secret::SUPABASE_ACCESS_TOKEN is not configured'; exit 1; }
+          [[ "$SUPABASE_PROJECT_REF" =~ ^[a-z0-9]{15,30}$ ]] || { echo '::error title=Invalid project reference::SUPABASE_PROJECT_REF has an unexpected format'; exit 1; }
+          response="$RUNNER_TEMP/wp075-auth-current.json"
+          status="$(curl --silent --show-error --output "$response" --write-out '%{http_code}' \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/auth")"
+          [[ "$status" == "200" ]] || { echo "::error title=WP-075 Auth read failed::HTTP $status"; exit 1; }
+          node --input-type=module - "$response" <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const config = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+          const template = String(config.mailer_templates_magic_link_content ?? '');
+          const report = {
+            mailer_otp_length: { value: config.mailer_otp_length ?? null, type: typeof config.mailer_otp_length },
+            mailer_otp_exp: { value: config.mailer_otp_exp ?? null, type: typeof config.mailer_otp_exp },
+            mailer_subjects_magic_link: { value: String(config.mailer_subjects_magic_link ?? ''), type: typeof config.mailer_subjects_magic_link },
+            magic_link_template: {
+              type: typeof config.mailer_templates_magic_link_content,
+              length: template.length,
+              hasToken: template.includes('{{ .Token }}'),
+              hasConfirmationUrl: template.includes('{{ .ConfirmationURL }}'),
+              hasWp075Marker: template.includes('RENDEZVUE_WP075_EMAIL_OTP_V1')
+            }
+          };
+          console.log(JSON.stringify(report, null, 2));
+          NODE
