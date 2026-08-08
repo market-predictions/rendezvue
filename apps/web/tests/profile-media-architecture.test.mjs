@@ -29,7 +29,7 @@ test('live selfie is camera-only and challenge bytes are never uploaded as profi
   assert.doesNotMatch(controller, /data-gallery-slot="live_selfie"/);
   assert.doesNotMatch(controller, /bucket\.upload\([^)]*challenge/i);
   assert.doesNotMatch(controller, /storage[^\n]*challenge/i);
-  assert.match(controller, /challenge recording itself is not stored as profile media|challenge-opname zelf wordt niet als profielmedia opgeslagen/);
+  assert.match(controller, /short recording is not stored as profile media|korte opname bewaren we niet als profielmedia|challenge recording itself is not stored as profile media|challenge-opname zelf wordt niet als profielmedia opgeslagen/);
 });
 
 test('camera cancellation invalidates the active challenge session', async () => {
