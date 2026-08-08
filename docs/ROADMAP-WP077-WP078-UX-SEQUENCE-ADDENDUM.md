@@ -18,7 +18,8 @@ These must not be implemented in the reverse order. Touch-hardening an interim w
 
 **Issue:** #126  
 **Priority:** P1 real-user readiness  
-**Dependency:** current WP-076 owner-correction closeout
+**Dependency:** satisfied — WP-076 owner correction merged as `c62b6fad3d67535726055599680f888aa071310d`  
+**Current position:** next UX-architecture package
 
 Make Live-selfie generation one bounded task composer:
 
@@ -53,9 +54,9 @@ Full contract: `docs/WP-078-MOBILE-FIRST-TOUCH-HARDENING.md`.
 ## Revised UX critical path
 
 ```text
-WP-076 owner-correction closeout
+WP-076 owner correction — complete
         ↓
-WP-077 cohesive selfie workflow architecture
+WP-077 cohesive selfie workflow architecture — next
         ↓
 WP-078 mobile-first touch hardening
         ↓
@@ -79,12 +80,11 @@ Therefore:
 
 Until the next consolidated roadmap revision, interpret the immediate queue as:
 
-1. close current WP-076 trust-panel/owner-correction work with exact-candidate validation and owner acceptance;
-2. execute WP-077;
-3. execute WP-078;
-4. complete or continue WP-075 in the independent authentication lane;
-5. run consolidated desktop/mobile acceptance on the final UX structure;
-6. continue remaining legal/privacy/security/support/moderation/accessibility gates;
-7. consider WP-080 only after all mandatory gates pass.
+1. execute WP-077 cohesive selfie flow;
+2. execute WP-078 mobile-first touch hardening;
+3. complete or continue WP-075 in the independent authentication lane;
+4. run consolidated desktop/mobile acceptance on the final UX structure;
+5. continue remaining legal/privacy/security/support/moderation/accessibility gates;
+6. consider WP-080 only after all mandatory gates pass.
 
 Real-user admission remains unauthorized throughout.
