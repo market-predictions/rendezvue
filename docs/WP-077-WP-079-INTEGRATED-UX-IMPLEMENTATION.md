@@ -4,7 +4,7 @@
 **Branch:** `feature/wp077-wp079-integrated-ux`  
 **Base:** `4d272021a5575008b731eaeed149a027ea3353d4`  
 **Issues:** #126 / #127 / #129  
-**Status:** `IMPLEMENTATION_IN_PROGRESS` after owner visual-feedback round; fresh exact-head evidence required
+**Status:** `IMPLEMENTATION_IN_PROGRESS` after owner visual-feedback round; full exact-head validation still running
 
 ## Primary objective
 
@@ -66,6 +66,24 @@ The first integrated branch-preview acceptance exposed five visible UX mismatche
 | Inbox row and active conversation show the same contact with inconsistent name sizing | participant name uses one shared hierarchy across both contexts | CSS regression + acceptance fixture |
 
 The earlier exact candidate `143e050c53958b986b50e8be3b7bf60b9e0fbf51` is superseded by this correction round and must not be treated as owner-accepted or assurance-current.
+
+## Corrected candidate evidence in progress
+
+Current corrected head: `a2cf3afef83ef4a0d1448c1981b71a53d5f4ee00`.
+
+Observed on that exact head so far:
+
+- CI `31261148198`: PASS.
+- WP-069B `31261148215`: PASS.
+- WP-069C profile labels `31261148220`: PASS.
+- WP-069C seeded vocabulary `31261148196`: PASS.
+- WP-071 `31261148212`: PASS.
+- WP-072 `31261148222`: PASS.
+- WP-073 `31261148230`: PASS.
+- WP-074 `31261148200`: PASS.
+- WP-076 `31261148221`: PASS.
+- Cloudflare Pages branch deployment: PASS on exact head `a2cf3af`.
+- Full `Validate Rendezvue` `31261148202`: still running at this record update; no final conclusion claimed yet.
 
 ## Preserved boundaries
 
