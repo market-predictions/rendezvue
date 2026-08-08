@@ -61,8 +61,11 @@ requireMatch(composer, /taskOrder:\s*Object\.freeze\(\['capture','frame','privac
 requireMatch(composer, /workflow\.append\(liveStep, camera, form\)/, 'WP-077 does not colocate capture, camera and editor');
 requireMatch(composer, /steps\.replaceWith\(optionalStep\)/, 'WP-077 does not move optional media after the composer');
 requireMatch(composer, /applyPrivacyFilterToCanvas\(resultCanvas, source, filterId\)/, 'WP-077 result does not use the canonical privacy filter renderer');
+requireMatch(composer, /rv-selfie-phase-number/, 'WP-077 compact numbered phase marker is missing');
 requireMatch(composerCss, /rv-selfie-composer-grid/, 'WP-077 composer layout CSS is missing');
 requireMatch(composerCss, /grid-template-columns:minmax\(0,1\.35fr\) minmax\(15rem,\.65fr\)/, 'WP-077 desktop result adjacency is missing');
+requireMatch(composerCss, /\.rv-selfie-phase-strip\{display:grid;grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/, 'WP-077 phases are not a balanced four-step indicator');
+requireMatch(composerCss, /\.rv-selfie-phase-number\{width:1\.7rem;height:1\.7rem/, 'WP-077 phase number sizing is missing');
 requireMatch(composerCss, /@media\(max-width:48rem\)/, 'WP-077 mobile local composition is missing');
 requireMatch(privacyController, /let selectedFilterId = null;/, 'WP-074B no-default privacy selection was weakened');
 requireMatch(privacyController, /if \(!selectedFilterId\) throw new Error\(text\('chooseFilter'\)\)/, 'Explicit privacy selection gate is missing');
@@ -70,11 +73,19 @@ requireMatch(privacyController, /if \(!selectedFilterId\) throw new Error\(text\
 requireMatch(touch, /preferredTargetCssPx:\s*48/, 'WP-078 preferred touch target contract is missing');
 requireMatch(touch, /absoluteMinimumCssPx:\s*44/, 'WP-078 absolute touch minimum contract is missing');
 requireMatch(touch, /rv-touch-range-step/, 'WP-078 range step buttons are missing');
+requireMatch(touch, /const DATE_INPUT_SELECTOR = '#rv-date-of-birth'/, 'WP-078 mobile date input contract is missing');
+requireMatch(touch, /composer\.className = 'rv-touch-date-composer'/, 'WP-078 day-month-year composer is missing');
+requireMatch(touch, /mobileDateControl:\s*'day-month-year'/, 'WP-078 mobile date mode marker is missing');
+requireMatch(touch, /media\.after\(actions\)/, 'WP-078 discovery actions are not moved directly after media');
+requireMatch(touch, /discoveryActionOrder:\s*'media-actions-copy'/, 'WP-078 discovery action-order marker is missing');
 requireMatch(touchCss, /input\[type="checkbox"\].*min-height:1\.55rem!important/s, 'WP-078 checkbox indicator reset is missing');
 requireMatch(touchCss, /rv-touch-choice-row.*min-height:3\.65rem/s, 'WP-078 full-row choice target is missing');
 requireMatch(touchCss, /@media \(pointer:coarse\),\(hover:none\)/, 'WP-078 coarse-pointer contract is missing');
 requireMatch(touchCss, /rv-nav\{position:fixed!important/, 'WP-078 mobile bottom navigation is missing');
 requireMatch(touchCss, /font-size:1rem;min-height:3\.25rem/, 'WP-078 mobile form font/target contract is missing');
+requireMatch(touchCss, /\.rv-touch-select\{appearance:none;-webkit-appearance:none;background-image:url/, 'WP-078 mobile select chevron is missing');
+requireMatch(touchCss, /\.rv-touch-date-composer\{width:100%;grid-template-columns:/, 'WP-078 mobile date layout is missing');
+requireMatch(touchCss, /\.rv-thread-topline strong,\.rv-touch-contract \.rv-conversation-identity h2\{font-size:1\.08rem;/, 'WP-078 participant-name hierarchy is inconsistent');
 
 const expectedNames = ['yasmin','bilal','amina','idris','maryam','samir','noura','youssef','hafsa','omar'];
 for (const name of expectedNames) requireMatch(syntheticModel, new RegExp(`${name}:\\s*Object\\.freeze`), `WP-079 synthetic mapping is missing ${name}`);
@@ -94,8 +105,10 @@ if (deployment.audience !== 'controlled-synthetic-adult-proof-accounts') throw n
 requireMatch(finalizer, /branchPreview = Boolean\(branch && branch !== 'main'\)/, 'Integrated visual acceptance route is not branch-preview-only');
 requireMatch(finalizer, /integrated-ux\.html/, 'Integrated visual acceptance route is missing from finalizer');
 requireMatch(fixture, /Visual acceptance zonder login/, 'Integrated visual fixture banner is missing');
-requireMatch(fixture, /Mobile-first formelementen/, 'Integrated visual fixture does not show mobile form controls');
-requireMatch(fixture, /Selfie composer/, 'Integrated visual fixture does not show the selfie composer');
+requireMatch(fixture, /rv-touch-date-composer acceptance-date-composer/, 'Integrated visual fixture does not show the mobile DOB control');
+requireMatch(fixture, /rv-selfie-phase-number/, 'Integrated visual fixture does not show compact selfie phases');
+requireMatch(fixture, /data-touch-action-order="media-actions-copy"/, 'Integrated visual fixture does not place attraction actions after media');
+requireMatch(fixture, /Nieuwe match \/ inbox/, 'Integrated visual fixture does not show inbox hierarchy');
 requireMatch(fixture, /Maryam/, 'Integrated visual fixture does not show synthetic profile consistency');
 forbidMatch(fixture, /<script\b|runtime-config\.js|app\.js|auth-session|createClient\(/i, 'Integrated visual fixture must stay executable-backend/auth-free');
 
