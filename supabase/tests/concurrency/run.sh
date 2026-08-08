@@ -130,4 +130,69 @@ CONVERSATION_1="$(grep -Eo '[0-9a-f]{8}-[0-9a-f-]{27,}' "$TMP_DIR/contact-1.out"
 CONVERSATION_2="$(grep -Eo '[0-9a-f]{8}-[0-9a-f-]{27,}' "$TMP_DIR/contact-2.out" | tail -n 1)"
 assert_equal "$CONVERSATION_1" "$CONVERSATION_2" "parallel callers receive the same conversation id"
 
+# WP-070A: prove the moderation claim path is genuinely race-safe rather than
+# relying only on sequential stale-write tests. Both operators target the same
+# unbound medium report. The source-report FOR UPDATE lock serializes the race;
+# exactly one operator may create/claim the one-to-one case and the loser must
+# fail closed once it observes the active assignment.
+"${PSQL[@]}" <<SQL
+begin;
+set local "request.jwt.claims" = '{"sub":"$USER_A","role":"authenticated"}';
+set local role authenticated;
+select public.create_safety_report('$USER_B', null, 'harassment', 'parallel moderation claim race');
+commit;
+SQL
+
+MOD_REPORT_ID="$(query "select id from public.safety_reports where reporter_user_id='$USER_A' and subject_user_id='$USER_B' and description='parallel moderation claim race'")"
+[[ -n "$MOD_REPORT_ID" ]] || { echo "FAIL: moderation race report id missing" >&2; exit 1; }
+assert_equal "$(query "select count(*) from public.moderation_cases where source_report_id='$MOD_REPORT_ID'")" "0" "medium moderation race report starts without a case"
+
+cat >"$TMP_DIR/mod-claim-a.sql" <<SQL
+begin;
+set local statement_timeout = '15s';
+set local role service_role;
+select pg_sleep(1);
+select public.claim_moderation_report('$MOD_REPORT_ID', 'operator:race-a', null);
+commit;
+SQL
+
+cat >"$TMP_DIR/mod-claim-b.sql" <<SQL
+begin;
+set local statement_timeout = '15s';
+set local role service_role;
+select pg_sleep(1);
+select public.claim_moderation_report('$MOD_REPORT_ID', 'operator:race-b', null);
+commit;
+SQL
+
+"${PSQL[@]}" -f "$TMP_DIR/mod-claim-a.sql" >"$TMP_DIR/mod-claim-a.out" 2>"$TMP_DIR/mod-claim-a.err" &
+PID_MOD_A=$!
+"${PSQL[@]}" -f "$TMP_DIR/mod-claim-b.sql" >"$TMP_DIR/mod-claim-b.out" 2>"$TMP_DIR/mod-claim-b.err" &
+PID_MOD_B=$!
+set +e
+wait "$PID_MOD_A"; STATUS_MOD_A=$?
+wait "$PID_MOD_B"; STATUS_MOD_B=$?
+set -e
+
+if [[ "$STATUS_MOD_A" -eq 0 && "$STATUS_MOD_B" -eq 0 ]] || [[ "$STATUS_MOD_A" -ne 0 && "$STATUS_MOD_B" -ne 0 ]]; then
+  echo "FAIL: moderation claim race must have exactly one winner (a=$STATUS_MOD_A b=$STATUS_MOD_B)" >&2
+  cat "$TMP_DIR/mod-claim-a.err" >&2 || true
+  cat "$TMP_DIR/mod-claim-b.err" >&2 || true
+  exit 1
+fi
+
+LOSER_ERR="$TMP_DIR/mod-claim-a.err"
+[[ "$STATUS_MOD_B" -ne 0 ]] && LOSER_ERR="$TMP_DIR/mod-claim-b.err"
+if ! grep -q 'moderation case already claimed' "$LOSER_ERR"; then
+  echo "FAIL: moderation claim race loser did not fail with active-claim protection" >&2
+  cat "$LOSER_ERR" >&2
+  exit 1
+fi
+
+echo "PASS: parallel moderation claim has exactly one winner and one protected loser"
+assert_equal "$(query "select count(*) from public.moderation_cases where source_report_id='$MOD_REPORT_ID'")" "1" "parallel moderation claim creates exactly one case"
+assert_equal "$(query "select count(*) from public.moderation_cases where source_report_id='$MOD_REPORT_ID' and assigned_operator_ref in ('operator:race-a','operator:race-b')")" "1" "parallel moderation claim records exactly one owner"
+assert_equal "$(query "select count(*) from public.moderation_case_events e join public.moderation_cases c on c.id=e.case_id where c.source_report_id='$MOD_REPORT_ID' and e.event_type='claimed'")" "1" "parallel moderation claim records exactly one claim event"
+assert_equal "$(query "select count(*) from public.audit_events a join public.moderation_cases c on c.id::text=a.entity_id where c.source_report_id='$MOD_REPORT_ID' and a.event_type='moderation_case_claimed'")" "1" "parallel moderation claim records exactly one service audit"
+
 echo "All backend concurrency tests passed."
