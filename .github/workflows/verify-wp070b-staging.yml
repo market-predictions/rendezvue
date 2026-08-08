@@ -1,14 +1,10 @@
 name: Verify WP070B moderation authorization staging
 
 on:
-  push:
+  workflow_run:
+    workflows: ['Configure Cloudflare staging backend']
+    types: [completed]
     branches: [main]
-    paths:
-      - '.github/workflows/verify-wp070b-staging.yml'
-      - 'supabase/migrations/20260808190500_moderation_action_authorization.sql'
-      - 'supabase/migrations/20260808193000_moderation_action_stale_recovery.sql'
-      - 'supabase/migrations/20260808195000_moderation_action_audit_actor_refs.sql'
-      - 'scripts/validate-wp070b-moderation-authorization.mjs'
   workflow_dispatch:
 
 permissions:
@@ -16,11 +12,12 @@ permissions:
   issues: write
 
 concurrency:
-  group: rendezvue-wp070b-staging-verification
+  group: rendezvue-wp070b-staging-verification-${{ github.event.workflow_run.head_sha || github.sha }}
   cancel-in-progress: true
 
 jobs:
   verify:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     name: Verify protected moderation authorization contract
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -30,15 +27,28 @@ jobs:
       SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       STAGING_URL: https://rendezvue-private-preview.pages.dev/
+      TARGET_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Verify exact upstream commit binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          if [[ "$actual" != "$TARGET_SHA" ]]; then
+            echo "::error title=WP-070B checkout mismatch::Expected $TARGET_SHA but checked out $actual"
+            exit 1
+          fi
 
       - name: Validate protected verifier configuration
         shell: bash
         run: |
           set -euo pipefail
-          for name in SUPABASE_ACCESS_TOKEN SUPABASE_PROJECT_REF SUPABASE_DB_PASSWORD STAGING_URL; do
+          for name in SUPABASE_ACCESS_TOKEN SUPABASE_PROJECT_REF SUPABASE_DB_PASSWORD STAGING_URL TARGET_SHA; do
             if [[ -z "${!name:-}" ]]; then
               echo "::error title=Missing protected configuration::$name is not configured"
               exit 1
@@ -46,6 +56,10 @@ jobs:
           done
           [[ "$SUPABASE_PROJECT_REF" =~ ^[a-z0-9]{15,30}$ ]] || {
             echo '::error title=Invalid project reference::SUPABASE_PROJECT_REF has an unexpected format'
+            exit 1
+          }
+          [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+            echo '::error title=Invalid target commit::TARGET_SHA is not a full Git commit SHA'
             exit 1
           }
 
@@ -223,8 +237,8 @@ jobs:
             status="$(curl --silent --show-error --location \
               --output "$metadata" --write-out '%{http_code}' \
               --header 'cache-control: no-cache' \
-              "${STAGING_URL}deployment.json?wp070b=${GITHUB_SHA}&attempt=${attempt}" || true)"
-            if [[ "$status" == '200' ]] && node --input-type=module - "$metadata" "$GITHUB_SHA" <<'NODE'
+              "${STAGING_URL}deployment.json?wp070b=${TARGET_SHA}&attempt=${attempt}" || true)"
+            if [[ "$status" == '200' ]] && node --input-type=module - "$metadata" "$TARGET_SHA" <<'NODE'
           import { readFileSync } from 'node:fs';
           const doc = JSON.parse(readFileSync(process.argv[2], 'utf8'));
           const expected = process.argv[3];
@@ -241,7 +255,7 @@ jobs:
             sleep 10
           done
           if [[ "$matched" != true ]]; then
-            echo '::error title=WP-070B canonical boundary mismatch::Canonical deployment did not converge to exact main with real-user admission disabled.'
+            echo '::error title=WP-070B canonical boundary mismatch::Canonical deployment did not converge to exact target commit with real-user admission disabled.'
             [[ -f "$metadata" ]] && cat "$metadata" || true
             exit 1
           fi
@@ -253,7 +267,8 @@ jobs:
           cat >> "$GITHUB_STEP_SUMMARY" <<EOF
           ## WP-070B protected staging verification
 
-          - exact main commit: \`$GITHUB_SHA\`
+          - exact verified commit: \`$TARGET_SHA\`
+          - upstream protected backend configuration: completed successfully before this verifier
           - migrations 20260808190500, 20260808193000 and 20260808195000: present remotely
           - service-only pending/propose/review/stale-supersede RPCs: present and SECURITY DEFINER
           - durable audit: opaque proposer + independent reviewer refs retained without reporter/free-text report data
@@ -276,7 +291,8 @@ jobs:
           gh issue comment 139 --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
           ## WP-070B protected staging verification PASS
 
-          - exact main commit: \`$GITHUB_SHA\`
+          - exact verified commit: \`$TARGET_SHA\`
+          - upstream protected backend configuration: completed successfully before verification
           - workflow: $RUN_URL
           - remote migrations/schema/RPC/privilege/stale-recovery/durable-audit contract: passed
           - authorization-only boundary: retained
@@ -294,7 +310,7 @@ jobs:
           gh issue comment 139 --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
           ## WP-070B protected staging verification failed
 
-          - exact commit: \`$GITHUB_SHA\`
+          - exact target commit: \`$TARGET_SHA\`
           - workflow: $RUN_URL
           - no WP-070B remote completion is claimed
           - real-user admission: not authorized
