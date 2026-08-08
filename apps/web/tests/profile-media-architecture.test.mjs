@@ -89,6 +89,20 @@ test('live-selfie trust panel keeps status compact and explanation full-width', 
   assert.match(css, /\.rv-live-trust-badge\{grid-column:2;grid-row:1;justify-self:end;white-space:nowrap;/);
 });
 
+test('owner visual acceptance route is synthetic, backend-free and branch-preview-only', async () => {
+  const build = await read('scripts/build-private-preview.mjs');
+  const fixture = await read('scripts/fixtures/wp076-visual-acceptance.html');
+  assert.match(build, /async function assembleBranchVisualAcceptance\(\) \{\s*if \(!isCloudflarePreview\) return;/s);
+  assert.match(build, /visual-acceptance\/wp076\.html/);
+  assert.match(build, /synthetic-seed\/portraits\/yasmin\.webp/);
+  assert.match(build, /Bekijk WP-076 visueel zonder login/);
+  assert.match(fixture, /Visual acceptance zonder login/);
+  assert.match(fixture, /uitsluitend synthetische voorbeeldmedia/);
+  assert.match(fixture, /class="rv-live-trust-badge">Aanwezig</);
+  assert.match(fixture, /src="\.\/yasmin\.webp"/);
+  assert.doesNotMatch(fixture, /runtime-config\.js|app\.js|supabase|signIn|auth-session/i);
+});
+
 test('portrait progress after refresh depends on the Live-selfie slot rather than any primary photo', async () => {
   const shell = await read('apps/private-preview/product-shell.js');
   assert.match(shell, /profile_media_slot', 'live_selfie'/);
