@@ -1,10 +1,27 @@
 # WP-070B — Dual-control moderation action authorization foundation
 
-**Status:** implementation in progress  
+**Status:** `OUTCOME_CONFIRMED`  
 **Priority:** P1 pilot-readiness dependency  
 **Issue:** #139  
 **Parent:** WP-070 Trust & Safety Operations  
 **Real-user admission:** unauthorized
+
+## Completion evidence
+
+WP-070B is outcome-confirmed on canonical `main` commit `7e868bd08234028da86f5210158ff0a76de54335`.
+
+Evidence chain:
+
+- implementation candidate `6ee257ea7dfd69327aa741d23242836747720d4a` passed CI, clean migration replay, pgTAP/database contracts, parallel review-race proof, seed/schema validation and independent `governance_release_assurance`;
+- implementation PR #140 merged as `7fd8416656c2c79203a70a16ab04001c44d78263`;
+- the first post-merge protected verifier exposed an orchestration race because verification queried protected Supabase before the concurrently started backend migration workflow had completed;
+- repair candidate `a970a4250e87220df2b347a9979c351231c3a614` made verification causally depend on successful completion of `Configure Cloudflare staging backend`, bound all evidence to the upstream exact `head_sha`, added a self-starting trigger and a static regression guard, and received a fresh independent assurance `PASS`;
+- repair PR #141 merged as `7e868bd08234028da86f5210158ff0a76de54335`;
+- protected backend configuration run `31275987796` passed on that exact main commit, including pending migration application and remote health checks;
+- protected WP-070B verifier run `31276028649` then passed on that same exact commit, confirming the remote migrations, schema, RPCs, privileges, stale-recovery contract, durable four-eyes audit and canonical deployment boundary;
+- no enforcement executor, participant sanction, account mutation or real-user admission capability was introduced.
+
+The earlier verifier failure is retained as evidence of the repaired sequencing defect; it is not an open product or database blocker.
 
 ## Objective
 
@@ -232,4 +249,4 @@ WP-070B is complete only after:
 - a protected read-only verifier confirms the remote contract;
 - post-action evidence confirms no enforcement capability or real-user admission was introduced.
 
-A green PR alone is not completion.
+All four conditions are satisfied on `7e868bd08234028da86f5210158ff0a76de54335`; WP-070B is therefore `OUTCOME_CONFIRMED`.
