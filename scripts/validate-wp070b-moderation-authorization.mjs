@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 
-const [baseMigration, recoveryMigration, auditMigration, basePgTap, recoveryPgTap, auditPgTap, concurrency, workPackage, recoveryAddendum] = await Promise.all([
+const [baseMigration, recoveryMigration, auditMigration, basePgTap, recoveryPgTap, auditPgTap, concurrency, workPackage, recoveryAddendum, stagingWorkflow, backendWorkflow] = await Promise.all([
   readFile('supabase/migrations/20260808190500_moderation_action_authorization.sql', 'utf8'),
   readFile('supabase/migrations/20260808193000_moderation_action_stale_recovery.sql', 'utf8'),
   readFile('supabase/migrations/20260808195000_moderation_action_audit_actor_refs.sql', 'utf8'),
@@ -9,7 +9,9 @@ const [baseMigration, recoveryMigration, auditMigration, basePgTap, recoveryPgTa
   readFile('supabase/tests/database/020_moderation_action_audit_actor_refs.test.sql', 'utf8'),
   readFile('supabase/tests/concurrency/run.sh', 'utf8'),
   readFile('docs/WP-070B-DUAL-CONTROL-AUTHORIZATION.md', 'utf8'),
-  readFile('docs/WP-070B-STALE-RECOVERY-ADDENDUM.md', 'utf8')
+  readFile('docs/WP-070B-STALE-RECOVERY-ADDENDUM.md', 'utf8'),
+  readFile('.github/workflows/verify-wp070b-staging.yml', 'utf8'),
+  readFile('.github/workflows/configure-cloudflare-staging.yml', 'utf8')
 ]);
 const migration = `${baseMigration}\n${recoveryMigration}\n${auditMigration}`;
 const pgTap = `${basePgTap}\n${recoveryPgTap}\n${auditPgTap}`;
@@ -23,6 +25,30 @@ function requirePattern(source, pattern, message) {
 function forbidPattern(source, pattern, message) {
   if (pattern.test(source)) throw new Error(message);
 }
+
+for (const marker of [
+  'workflow_run:',
+  "workflows: ['Configure Cloudflare staging backend']",
+  'types: [completed]',
+  'branches: [main]',
+  "github.event.workflow_run.conclusion == 'success'",
+  'github.event.workflow_run.head_sha',
+  'TARGET_SHA',
+  'Verify exact upstream commit binding',
+  'workflow_dispatch:'
+]) {
+  requireText(stagingWorkflow, marker, `WP-070B protected verifier ordering contract missing: ${marker}`);
+}
+forbidPattern(
+  stagingWorkflow,
+  /^\s*push:\s*$/m,
+  'WP-070B protected verifier must not race protected migration/configuration on the same push'
+);
+requireText(
+  backendWorkflow,
+  "- '.github/workflows/verify-wp070b-staging.yml'",
+  'Protected backend configuration must be triggered when the WP-070B verifier contract changes'
+);
 
 for (const marker of [
   'create table if not exists public.moderation_action_proposals',
@@ -145,4 +171,4 @@ for (const marker of [
   requireText(recoveryAddendum, marker, `WP-070B stale-recovery addendum missing: ${marker}`);
 }
 
-console.log('WP-070B dual-control moderation authorization, stale recovery and durable actor-audit contracts are valid.');
+console.log('WP-070B dual-control moderation authorization, stale recovery, durable actor-audit and protected verifier ordering contracts are valid.');
