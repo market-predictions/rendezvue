@@ -3,7 +3,7 @@
 **Date:** 2026-08-08  
 **Issue:** #126  
 **Priority:** P1 — real-user-readiness UX  
-**Status:** planned; next UX-architecture package after WP-076 owner-correction closeout
+**Status:** planned; dependency satisfied; next UX-architecture package after WP-076 owner correction merged as `c62b6fad3d67535726055599680f888aa071310d`
 
 ## Owner observation
 
@@ -110,9 +110,9 @@ WP-077 does **not** change:
 ## Dependency and sequence
 
 ```text
-WP-076 owner-correction closeout
+WP-076 owner-correction closeout — complete
         ↓
-WP-077 cohesive selfie task architecture
+WP-077 cohesive selfie task architecture — next
         ↓
 WP-078 mobile-first touch interaction hardening
         ↓
