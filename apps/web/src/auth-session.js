@@ -2,7 +2,7 @@ function requireAuthClient(client) {
   if (!client?.auth) {
     throw new TypeError('A Supabase-compatible auth client is required');
   }
-  for (const method of ['signInWithOtp', 'getSession', 'getUser', 'onAuthStateChange', 'signOut']) {
+  for (const method of ['signInWithOtp', 'verifyOtp', 'getSession', 'getUser', 'onAuthStateChange', 'signOut']) {
     if (typeof client.auth[method] !== 'function') {
       throw new TypeError(`Auth client is missing ${method}`);
     }
@@ -27,11 +27,24 @@ export function normaliseAccountEmail(value) {
   return email;
 }
 
+export function normaliseEmailOtp(value, length = 6) {
+  const requiredLength = Number(length);
+  if (!Number.isInteger(requiredLength) || requiredLength < 6 || requiredLength > 10) {
+    throw new TypeError('Email OTP length must be between 6 and 10 digits');
+  }
+  const token = String(value ?? '').trim().replace(/\s+/g, '');
+  if (!new RegExp(`^\\d{${requiredLength}}$`).test(token)) {
+    throw new TypeError(`A ${requiredLength}-digit email code is required`);
+  }
+  return token;
+}
+
 export function createAuthSessionAdapter(client, options = {}) {
   const auth = requireAuthClient(client);
   const redirectTo = String(options.redirectTo ?? '').trim();
+  const otpLength = Number.isInteger(options.otpLength) ? options.otpLength : 6;
 
-  async function requestEmailLink(emailValue, mode) {
+  async function requestEmailProof(emailValue, mode) {
     const email = normaliseAccountEmail(emailValue);
     const registration = mode === 'registration';
     const result = await auth.signInWithOtp({
@@ -41,15 +54,23 @@ export function createAuthSessionAdapter(client, options = {}) {
         ...(redirectTo ? { emailRedirectTo: redirectTo } : {})
       }
     });
-    unwrap(result, registration ? 'registration magic-link request' : 'existing-account magic-link request');
+    unwrap(result, registration ? 'registration passwordless request' : 'existing-account passwordless request');
     return Object.freeze({
       email,
       requested: true,
-      mode: registration ? 'registration' : 'existing_account'
+      mode: registration ? 'registration' : 'existing_account',
+      delivery: 'email_otp_or_link'
     });
   }
 
+  // Compatibility shim for the established WP-065 source contract. The name
+  // remains historical; the provider request now delivers code + optional link.
+  async function requestEmailLink(emailValue, mode) {
+    return requestEmailProof(emailValue, mode);
+  }
+
   return Object.freeze({
+    // Backwards-compatible names retained while the product UI moves to code-first wording.
     async requestMagicLink(emailValue) {
       return requestEmailLink(emailValue, 'existing_account');
     },
@@ -60,6 +81,26 @@ export function createAuthSessionAdapter(client, options = {}) {
 
     async requestRegistrationMagicLink(emailValue) {
       return requestEmailLink(emailValue, 'registration');
+    },
+
+    async requestExistingAccountEmailOtp(emailValue) {
+      return requestEmailProof(emailValue, 'existing_account');
+    },
+
+    async requestRegistrationEmailOtp(emailValue) {
+      return requestEmailProof(emailValue, 'registration');
+    },
+
+    async verifyEmailOtp(emailValue, tokenValue) {
+      const email = normaliseAccountEmail(emailValue);
+      const token = normaliseEmailOtp(tokenValue, otpLength);
+      const data = unwrap(await auth.verifyOtp({ email, token, type: 'email' }), 'email OTP verification');
+      return Object.freeze({
+        email,
+        verified: true,
+        user: data?.user ?? data?.session?.user ?? null,
+        session: data?.session ?? null
+      });
     },
 
     async restoreSession() {

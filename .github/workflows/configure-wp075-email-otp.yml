@@ -1,0 +1,97 @@
+name: Configure WP-075 email OTP
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/configure-wp075-email-otp.yml'
+      - 'supabase/templates/magic-link.html'
+      - 'supabase/config.toml'
+      - 'apps/web/src/auth-session.js'
+      - 'apps/web/src/account-experience.js'
+      - 'apps/private-preview/email-otp-controller.js'
+      - 'apps/private-preview/email-otp.css'
+      - 'scripts/finalize-wp075-email-otp-artifact.mjs'
+      - 'scripts/validate-wp075-email-otp.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rendezvue-wp075-email-otp
+  cancel-in-progress: false
+
+jobs:
+  configure:
+    name: Configure and verify hosted passwordless email OTP
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: rendezvue-private-preview
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      OTP_LENGTH: '6'
+      OTP_EXPIRY_SECONDS: '600'
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate protected configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${SUPABASE_ACCESS_TOKEN:-}" ]] || { echo '::error title=Missing secret::SUPABASE_ACCESS_TOKEN is not configured'; exit 1; }
+          [[ "$SUPABASE_PROJECT_REF" =~ ^[a-z0-9]{15,30}$ ]] || { echo '::error title=Invalid project reference::SUPABASE_PROJECT_REF has an unexpected format'; exit 1; }
+          grep -q 'RENDEZVUE_WP075_EMAIL_OTP_V1' supabase/templates/magic-link.html
+          grep -q '{{ .Token }}' supabase/templates/magic-link.html
+          grep -q '{{ .ConfirmationURL }}' supabase/templates/magic-link.html
+
+      - name: Configure hosted Auth email OTP and dual-purpose email template
+        shell: bash
+        run: |
+          set -euo pipefail
+          payload="$RUNNER_TEMP/wp075-auth-config.json"
+          response="$RUNNER_TEMP/wp075-auth-config-response.json"
+          node --input-type=module - "$payload" <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const content = readFileSync('supabase/templates/magic-link.html', 'utf8');
+          writeFileSync(process.argv[2], JSON.stringify({
+            mailer_otp_length: Number(process.env.OTP_LENGTH),
+            mailer_otp_exp: Number(process.env.OTP_EXPIRY_SECONDS),
+            mailer_subjects_magic_link: 'Je Rendezvue-code / Your Rendezvue code',
+            mailer_templates_magic_link_content: content
+          }));
+          NODE
+          status="$(curl --silent --show-error --output "$response" --write-out '%{http_code}' \
+            --request PATCH \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            --header 'content-type: application/json' \
+            --data-binary "@$payload" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/auth")"
+          if [[ "$status" != "200" ]]; then
+            echo "::error title=WP-075 Auth configuration failed::Supabase Management API returned HTTP $status"
+            exit 1
+          fi
+
+      - name: Verify hosted Auth OTP contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          response="$RUNNER_TEMP/wp075-auth-verification.json"
+          status="$(curl --silent --show-error --output "$response" --write-out '%{http_code}' \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/auth")"
+          [[ "$status" == "200" ]] || { echo "::error title=WP-075 Auth verification failed::HTTP $status"; exit 1; }
+          node --input-type=module - "$response" <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const config = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+          if (Number(config.mailer_otp_length) !== 6) throw new Error('Hosted email OTP length is not 6');
+          if (Number(config.mailer_otp_exp) !== 600) throw new Error('Hosted email OTP expiry is not 600 seconds');
+          if (config.mailer_subjects_magic_link !== 'Je Rendezvue-code / Your Rendezvue code') throw new Error('Hosted passwordless email subject differs from the WP-075 contract');
+          const template = String(config.mailer_templates_magic_link_content ?? '');
+          for (const marker of ['RENDEZVUE_WP075_EMAIL_OTP_V1', '{{ .Token }}', '{{ .ConfirmationURL }}']) {
+            if (!template.includes(marker)) throw new Error(`Hosted passwordless template is missing ${marker}`);
+          }
+          console.log('Hosted WP-075 email OTP configuration verified.');
+          NODE
