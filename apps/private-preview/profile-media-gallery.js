@@ -119,8 +119,20 @@ function move(delta) {
   renderActive();
 }
 
-function openProfile(card) {
-  const data = registry.get(card); if (!data?.media?.length) return;
+async function openProfile(card) {
+  let data = registry.get(card);
+  if (!data?.media?.length) return;
+
+  // Signed profile-media URLs are deliberately short-lived. Re-resolve the bounded
+  // server-authorized media set when the viewer opens so privacy can stay short-lived
+  // without the full-profile UX decaying after a few minutes on the discovery screen.
+  if (data.userId) {
+    const freshMedia = await loadProfileMedia(data.userId);
+    if (!freshMedia.length) return;
+    data = Object.freeze({ userId: data.userId, media: freshMedia });
+    registry.set(card, data);
+  }
+
   const identity = profileIdentity(card);
   active = Object.freeze({ ...data, nickname: identity.nickname, meta: identity.meta });
   activeIndex = Math.max(0, data.media.findIndex((item) => item.is_primary)); if (activeIndex < 0) activeIndex = 0;
@@ -137,13 +149,13 @@ function openProfile(card) {
   modal.showModal();
 }
 
-function decorateCard(card, media) {
-  registry.set(card, Object.freeze({ media }));
+function decorateCard(card, media, userId) {
+  registry.set(card, Object.freeze({ userId, media }));
   const mediaRoot = card.querySelector('.rv-discovery-media'); if (!mediaRoot) return;
   let trigger = mediaRoot.querySelector('[data-profile-media-open]');
   if (!trigger) {
     trigger = document.createElement('button'); trigger.type = 'button'; trigger.className = 'rv-discovery-media-count'; trigger.dataset.profileMediaOpen = 'true';
-    trigger.addEventListener('click', (event) => { event.preventDefault(); event.stopPropagation(); openProfile(card); }); mediaRoot.append(trigger);
+    trigger.addEventListener('click', (event) => { event.preventDefault(); event.stopPropagation(); void openProfile(card); }); mediaRoot.append(trigger);
   }
   const hasLive = media.some((item) => item.is_live_selfie);
   trigger.textContent = media.length > 1 ? `${media.length} ${copy('photos')}` : hasLive ? copy('live') : copy('view');
@@ -160,7 +172,7 @@ async function sync() {
     if (error) return;
     await Promise.all(cards.map(async (card) => {
       const profile = uniquelyMatchProfile(card, rows ?? []); if (!profile?.user_id) return;
-      const media = await loadProfileMedia(profile.user_id); if (media.length) decorateCard(card, media);
+      const media = await loadProfileMedia(profile.user_id); if (media.length) decorateCard(card, media, profile.user_id);
     }));
   } finally { syncing = false; }
 }
