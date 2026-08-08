@@ -69,6 +69,11 @@ requireIncludes(config, '[auth.email.template.magic_link]', 'Local Supabase magi
 
 // Hosted configuration is kept as the intended activation mechanism, but
 // activation of the customer-facing OTP path is separately repository-gated.
+requireIncludes(workflow, 'config/wp075-email-otp-activation.json', 'Hosted OTP workflow does not watch/read the repository activation contract');
+requireIncludes(workflow, "hosted_ready=${ready}", 'Hosted OTP workflow does not expose the resolved activation state');
+requireIncludes(workflow, "if: ${{ steps.activation.outputs.hosted_ready == 'true' }}", 'Hosted OTP mutation is not gated on proven repository activation');
+requireIncludes(workflow, 'Verify blocked hosted state read-only', 'Hosted OTP workflow lacks a read-only blocked-state verification path');
+requireIncludes(workflow, 'repository activation remains blocked', 'Blocked hosted state does not fail closed if provider configuration changes independently');
 requireIncludes(workflow, "mailer_templates_magic_link_content: readFileSync('supabase/templates/magic-link.html', 'utf8')", 'Hosted template target is not repository managed');
 requireIncludes(workflow, 'mailer_otp_length: Number(process.env.OTP_LENGTH)', 'Hosted OTP length is not managed by the deployment workflow');
 requireIncludes(workflow, 'mailer_otp_exp: Number(process.env.OTP_EXPIRY_SECONDS)', 'Hosted OTP expiry is not managed by the deployment workflow');
