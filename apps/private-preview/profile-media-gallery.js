@@ -14,11 +14,11 @@ let activeIndex = 0;
 function copy(key) {
   const values = {
     nl: {
-      view: 'Bekijk profiel', photos: 'foto’s', live: 'Live selfie', close: 'Sluiten', previous: 'Vorige foto', next: 'Volgende foto',
+      view: 'Bekijk profiel', photos: 'foto’s', live: 'Live selfie', liveShort: '✓ Live', close: 'Sluiten', previous: 'Vorige foto', next: 'Volgende foto',
       trust: 'Live selfie aanwezig', noTrust: 'Geen live selfie zichtbaar', primary: 'Hoofdfoto'
     },
     en: {
-      view: 'View profile', photos: 'photos', live: 'Live selfie', close: 'Close', previous: 'Previous photo', next: 'Next photo',
+      view: 'View profile', photos: 'photos', live: 'Live selfie', liveShort: '✓ Live', close: 'Close', previous: 'Previous photo', next: 'Next photo',
       trust: 'Live selfie present', noTrust: 'No live selfie visible', primary: 'Primary photo'
     }
   };
@@ -158,7 +158,10 @@ function decorateCard(card, media, userId) {
     trigger.addEventListener('click', (event) => { event.preventDefault(); event.stopPropagation(); void openProfile(card); }); mediaRoot.append(trigger);
   }
   const hasLive = media.some((item) => item.is_live_selfie);
-  trigger.textContent = media.length > 1 ? `${media.length} ${copy('photos')}` : hasLive ? copy('live') : copy('view');
+  trigger.classList.toggle('is-live', hasLive);
+  trigger.textContent = hasLive
+    ? `${copy('liveShort')}${media.length > 1 ? ` · ${media.length} ${copy('photos')}` : ''}`
+    : media.length > 1 ? `${media.length} ${copy('photos')}` : copy('view');
   trigger.setAttribute('aria-label', `${copy('view')} · ${trigger.textContent}`);
 }
 
