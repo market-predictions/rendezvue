@@ -1,0 +1,31 @@
+name: Patch WP076 database contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/patch-wp076-database-contract.yml'
+      - 'scripts/patch-wp076-database-contract.py'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Apply database contract repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'rendezvue-implementation-bot'
+          git config user.email 'rendezvue-implementation-bot@users.noreply.github.com'
+          python scripts/patch-wp076-database-contract.py
+          git add supabase/migrations/20260808100500_live_selfie_profile_media.sql supabase/tests/database/005_onboarding_persistence.test.sql supabase/tests/database/019_live_selfie_profile_media.test.sql
+          git commit -m 'Preserve synthetic fixtures under WP076 publication gate'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
