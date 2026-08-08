@@ -47,34 +47,92 @@ jobs:
           grep -q '{{ .Token }}' supabase/templates/magic-link.html
           grep -q '{{ .ConfirmationURL }}' supabase/templates/magic-link.html
 
-      - name: Configure hosted Auth email OTP and dual-purpose email template
+      - name: Configure hosted Auth transactionally
         shell: bash
         run: |
           set -euo pipefail
-          payload="$RUNNER_TEMP/wp075-auth-config.json"
-          response="$RUNNER_TEMP/wp075-auth-config-response.json"
-          node --input-type=module - "$payload" <<'NODE'
-          import { readFileSync, writeFileSync } from 'node:fs';
-          const content = readFileSync('supabase/templates/magic-link.html', 'utf8');
-          writeFileSync(process.argv[2], JSON.stringify({
-            mailer_otp_length: Number(process.env.OTP_LENGTH),
-            mailer_otp_exp: Number(process.env.OTP_EXPIRY_SECONDS),
-            mailer_subjects_magic_link: 'Je Rendezvue-code / Your Rendezvue code',
-            mailer_templates_magic_link_content: content
-          }));
-          NODE
-          status="$(curl --silent --show-error --output "$response" --write-out '%{http_code}' \
-            --request PATCH \
-            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
-            --header 'content-type: application/json' \
-            --data-binary "@$payload" \
-            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/auth")"
-          if [[ "$status" != "200" ]]; then
-            echo "::error title=WP-075 Auth configuration failed::Supabase Management API returned HTTP $status"
-            exit 1
-          fi
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
 
-      - name: Verify hosted Auth OTP contract
+          const endpoint = `https://api.supabase.com/v1/projects/${process.env.SUPABASE_PROJECT_REF}/config/auth`;
+          const headers = {
+            Authorization: `Bearer ${process.env.SUPABASE_ACCESS_TOKEN}`,
+            'content-type': 'application/json'
+          };
+          const desired = Object.freeze({
+            mailer_templates_magic_link_content: readFileSync('supabase/templates/magic-link.html', 'utf8'),
+            mailer_subjects_magic_link: 'Je Rendezvue-code / Your Rendezvue code',
+            mailer_otp_length: Number(process.env.OTP_LENGTH),
+            mailer_otp_exp: Number(process.env.OTP_EXPIRY_SECONDS)
+          });
+          const keys = Object.keys(desired);
+
+          function safeApiError(status, raw) {
+            let parsed = {};
+            try { parsed = JSON.parse(raw); } catch {}
+            const allowed = ['code', 'error', 'message', 'msg', 'details'];
+            const parts = [];
+            for (const key of allowed) {
+              const value = parsed?.[key];
+              if (typeof value === 'string' && value.trim()) parts.push(`${key}=${value.trim().slice(0, 300)}`);
+            }
+            return `HTTP ${status}${parts.length ? ` (${parts.join('; ')})` : ''}`;
+          }
+
+          async function readHosted() {
+            const response = await fetch(endpoint, { headers: { Authorization: headers.Authorization } });
+            const raw = await response.text();
+            if (!response.ok) throw new Error(`hosted Auth read failed: ${safeApiError(response.status, raw)}`);
+            return JSON.parse(raw);
+          }
+
+          async function patchOne(key, value, purpose = 'apply') {
+            const response = await fetch(endpoint, {
+              method: 'PATCH',
+              headers,
+              body: JSON.stringify({ [key]: value })
+            });
+            const raw = await response.text();
+            if (!response.ok) throw new Error(`${purpose} ${key} failed: ${safeApiError(response.status, raw)}`);
+            const observed = await readHosted();
+            if (observed[key] !== value) throw new Error(`${purpose} ${key} read-back mismatch`);
+          }
+
+          const before = await readHosted();
+          const attempted = [];
+          try {
+            for (const key of keys) {
+              if (before[key] === desired[key]) continue;
+              // Add before PATCH: a successful write followed by a failed/normalized
+              // read-back must still be eligible for restoration.
+              attempted.push(key);
+              await patchOne(key, desired[key]);
+              console.log(`WP-075 applied and read back ${key}.`);
+            }
+          } catch (error) {
+            console.error(`::error title=WP-075 hosted Auth configuration failed::${error.message}`);
+            let rollbackFailed = false;
+            for (const key of [...attempted].reverse()) {
+              try {
+                await patchOne(key, before[key], 'rollback');
+                console.log(`WP-075 rolled back ${key}.`);
+              } catch (rollbackError) {
+                rollbackFailed = true;
+                console.error(`::error title=WP-075 rollback failed::${rollbackError.message}`);
+              }
+            }
+            if (rollbackFailed) console.error('::error title=WP-075 state warning::Hosted Auth may require manual state reconciliation before another mutation.');
+            process.exit(1);
+          }
+
+          const final = await readHosted();
+          for (const key of keys) {
+            if (final[key] !== desired[key]) throw new Error(`final hosted Auth read-back mismatch for ${key}`);
+          }
+          console.log('Hosted WP-075 email OTP configuration applied transactionally and verified.');
+          NODE
+
+      - name: Verify hosted Auth OTP contract independently
         shell: bash
         run: |
           set -euo pipefail
@@ -93,5 +151,5 @@ jobs:
           for (const marker of ['RENDEZVUE_WP075_EMAIL_OTP_V1', '{{ .Token }}', '{{ .ConfirmationURL }}']) {
             if (!template.includes(marker)) throw new Error(`Hosted passwordless template is missing ${marker}`);
           }
-          console.log('Hosted WP-075 email OTP configuration verified.');
+          console.log('Hosted WP-075 email OTP configuration independently read back and verified.');
           NODE
