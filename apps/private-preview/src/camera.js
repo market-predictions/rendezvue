@@ -1,8 +1,9 @@
 // WP-076 staging camera adapter. Mirrors the reusable camera contract used by the concept app.
 let activeStream = null;
 let activeRecorder = null;
-let chunks = [];
+let activeVideoElement = null;
 let recordingTimer = null;
+let cameraSession = 0;
 
 export function cameraSupported() {
   return Boolean(navigator.mediaDevices?.getUserMedia && window.MediaRecorder);
@@ -10,10 +11,12 @@ export function cameraSupported() {
 
 export async function startCamera(videoElement) {
   stopCamera();
+  cameraSession += 1;
   activeStream = await navigator.mediaDevices.getUserMedia({
     video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 900 } },
     audio: false
   });
+  activeVideoElement = videoElement;
   videoElement.srcObject = activeStream;
   await videoElement.play();
   return activeStream;
@@ -27,26 +30,34 @@ function chooseMimeType() {
 export async function recordChallenge(videoElement, { durationMs = 4000, onTick = () => {} } = {}) {
   if (!activeStream) await startCamera(videoElement);
   if (activeRecorder?.state === 'recording') throw new Error('A recording is already in progress.');
-  chunks = [];
+
+  const session = cameraSession;
+  const localChunks = [];
   const mimeType = chooseMimeType();
-  activeRecorder = new MediaRecorder(activeStream, mimeType ? { mimeType } : undefined);
+  const recorder = new MediaRecorder(activeStream, mimeType ? { mimeType } : undefined);
+  activeRecorder = recorder;
+
   const recordingPromise = new Promise((resolve, reject) => {
-    activeRecorder.addEventListener('dataavailable', (event) => { if (event.data.size > 0) chunks.push(event.data); });
-    activeRecorder.addEventListener('error', () => reject(new Error('The browser could not record this camera stream.')));
-    activeRecorder.addEventListener('stop', () => {
-      const blob = new Blob(chunks, { type: activeRecorder.mimeType || 'video/webm' });
-      chunks = [];
-      resolve(blob);
+    recorder.addEventListener('dataavailable', (event) => { if (event.data.size > 0) localChunks.push(event.data); });
+    recorder.addEventListener('error', () => reject(new Error('The browser could not record this camera stream.')));
+    recorder.addEventListener('stop', () => {
+      if (activeRecorder === recorder) activeRecorder = null;
+      if (session !== cameraSession) {
+        reject(new DOMException('Camera recording cancelled.', 'AbortError'));
+        return;
+      }
+      resolve(new Blob(localChunks, { type: recorder.mimeType || 'video/webm' }));
     });
   });
+
   const startedAt = performance.now();
   recordingTimer = window.setInterval(() => {
     const elapsed = Math.min(durationMs, performance.now() - startedAt);
     onTick(elapsed / durationMs);
   }, 80);
-  activeRecorder.start(200);
+  recorder.start(200);
   window.setTimeout(() => {
-    if (activeRecorder?.state === 'recording') activeRecorder.stop();
+    if (recorder.state === 'recording') recorder.stop();
     if (recordingTimer) window.clearInterval(recordingTimer);
     recordingTimer = null;
     onTick(1);
@@ -70,11 +81,14 @@ export function captureFrame(videoElement, size = 1000) {
 }
 
 export function stopCamera() {
+  cameraSession += 1;
   if (recordingTimer) window.clearInterval(recordingTimer);
   recordingTimer = null;
-  if (activeRecorder?.state === 'recording') activeRecorder.stop();
+  const recorder = activeRecorder;
   activeRecorder = null;
-  chunks = [];
+  if (recorder?.state === 'recording') recorder.stop();
   activeStream?.getTracks().forEach((track) => track.stop());
   activeStream = null;
+  if (activeVideoElement) activeVideoElement.srcObject = null;
+  activeVideoElement = null;
 }
