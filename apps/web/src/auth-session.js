@@ -63,18 +63,24 @@ export function createAuthSessionAdapter(client, options = {}) {
     });
   }
 
+  // Compatibility shim for the established WP-065 source contract. The name
+  // remains historical; the provider request now delivers code + optional link.
+  async function requestEmailLink(emailValue, mode) {
+    return requestEmailProof(emailValue, mode);
+  }
+
   return Object.freeze({
     // Backwards-compatible names retained while the product UI moves to code-first wording.
     async requestMagicLink(emailValue) {
-      return requestEmailProof(emailValue, 'existing_account');
+      return requestEmailLink(emailValue, 'existing_account');
     },
 
     async requestExistingAccountMagicLink(emailValue) {
-      return requestEmailProof(emailValue, 'existing_account');
+      return requestEmailLink(emailValue, 'existing_account');
     },
 
     async requestRegistrationMagicLink(emailValue) {
-      return requestEmailProof(emailValue, 'registration');
+      return requestEmailLink(emailValue, 'registration');
     },
 
     async requestExistingAccountEmailOtp(emailValue) {
