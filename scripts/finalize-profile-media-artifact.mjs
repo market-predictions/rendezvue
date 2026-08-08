@@ -12,13 +12,13 @@ const [indexSource, headersSource, deploymentSource] = await Promise.all([
 ]);
 const deployment = JSON.parse(deploymentSource);
 const buildCommit = String(deployment.buildCommit ?? '').trim();
-if (!/^[a-f0-9]{7,40}$|^local$/.test(buildCommit)) throw new Error('WP075 finalization requires a valid build commit marker');
+if (!/^[a-f0-9]{7,40}$|^local$/.test(buildCommit)) throw new Error('WP076 finalization requires a valid build commit marker');
 
 for (const file of [
   'profile-media-model.js', 'profile-media-controller.js', 'profile-media-gallery.js', 'profile-media.css', 'src/camera.js'
 ]) {
   const info = await stat(resolve(dist, file));
-  if (!info.isFile() || info.size < 100) throw new Error(`WP075 artifact is missing or unexpectedly small: ${file}`);
+  if (!info.isFile() || info.size < 100) throw new Error(`WP076 artifact is missing or unexpectedly small: ${file}`);
 }
 
 const entries = [
@@ -28,14 +28,14 @@ const entries = [
 const oldPattern = /\s*<script\s+type="module"\s+src="\.\/(?:profile-media-controller|profile-media-gallery)\.js(?:\?[^\"]*)?"\s*><\/script>\s*/g;
 let generatedIndex = indexSource.replace(oldPattern, '\n');
 generatedIndex = generatedIndex.replace('</body>', `${entries.map((src) => `  <script type="module" src="${src}"></script>`).join('\n')}\n</body>`);
-for (const entry of entries) if (!generatedIndex.includes(entry)) throw new Error(`WP075 module was not added: ${entry}`);
+for (const entry of entries) if (!generatedIndex.includes(entry)) throw new Error(`WP076 module was not added: ${entry}`);
 
 let generatedHeaders = headersSource.replace(
   'Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()',
   'Permissions-Policy: camera=(self), microphone=(), geolocation=(), payment=()'
 );
 if (!generatedHeaders.includes('Permissions-Policy: camera=(self), microphone=(), geolocation=(), payment=()')) {
-  throw new Error('WP075 requires same-origin camera permission while keeping microphone disabled');
+  throw new Error('WP076 requires same-origin camera permission while keeping microphone disabled');
 }
 if (generatedHeaders.includes('Permissions-Policy: camera=(),')) throw new Error('Camera remains disabled by the generated Permissions-Policy');
 
@@ -49,4 +49,4 @@ await Promise.all([
   writeFile(indexPath, generatedIndex, 'utf8'),
   writeFile(headersPath, generatedHeaders, 'utf8')
 ]);
-console.log(`WP075 profile-media artifact finalized with commit token ${buildCommit}.`);
+console.log(`WP076 profile-media artifact finalized with commit token ${buildCommit}.`);
