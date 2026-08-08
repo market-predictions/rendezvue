@@ -1,0 +1,107 @@
+name: Verify WP076 live selfie and profile media
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-wp076-profile-media.yml'
+      - 'apps/private-preview/profile-media-model.js'
+      - 'apps/private-preview/profile-media-controller.js'
+      - 'apps/private-preview/profile-media-gallery.js'
+      - 'apps/private-preview/profile-media.css'
+      - 'apps/private-preview/src/camera.js'
+      - 'apps/web/tests/profile-media-architecture.test.mjs'
+      - 'scripts/finalize-profile-media-artifact.mjs'
+      - 'scripts/validate-wp076-profile-media.mjs'
+      - 'supabase/migrations/20260808100500_live_selfie_profile_media.sql'
+      - 'supabase/tests/database/019_live_selfie_profile_media.test.sql'
+      - 'package.json'
+  workflow_run:
+    workflows: ['Configure Cloudflare staging backend']
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rendezvue-wp076-profile-media-${{ github.event.pull_request.number || github.event.workflow_run.head_sha || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    name: Validate WP076 live-selfie and profile-media contract
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: https://example.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_only_placeholder_00000000000000000000
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - name: Test source and generated artifact contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          node --test apps/web/tests/profile-media-architecture.test.mjs
+          npm run build:cloudflare
+          node scripts/validate-wp076-profile-media.mjs
+          grep --fixed-strings --quiet "'live_selfie'" apps/private-preview/profile-media-model.js
+          grep --fixed-strings --quiet "captureOrigin: 'live_camera'" apps/private-preview/profile-media-controller.js
+          grep --fixed-strings --quiet "get_discovery_profile_media" apps/private-preview/profile-media-gallery.js
+          grep --fixed-strings --quiet "live selfie required before publication" supabase/migrations/20260808100500_live_selfie_profile_media.sql
+          ! grep --extended-regexp --quiet "data-gallery-(slot|button)=['\"]live_selfie" apps/private-preview/profile-media-controller.js
+
+  canonical:
+    name: Verify canonical WP076 camera and profile-media delivery
+    if: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') }}
+    runs-on: ubuntu-latest
+    env:
+      STAGING_URL: https://rendezvue-private-preview.pages.dev/
+      EXPECTED_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - name: Wait for commit-matched canonical deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SHA" =~ ^[a-f0-9]{40}$ ]] || exit 1
+          metadata="$RUNNER_TEMP/deployment.json"
+          matched=false
+          for attempt in {1..72}; do
+            status="$(curl --silent --show-error --location --output "$metadata" --write-out '%{http_code}' --header 'cache-control: no-cache' "${STAGING_URL}deployment.json?commit=${EXPECTED_SHA}&attempt=${attempt}" || true)"
+            if [[ "$status" == "200" ]] && node --input-type=module --eval "
+              import { readFileSync } from 'node:fs';
+              const document = JSON.parse(readFileSync(process.argv[1], 'utf8'));
+              if (document.buildCommit !== process.argv[2]) process.exit(1);
+              if (document.hostingPlatform !== 'cloudflare-pages') process.exit(1);
+              if (document.remoteBackendConfigured !== true) process.exit(1);
+              if (document.realUserAdmissionAuthorized !== false) process.exit(1);
+            " "$metadata" "$EXPECTED_SHA"; then matched=true; break; fi
+            sleep 10
+          done
+          [[ "$matched" == "true" ]] || exit 1
+
+      - name: Verify delivered camera and profile-media boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          for route in profile-media-model.js profile-media-controller.js profile-media-gallery.js profile-media.css src/camera.js; do
+            target="$RUNNER_TEMP/$(basename "$route")"
+            status="$(curl --silent --show-error --location --output "$target" --write-out '%{http_code}' --header 'cache-control: no-cache' "${STAGING_URL}${route}?commit=${EXPECTED_SHA}" || true)"
+            [[ "$status" == "200" ]] || { echo "missing $route ($status)"; exit 1; }
+          done
+          headers="$RUNNER_TEMP/headers.txt"
+          curl --silent --show-error --location --dump-header "$headers" --output /dev/null --header 'cache-control: no-cache' "${STAGING_URL}?commit=${EXPECTED_SHA}"
+          grep -i --extended-regexp --quiet 'permissions-policy:.*camera=\(self\).*microphone=\(\)' "$headers"
+          grep --fixed-strings --quiet "captureOrigin: 'live_camera'" "$RUNNER_TEMP/profile-media-controller.js"
+          grep --fixed-strings --quiet 'recordChallenge(video' "$RUNNER_TEMP/profile-media-controller.js"
+          grep --fixed-strings --quiet 'get_discovery_profile_media' "$RUNNER_TEMP/profile-media-gallery.js"
+          grep --fixed-strings --quiet 'discoveryPrimaryImageCount: 1' "$RUNNER_TEMP/profile-media-gallery.js"
+          grep --fixed-strings --quiet "'profile_photo_2'" "$RUNNER_TEMP/profile-media-model.js"
+          grep --fixed-strings --quiet '.rv-profile-media-dialog' "$RUNNER_TEMP/profile-media.css"
