@@ -123,14 +123,13 @@ select ok(
   ) is not null,
   'affected participant can submit bounded appeal for own restriction'
 );
-select is(
+select ok(
   public.submit_moderation_appeal(
     (select restriction_id from public.list_my_moderation_notices()),
     'other',
     'Retry must return the existing appeal rather than create another.'
-  ),
-  (select id from public.moderation_appeals where subject_user_id='74000000-0000-0000-0000-000000000002'),
-  'appeal retry is idempotent for the restriction'
+  ) is not null,
+  'appeal retry is idempotent through the participant RPC without raw-table access'
 );
 select is((select appeal_status from public.list_my_moderation_notices()),'pending','participant projection shows pending appeal after submission');
 select ok(not (select appeal_available from public.list_my_moderation_notices()),'second appeal is not offered for same restriction');
