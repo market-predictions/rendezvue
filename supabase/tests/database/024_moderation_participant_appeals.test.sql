@@ -146,12 +146,18 @@ select ok(
   'appeal submission audit omits participant free-text statement'
 );
 
+select set_config(
+  'test.wp070d_restriction_id',
+  (select id::text from public.moderation_restrictions where subject_user_id='74000000-0000-0000-0000-000000000002'),
+  true
+);
+
 set local "request.jwt.claims"='{"sub":"74000000-0000-0000-0000-000000000003","role":"authenticated"}';
 set local role authenticated;
 select is((select count(*) from public.list_my_moderation_notices()),0::bigint,'unaffected participant cannot see another participant notice');
 select throws_ok(
   format($$select public.submit_moderation_appeal(%L::uuid,'other','not mine')$$,
-    (select id from public.moderation_restrictions where subject_user_id='74000000-0000-0000-0000-000000000002')),
+    current_setting('test.wp070d_restriction_id')),
   'P0001','moderation restriction unavailable','participant cannot appeal another user restriction'
 );
 reset role;
